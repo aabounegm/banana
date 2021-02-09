@@ -37,7 +37,7 @@ executables:
     - banana
 
 tests:
-  banana-test:
+  spec:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -46,3 +46,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - banana
+    - hspec
+    - hspec-discover

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f9b3058a060f22a9f8509cad9eede90b15acf0863de611ffbd1a18fd690ece6e
+-- hash: 782db725603212e31c7b7a7ee76fdb7e8cf334ae754579aebedb27ef59d66343
 
 name:           banana
 version:        0.1.0.0
@@ -27,7 +27,12 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
+      Banana.CodeGen.LLVM
+      Banana.Syntax.AST
+      Banana.Syntax.Lexer
+      Banana.Syntax.Parser
+      Banana.TypeCheck.Checker
+      Banana.TypeCheck.IR
   other-modules:
       Paths_banana
   hs-source-dirs:
@@ -48,10 +53,14 @@ executable banana-exe
     , base >=4.7 && <5
   default-language: Haskell2010
 
-test-suite banana-test
+test-suite spec
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Banana.CodeGen.LLVMSpec
+      Banana.Syntax.LexerSpec
+      Banana.Syntax.ParserSpec
+      Banana.TypeCheck.CheckerSpec
       Paths_banana
   hs-source-dirs:
       test
@@ -59,4 +68,6 @@ test-suite banana-test
   build-depends:
       banana
     , base >=4.7 && <5
+    , hspec
+    , hspec-discover
   default-language: Haskell2010
