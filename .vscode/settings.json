@@ -1,0 +1,16 @@
+{
+  "editor.detectIndentation": false,
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "editor.formatOnSave": true,
+  "haskell.formattingProvider": "stylish-haskell",
+  "[haskell]": {
+    "editor.rulers": [
+      90
+    ],
+  },
+  "[yaml]": {
+    "editor.formatOnSave": false,
+  },
+  "files.insertFinalNewline": true
+}
