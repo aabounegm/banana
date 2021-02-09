@@ -1,0 +1,32 @@
+name: Run Unit Tests
+
+on:
+  push:
+    branches:
+      - "master"
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v2
+
+      - name: 🧰 Setup Stack
+        uses: haskell/actions/setup@v1
+        with:
+          enable-stack: true
+
+      - name: 🔨 Build Documentation
+        run: |
+          stack haddock
+          mkdir dist
+          mv $(stack path --local-install-root)/doc/* dist/haddock
+
+      - name: 📘 Publish Documentation
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: dist
+          force_orphan: true

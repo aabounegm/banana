@@ -1,0 +1,24 @@
+name: Run Unit Tests
+
+on:
+  pull_request:
+
+jobs:
+  build-and-test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+      fail-fast: true
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v2
+
+      - name: 🧰 Setup Stack
+        uses: haskell/actions/setup@v1
+        with:
+          enable-stack: true
+
+      - name: 🔨 Build & Test
+        run: stack test
