@@ -1,10 +1,10 @@
 cradle:
-  multi:
-    - path: ./
-      config:
-        cradle:
-          stack:
-    - path: ./Setup.hs
-      config:
-        cradle:
-          none:
+  stack:
+    - path: "./app/"
+      component: "banana:exe:banana-exe"
+    - path: "./src/"
+      component: "banana:lib"
+    - path: "./test/"
+      component: "banana:test:spec"
+    - path: "./Setup.hs"
+      component: "Cabal"
