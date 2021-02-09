@@ -1,4 +1,4 @@
-name: Run Unit Tests
+name: Pubish Documentation
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
         run: |
           stack haddock
           mkdir dist
-          mv $(stack path --local-install-root)/doc/* dist/haddock
+          mv $(stack path --local-doc-root)/* dist
 
       - name: 📘 Publish Documentation
         uses: peaceiris/actions-gh-pages@v3
