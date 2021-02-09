@@ -6,7 +6,7 @@
   "haskell.formattingProvider": "stylish-haskell",
   "[haskell]": {
     "editor.rulers": [
-      90
+      80
     ],
   },
   "[yaml]": {
