@@ -9,12 +9,12 @@ module Banana.Syntax.AST where
 -- | The possible types in the Banana language
 data Type = Number
           | Array Integer Type
-          deriving (Show)
+          deriving (Show, Eq)
 
 -- | A variable declaration of the form "var x: num"
 data VarDecl = VarDecl { varName :: String
                        , varType :: Type
-                       } deriving (Show)
+                       } deriving (Show, Eq)
 
 -- | An arithmetic expression
 data Expr a = Add (Expr a) (Expr a) -- ^ Addition
@@ -23,10 +23,10 @@ data Expr a = Add (Expr a) (Expr a) -- ^ Addition
             | Div (Expr a) (Expr a) -- ^ Division
             | Var String            -- ^ Variable (identifier)
             | Lit a                 -- ^ A literal value
-            deriving (Show)
+            deriving (Show, Eq)
 
 -- | A variable assignment of the form "x := y"
 data VarAssign = VarAssign
   { varAssignee :: Expr Double -- ^ LHS
   , varExpr     :: Expr Double -- ^ RHS
-  } deriving (Show)
+  } deriving (Show, Eq)
