@@ -8,6 +8,8 @@ on:
 jobs:
   docs:
     runs-on: ubuntu-latest
+    env:
+      STACK_ROOT: ${{ github.workspace }}/.stack
 
     steps:
       - name: 📥 Checkout repository
@@ -17,6 +19,13 @@ jobs:
         uses: haskell/actions/setup@v1
         with:
           enable-stack: true
+
+      - name: 💾 Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            .stack
+          key: ${{ runner.os }}-${{ hashFiles('stack.yaml.lock', 'banana.cabal') }}-stack
 
       - name: 🔨 Build Documentation
         run: |
