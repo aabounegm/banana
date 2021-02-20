@@ -26,7 +26,7 @@ parseType = (string "num" >> return Number)
         <|> (string "array" >> do
               space >> whiteSpace
               size <- natural
-              space >> whiteSpace
+              whiteSpace
               Array size <$> parseType)
 
 -- | Parse variable declarations
@@ -35,7 +35,7 @@ parseVarDecl = do
   string "var" >> space >> whiteSpace
   name <- ident emptyIdents
   whiteSpace >> char ':' >> whiteSpace
-  newline >> VarDecl name <$> parseType
+  VarDecl name <$> parseType
 
 -- | Parse an arithmetic expression
 parseExpr :: Parser (Expr Double)
