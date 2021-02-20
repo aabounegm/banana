@@ -2,6 +2,10 @@ name: Run Unit Tests
 
 on:
   pull_request:
+    paths:
+      - app/**
+      - src/**
+      - test/**
 
 jobs:
   build-and-test:
