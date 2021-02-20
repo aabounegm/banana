@@ -25,6 +25,7 @@ jobs:
         uses: haskell/actions/setup@v1
         with:
           enable-stack: true
+          stack-no-global: true
 
       - name: 💾 Cache
         uses: actions/cache@v2
