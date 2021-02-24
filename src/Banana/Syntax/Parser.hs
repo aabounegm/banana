@@ -67,6 +67,6 @@ reservedOp = reserve emptyOps
 -- | Parse the variable assignment statement
 parseVarAssign :: Parser (VarAssign String)
 parseVarAssign = do
-  var <- ident emptyIdents
+  var <- parseExpr
   whiteSpace >> string ":=" >> whiteSpace
-  VarAssign (Var var) <$> parseExpr
+  VarAssign var <$> parseExpr
