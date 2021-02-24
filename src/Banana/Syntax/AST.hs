@@ -21,12 +21,12 @@ data Expr a = Add (Expr a) (Expr a) -- ^ Addition
             | Sub (Expr a) (Expr a) -- ^ Subtraction
             | Mul (Expr a) (Expr a) -- ^ Multiplication
             | Div (Expr a) (Expr a) -- ^ Division
-            | Var String            -- ^ Variable (identifier)
-            | Lit a                 -- ^ A literal value
+            | Var a                 -- ^ Variable (identifier)
+            | Lit Double            -- ^ A literal value
             deriving (Show, Eq)
 
 -- | A variable assignment of the form "x := y"
-data VarAssign = VarAssign
-  { varAssignee :: Expr Double -- ^ LHS
-  , varExpr     :: Expr Double -- ^ RHS
+data VarAssign a = VarAssign
+  { varAssignee :: Expr a -- ^ LHS
+  , varExpr     :: Expr a -- ^ RHS
   } deriving (Show, Eq)

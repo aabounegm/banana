@@ -15,7 +15,7 @@ shouldParseAs parser input expectation = parsed `shouldBe` Right expectation
       Success x -> Right x
       Failure e -> Left (show e)
 
-shouldParseAsExpr :: String -> Expr Double -> Expectation
+shouldParseAsExpr :: String -> Expr String -> Expectation
 shouldParseAsExpr = shouldParseAs parseExpr
 
 shouldParseAsType :: String -> Type -> Expectation
@@ -24,7 +24,7 @@ shouldParseAsType = shouldParseAs parseType
 shouldParseAsVarDecl :: String -> VarDecl -> Expectation
 shouldParseAsVarDecl = shouldParseAs parseVarDecl
 
-shouldParseAsVarAssign :: String -> VarAssign -> Expectation
+shouldParseAsVarAssign :: String -> VarAssign String -> Expectation
 shouldParseAsVarAssign = shouldParseAs parseVarAssign
 
 spec :: Spec

@@ -38,10 +38,10 @@ parseVarDecl = do
   VarDecl name <$> parseType
 
 -- | Parse an arithmetic expression
-parseExpr :: Parser (Expr Double)
+parseExpr :: Parser (Expr String)
 parseExpr = buildExpressionParser table term
 
-term :: Parser (Expr Double)
+term :: Parser (Expr String)
 term = parens parseExpr
    <|> Var <$> ident emptyIdents
    <|> Lit . toDouble <$> integerOrDouble
@@ -65,7 +65,7 @@ reservedOp :: String -> Parser ()
 reservedOp = reserve emptyOps
 
 -- | Parse the variable assignment statement
-parseVarAssign :: Parser VarAssign
+parseVarAssign :: Parser (VarAssign String)
 parseVarAssign = do
   var <- ident emptyIdents
   whiteSpace >> string ":=" >> whiteSpace
