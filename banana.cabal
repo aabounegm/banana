@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 782db725603212e31c7b7a7ee76fdb7e8cf334ae754579aebedb27ef59d66343
+-- hash: 273c7e9f350991109b8b67c3cd07a7fb5eb283ed8fed3d7fe1cbc47f25db4bf6
 
 name:           banana
 version:        0.1.0.0
@@ -39,6 +39,8 @@ library
       src
   build-depends:
       base >=4.7 && <5
+    , parsers
+    , trifecta
   default-language: Haskell2010
 
 executable banana-exe
@@ -51,6 +53,8 @@ executable banana-exe
   build-depends:
       banana
     , base >=4.7 && <5
+    , parsers
+    , trifecta
   default-language: Haskell2010
 
 test-suite spec
@@ -70,4 +74,6 @@ test-suite spec
     , base >=4.7 && <5
     , hspec
     , hspec-discover
+    , parsers
+    , trifecta
   default-language: Haskell2010

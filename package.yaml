@@ -21,6 +21,8 @@ description:         Please see the README on GitHub at <https://github.com/aabo
 
 dependencies:
 - base >= 4.7 && < 5
+- trifecta
+- parsers
 
 library:
   source-dirs: src

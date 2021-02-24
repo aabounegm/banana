@@ -2,6 +2,10 @@ name: Run Unit Tests
 
 on:
   pull_request:
+    paths:
+      - app/**
+      - src/**
+      - test/**
 
 jobs:
   build-and-test:
@@ -10,6 +14,8 @@ jobs:
         os: [ubuntu-latest, windows-latest]
       fail-fast: true
     runs-on: ${{ matrix.os }}
+    env:
+      STACK_ROOT: ${{ github.workspace }}/.stack
 
     steps:
       - name: 📥 Checkout repository
@@ -19,6 +25,15 @@ jobs:
         uses: haskell/actions/setup@v1
         with:
           enable-stack: true
+          stack-no-global: true
+
+      - name: 💾 Cache
+        uses: actions/cache@v2
+        with:
+          # TODO: check if should add '.stack-work' as well
+          path: |
+            .stack
+          key: ${{ runner.os }}-${{ hashFiles('stack.yaml.lock', 'banana.cabal') }}-stack
 
       - name: 🔨 Build & Test
         run: stack test
