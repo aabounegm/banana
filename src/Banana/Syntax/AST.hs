@@ -12,9 +12,10 @@ data Type = Number
           deriving (Show, Eq)
 
 -- | A variable declaration of the form "var x: num"
-data VarDecl = VarDecl { varName :: String
-                       , varType :: Type
-                       } deriving (Show, Eq)
+data VarDecl = VarDecl
+  { varName :: String
+  , varType :: Type
+  } deriving (Show, Eq)
 
 -- | An arithmetic expression
 data Expr a = Add (Expr a) (Expr a) -- ^ Addition
@@ -30,3 +31,9 @@ data VarAssign a = VarAssign
   { varAssignee :: Expr a -- ^ LHS
   , varExpr     :: Expr a -- ^ RHS
   } deriving (Show, Eq)
+
+-- | The AST node representing the entire program with all of its structures
+data Program a = Program
+  { varDecls    :: [VarDecl]
+  , assignments :: [VarAssign a]
+  }  deriving (Show, Eq)

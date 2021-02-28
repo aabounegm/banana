@@ -9,12 +9,14 @@ module Banana.Syntax.Parser (
   parseType,
   parseVarDecl,
   parseExpr,
-  parseVarAssign
+  parseVarAssign,
+  parseProgram,
 ) where
 
 import           Banana.Syntax.AST
 import           Control.Applicative
 import           Text.Parser.Char
+import           Text.Parser.Combinators (eof)
 import           Text.Parser.Expression
 import           Text.Parser.Token
 import           Text.Parser.Token.Style
@@ -35,7 +37,7 @@ parseVarDecl = do
   string "var" >> space >> whiteSpace
   name <- ident emptyIdents
   whiteSpace >> char ':' >> whiteSpace
-  VarDecl name <$> parseType
+  VarDecl name <$> (parseType <* whiteSpace)
 
 -- | Parse an arithmetic expression
 parseExpr :: Parser (Expr String)
@@ -69,4 +71,21 @@ parseVarAssign :: Parser (VarAssign String)
 parseVarAssign = do
   var <- parseExpr
   whiteSpace >> string ":=" >> whiteSpace
-  VarAssign var <$> parseExpr
+  VarAssign var <$> (parseExpr <* whiteSpace)
+
+-- | Parse a program consisting of variable declarations and assignments
+parseProgram :: Parser (Program String)
+parseProgram = do
+    do
+      var  <- parseVarDecl
+      prog <- parseProgram <* whiteSpace
+      return prog { varDecls = var : varDecls prog }
+  <|>
+    do
+      assign <- parseVarAssign
+      prog   <- parseProgram <* whiteSpace
+      return prog { assignments = assign : assignments prog }
+  <|>
+    do
+      whiteSpace >> eof
+      return (Program [] [])
