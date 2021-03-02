@@ -12,8 +12,8 @@ data Type = Number
           deriving (Show, Eq)
 
 -- | A variable declaration of the form "var x: num"
-data VarDecl = VarDecl
-  { varName :: String
+data VarDecl a = VarDecl
+  { varName :: a
   , varType :: Type
   } deriving (Show, Eq)
 
