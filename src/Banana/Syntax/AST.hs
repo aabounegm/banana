@@ -9,6 +9,7 @@ module Banana.Syntax.AST where
 -- | The possible types in the Banana language
 data Type = Number
           | Array Integer Type
+          | Void
           deriving (Show, Eq)
 
 -- | A variable declaration of the form "var x: num"
@@ -30,6 +31,19 @@ data Expr a = Add (Expr a) (Expr a) -- ^ Addition
 data VarAssign a = VarAssign
   { varAssignee :: Expr a -- ^ LHS
   , varExpr     :: Expr a -- ^ RHS
+  } deriving (Show, Eq)
+
+-- | A wrapper to collect all statement types together
+data Statement a
+  = VarDeclaration (VarDecl a)
+  | VarAssignment  (VarAssign a)
+  deriving (Show, Eq)
+
+-- | A function definition
+data Function a = Function
+  { params     :: [VarDecl a]
+  , returnType :: Type
+  , body       :: [Statement a]
   } deriving (Show, Eq)
 
 -- | The AST node representing the entire program with all of its structures
