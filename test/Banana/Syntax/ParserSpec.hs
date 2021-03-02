@@ -21,7 +21,7 @@ shouldParseAsExpr = shouldParseAs parseExpr
 shouldParseAsType :: String -> Type -> Expectation
 shouldParseAsType = shouldParseAs parseType
 
-shouldParseAsVarDecl :: String -> VarDecl -> Expectation
+shouldParseAsVarDecl :: String -> VarDecl String -> Expectation
 shouldParseAsVarDecl = shouldParseAs parseVarDecl
 
 shouldParseAsVarAssign :: String -> VarAssign String -> Expectation
@@ -73,30 +73,29 @@ spec = do
   describe "parseProgram" $ do
     it "parses a series of variable declarations successfully" $ do
       "var x: num\nvar y: array 5 num\n" `shouldParseAsProgram` Program
-        { varDecls =
-            [ VarDecl "x" Number
-            , VarDecl "y" (Array 5 Number)
+        { functions = []
+        , statements =
+            [ VarDeclaration $ VarDecl "x" Number
+            , VarDeclaration $ VarDecl "y" (Array 5 Number)
             ]
-        , assignments = []
         }
 
     it "parses a series of assignments successfully" $ do
       "x := 42\npi:=22/7\n" `shouldParseAsProgram` Program
-        { varDecls = []
-        , assignments =
-            [ VarAssign (Var "x") (Lit 42.0)
-            , VarAssign (Var "pi") (Div (Lit 22.0) (Lit 7.0))
+        { functions = []
+        , statements =
+            [ VarAssignment $ VarAssign (Var "x") (Lit 42.0)
+            , VarAssignment $ VarAssign (Var "pi") (Div (Lit 22.0) (Lit 7.0))
             ]
         }
 
     it "parses lines of interleaved assignments and declarations" $ do
       "var x: num\nx:=4+y\nvar y: array 1 num\ny := 5" `shouldParseAsProgram` Program
-        { varDecls =
-            [ VarDecl "x" Number
-            , VarDecl "y" (Array 1 Number)
-            ]
-        , assignments =
-            [ VarAssign (Var "x") (Add (Lit 4.0) (Var "y"))
-            , VarAssign (Var "y") (Lit 5.0)
+        { functions = []
+        , statements =
+            [ VarDeclaration $ VarDecl "x" Number
+            , VarAssignment  $ VarAssign (Var "x") (Add (Lit 4.0) (Var "y"))
+            , VarDeclaration $ VarDecl "y" (Array 1 Number)
+            , VarAssignment  $ VarAssign (Var "y") (Lit 5.0)
             ]
         }
