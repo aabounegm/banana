@@ -32,7 +32,7 @@ parseType = (string "num" >> return Number)
               Array size <$> parseType)
 
 -- | Parse variable declarations
-parseVarDecl :: Parser VarDecl
+parseVarDecl :: Parser (VarDecl String)
 parseVarDecl = do
   string "var" >> space >> whiteSpace
   name <- ident emptyIdents
@@ -79,12 +79,12 @@ parseProgram = do
     do
       var  <- parseVarDecl
       prog <- parseProgram <* whiteSpace
-      return prog { varDecls = var : varDecls prog }
+      return prog { statements = VarDeclaration var : statements prog }
   <|>
     do
       assign <- parseVarAssign
       prog   <- parseProgram <* whiteSpace
-      return prog { assignments = assign : assignments prog }
+      return prog { statements = VarAssignment assign : statements prog }
   <|>
     do
       whiteSpace >> eof

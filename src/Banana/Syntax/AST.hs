@@ -48,6 +48,26 @@ data Function a = Function
 
 -- | The AST node representing the entire program with all of its structures
 data Program a = Program
-  { varDecls    :: [VarDecl]
-  , assignments :: [VarAssign a]
-  }  deriving (Show, Eq)
+  { statements :: [Statement a]
+  , functions  :: [Function a]
+  } deriving (Show, Eq)
+
+varDecls :: Program a -> [VarDecl a]
+varDecls = map extractDecl . filter isVarDecl . statements
+  where
+    isVarDecl (VarDeclaration _) = True
+    isVarDecl _                  = False
+
+    extractDecl (VarDeclaration x) = x
+    extractDecl _                  = undefined
+
+assignments :: Program a -> [VarAssign a]
+assignments = map extractDecl . filter isVarAssign . statements
+  where
+    isVarAssign (VarAssignment _) = True
+    isVarAssign _                 = False
+
+    extractDecl (VarAssignment x) = x
+    extractDecl _                 = undefined
+
+
