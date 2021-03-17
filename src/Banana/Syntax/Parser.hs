@@ -52,14 +52,20 @@ term = parens parseExpr
       toDouble (Right d) = d
 
 table :: [[Operator Parser (Expr a)]]
-table = [ [binary "*" Mul AssocLeft, binary "/" Div AssocLeft ]
-        , [binary "+" Add AssocLeft, binary "-" Sub AssocLeft ]
+table = [ [binary "*"  Mul AssocLeft,  binary "/"  Div AssocLeft ]
+        , [binary "+"  Add AssocLeft,  binary "-"  Sub AssocLeft ]
+        , [binary "and" And AssocLeft, binary "or" Or  AssocLeft]
+        , [prefix "not" Not]
+        , [binary "<"  Less AssocNone, binary ">"  More AssocNone ]
+        , [binary "<=" LEq  AssocNone,  binary ">=" MEq AssocNone ]
+        , [binary "="  Eq   AssocRight,  binary "/=" NotEq AssocRight ]
         ]
 -- http://hackage.haskell.org/package/parsers-0.12.10/docs/Text-Parser-Expression.html
 binary :: String -> (a -> a -> a) -> Assoc -> Operator Parser a
 binary  name fun = Infix (fun <$ reservedOp name)
--- prefix :: String -> (a -> a) -> Operator Parser a
--- prefix  name fun = Prefix (fun <$ reservedOp name)
+
+prefix :: String -> (a -> a) -> Operator Parser a
+prefix  name fun = Prefix (fun <$ reservedOp name)
 -- postfix :: String -> (a -> a) -> Operator Parser a
 -- postfix name fun = Postfix (fun <$ reservedOp name)
 
@@ -72,6 +78,20 @@ parseVarAssign = do
   var <- parseExpr
   whiteSpace >> string ":=" >> whiteSpace
   VarAssign var <$> (parseExpr <* whiteSpace)
+
+-- | Parse if statement
+-- parseIfStatement :: Parser (IfStatement String)
+-- parseIfStatement = do
+--   string "if" >> space >> whiteSpace
+--   cond <- parseExpr
+--   whiteSpace >> string "then" >> whiteSpace
+--   true <- parseVarAssign
+--   string "else" >> whiteSpace
+--   false <- parseVarAssign
+--   IfStatement (cond <$> (parseExpr <* whiteSpace))
+--     [true <$> (parseVarAssign <* whiteSpace)
+--     , false <$> (parseVarAssign <* whiteSpace)]
+
 
 -- | Parse a program consisting of variable declarations and assignments
 parseProgram :: Parser (Program String)

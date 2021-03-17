@@ -41,6 +41,34 @@ spec = do
         (Add (Var "x") (Mul (Lit 5.0) (Lit 2.0)))
         (Add (Var "x") (Lit 2.0))
 
+    it "parses \"x and y\" successfully" $ do
+      "x and y\n" `shouldParseAsExpr` And (Var "x") (Var "y")
+
+    it "parses \"x or y\" successfully" $ do
+      "x or y\n" `shouldParseAsExpr` Or (Var "x") (Var "y")
+
+    it "parses \"not y\" successfully" $ do
+      "not y\n" `shouldParseAsExpr` Not (Var "y")
+
+    it "parses \"4<5\" successfully" $ do
+      "4<5\n" `shouldParseAsExpr` Less (Lit 4.0) (Lit 5.0)
+
+    it "parses \"3>1\" successfully" $ do
+      "3>1\n" `shouldParseAsExpr` More (Lit 3.0) (Lit 1.0)
+
+    it "parses \"x<=1\" successfully" $ do
+      "x<=1\n" `shouldParseAsExpr` LEq (Var "x") (Lit 1.0)
+
+    it "parses \"x>=1\" successfully" $ do
+      "x>=1\n" `shouldParseAsExpr` MEq (Var "x") (Lit 1.0)
+
+    it "parses \"1=1\" successfully" $ do
+      "1=1\n" `shouldParseAsExpr` Eq (Lit 1.0) (Lit 1.0)
+
+    it "parses \"2/=1\" successfully" $ do
+      "2/=1\n" `shouldParseAsExpr` NotEq (Lit 2.0) (Lit 1.0)
+
+
   describe "parseType" $ do
     it "parses \"num\" successfully" $ do
       "num" `shouldParseAsType` Number
