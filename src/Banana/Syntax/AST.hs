@@ -49,11 +49,18 @@ data VarAssign a = VarAssign
   , varExpr     :: Expr a -- ^ RHS
   } deriving (Show, Eq)
 
+-- | A definition of if statement
+data IfStatement a = If
+  { condition :: [Expr a]
+  , statement :: [Statement a]
+  } deriving (Show, Eq)
+
 -- | A wrapper to collect all statement types together
 data Statement a
   = VarDeclaration (VarDecl a)
   | VarAssignment  (VarAssign a)
   | FuncCallStatement (FuncCall a)
+  | IfStatement (IfStatement a)
   deriving (Show, Eq)
 
 -- | A function definition
@@ -87,4 +94,11 @@ assignments = map extractAssign . filter isVarAssign . statements
     extractAssign (VarAssignment x) = x
     extractAssign _                 = undefined
 
+ifStatements :: Program a -> [IfStatement a]
+ifStatements = map extractIf . filter isIfStatement . statements
+  where
+    isIfStatement (IfStatement _) = True
+    isIfStatement _               = False
 
+    extractIf  (IfStatement x) = x
+    extractIf  _               = undefined
