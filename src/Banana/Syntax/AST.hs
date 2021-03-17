@@ -18,13 +18,20 @@ data VarDecl a = VarDecl
   , varType :: Type
   } deriving (Show, Eq)
 
+-- | Function call, with the same representation as for expressions
+data FuncCall a = FuncCall
+  { func :: a        -- A reference to the function declaration
+  , args :: [Expr a] -- The arguments provided to the invocation
+  } deriving (Show, Eq)
+
 -- | An arithmetic expression
-data Expr a = Add (Expr a) (Expr a) -- ^ Addition
-            | Sub (Expr a) (Expr a) -- ^ Subtraction
-            | Mul (Expr a) (Expr a) -- ^ Multiplication
-            | Div (Expr a) (Expr a) -- ^ Division
-            | Var a                 -- ^ Variable (identifier)
-            | Lit Double            -- ^ A literal value
+data Expr a = Add (Expr a) (Expr a)     -- ^ Addition
+            | Sub (Expr a) (Expr a)     -- ^ Subtraction
+            | Mul (Expr a) (Expr a)     -- ^ Multiplication
+            | Div (Expr a) (Expr a)     -- ^ Division
+            | Var a                     -- ^ Variable (identifier)
+            | Lit Double                -- ^ A literal value
+            | FuncCallExpr (FuncCall a) -- ^ A function call as an expression
             deriving (Show, Eq)
 
 -- | A variable assignment of the form "x := y"
@@ -37,6 +44,7 @@ data VarAssign a = VarAssign
 data Statement a
   = VarDeclaration (VarDecl a)
   | VarAssignment  (VarAssign a)
+  | FuncCallStatement (FuncCall a)
   deriving (Show, Eq)
 
 -- | A function definition

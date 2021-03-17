@@ -41,6 +41,14 @@ spec = do
         (Add (Var "x") (Mul (Lit 5.0) (Lit 2.0)))
         (Add (Var "x") (Lit 2.0))
 
+    it "parses function calls in expressions" $ do
+      "x + func(5) * f2(42, x)" `shouldParseAsExpr` Add
+        (Var "x")
+        (Mul
+          (FuncCallExpr (FuncCall "func" [Lit 5.0]))
+          (FuncCallExpr (FuncCall "f2" [Lit 42.0, Var "x"]))
+        )
+
   describe "parseType" $ do
     it "parses \"num\" successfully" $ do
       "num" `shouldParseAsType` Number
@@ -97,5 +105,14 @@ spec = do
             , VarAssignment  $ VarAssign (Var "x") (Add (Lit 4.0) (Var "y"))
             , VarDeclaration $ VarDecl "y" (Array 1 Number)
             , VarAssignment  $ VarAssign (Var "y") (Lit 5.0)
+            ]
+        }
+
+    it "parses function calls as statements" $ do
+      "print(42)\nmyFunc23(-1)" `shouldParseAsProgram` Program
+        { functions = []
+        , statements =
+            [ FuncCallStatement (FuncCall "print" [Lit 42])
+            , FuncCallStatement (FuncCall "myFunc23" [Lit (-1)])
             ]
         }

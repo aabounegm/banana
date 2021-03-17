@@ -11,12 +11,13 @@ module Banana.Syntax.Parser (
   parseExpr,
   parseVarAssign,
   parseProgram,
+  parseFuncCall
 ) where
 
 import           Banana.Syntax.AST
 import           Control.Applicative
 import           Text.Parser.Char
-import           Text.Parser.Combinators (eof)
+import           Text.Parser.Combinators (eof, try)
 import           Text.Parser.Expression
 import           Text.Parser.Token
 import           Text.Parser.Token.Style
@@ -39,14 +40,19 @@ parseVarDecl = do
   whiteSpace >> char ':' >> whiteSpace
   VarDecl name <$> (parseType <* whiteSpace)
 
+-- | Parse a function call
+parseFuncCall :: Parser (FuncCall String)
+parseFuncCall = FuncCall <$> ident emptyIdents <*> parens (commaSep parseExpr)
+
 -- | Parse an arithmetic expression
 parseExpr :: Parser (Expr String)
 parseExpr = buildExpressionParser table term
 
 term :: Parser (Expr String)
 term = parens parseExpr
-   <|> Var <$> ident emptyIdents
    <|> Lit . toDouble <$> integerOrDouble
+   <|> try (FuncCallExpr <$> parseFuncCall)
+   <|> Var <$> ident emptyIdents
     where
       toDouble (Left i)  = fromInteger i
       toDouble (Right d) = d
@@ -80,6 +86,11 @@ parseProgram = do
       var  <- parseVarDecl
       prog <- parseProgram <* whiteSpace
       return prog { statements = VarDeclaration var : statements prog }
+  <|>
+    try (do
+      funcCall <- parseFuncCall
+      prog <- parseProgram <* whiteSpace
+      return prog { statements = FuncCallStatement funcCall : statements prog })
   <|>
     do
       assign <- parseVarAssign
