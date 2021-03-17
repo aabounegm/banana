@@ -45,6 +45,16 @@ allVarsDeclared prog = all
     vars (Div l r) = vars l ++ vars r
     vars (Var a)   = [Var a]
     vars (Lit _)   = []
+    vars (Not e)   = vars e
+    vars (Or  l r) = vars l ++ vars r
+    vars (And l r) = vars l ++ vars r
+    vars (Eq  l r) = vars l ++ vars r
+    vars (NEq l r) = vars l ++ vars r
+    vars (LEq l r) = vars l ++ vars r
+    vars (MEq l r) = vars l ++ vars r
+    vars (Less l r) = vars l ++ vars r
+    vars (More l r) = vars l ++ vars r
+    vars (FuncCallExpr (FuncCall _ args)) = concatMap vars args
 
     expressions (VarAssign lhs rhs) = vars lhs ++ vars rhs
 

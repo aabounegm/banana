@@ -60,12 +60,22 @@ term = parens parseExpr
 table :: [[Operator Parser (Expr a)]]
 table = [ [binary "*" Mul AssocLeft, binary "/" Div AssocLeft ]
         , [binary "+" Add AssocLeft, binary "-" Sub AssocLeft ]
+        , [ binary "="  Eq   AssocLeft
+          , binary "/=" NEq  AssocLeft
+          , binary "<"  Less AssocLeft
+          , binary ">"  More AssocLeft
+          , binary "<=" LEq  AssocLeft
+          , binary ">=" MEq  AssocLeft
+          ]
+        , [prefix "not" Not]
+        , [binary "and" And AssocLeft]
+        , [binary "or"  Or  AssocLeft]
         ]
 -- http://hackage.haskell.org/package/parsers-0.12.10/docs/Text-Parser-Expression.html
 binary :: String -> (a -> a -> a) -> Assoc -> Operator Parser a
 binary  name fun = Infix (fun <$ reservedOp name)
--- prefix :: String -> (a -> a) -> Operator Parser a
--- prefix  name fun = Prefix (fun <$ reservedOp name)
+prefix :: String -> (a -> a) -> Operator Parser a
+prefix  name fun = Prefix (fun <$ reservedOp name)
 -- postfix :: String -> (a -> a) -> Operator Parser a
 -- postfix name fun = Postfix (fun <$ reservedOp name)
 

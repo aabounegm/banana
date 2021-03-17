@@ -25,12 +25,21 @@ data FuncCall a = FuncCall
   } deriving (Show, Eq)
 
 -- | An arithmetic expression
-data Expr a = Add (Expr a) (Expr a)     -- ^ Addition
-            | Sub (Expr a) (Expr a)     -- ^ Subtraction
-            | Mul (Expr a) (Expr a)     -- ^ Multiplication
-            | Div (Expr a) (Expr a)     -- ^ Division
-            | Var a                     -- ^ Variable (identifier)
-            | Lit Double                -- ^ A literal value
+data Expr a = Add   (Expr a) (Expr a)   -- ^ Addition (+)
+            | Sub   (Expr a) (Expr a)   -- ^ Subtraction (-)
+            | Mul   (Expr a) (Expr a)   -- ^ Multiplication (*)
+            | Div   (Expr a) (Expr a)   -- ^ Division (/)
+            | Var   a                   -- ^ Variable (identifier)
+            | Lit   Double              -- ^ A literal value
+            | Not   (Expr a)            -- ^ Unary logical not ('not')
+            | Or    (Expr a) (Expr a)   -- ^ Logical OR ('or')
+            | And   (Expr a) (Expr a)   -- ^ Logical AND ('and')
+            | Eq    (Expr a) (Expr a)   -- ^ Equal to (=)
+            | NEq (Expr a) (Expr a)     -- ^ Not Equal to (/=)
+            | Less  (Expr a) (Expr a)   -- ^ Less than (<)
+            | More  (Expr a) (Expr a)   -- ^ Bigger than (>)
+            | LEq   (Expr a) (Expr a)   -- ^ Less than or Equal to (<=)
+            | MEq   (Expr a) (Expr a)   -- ^ Bigger than or Equal to (>=)
             | FuncCallExpr (FuncCall a) -- ^ A function call as an expression
             deriving (Show, Eq)
 
@@ -70,12 +79,12 @@ varDecls = map extractDecl . filter isVarDecl . statements
     extractDecl _                  = undefined
 
 assignments :: Program a -> [VarAssign a]
-assignments = map extractDecl . filter isVarAssign . statements
+assignments = map extractAssign . filter isVarAssign . statements
   where
     isVarAssign (VarAssignment _) = True
     isVarAssign _                 = False
 
-    extractDecl (VarAssignment x) = x
-    extractDecl _                 = undefined
+    extractAssign (VarAssignment x) = x
+    extractAssign _                 = undefined
 
 

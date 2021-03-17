@@ -49,6 +49,41 @@ spec = do
           (FuncCallExpr (FuncCall "f2" [Lit 42.0, Var "x"]))
         )
 
+    it "parses \"x and y\" successfully" $ do
+      "x and y\n" `shouldParseAsExpr` And (Var "x") (Var "y")
+
+    it "parses \"x or y\" successfully" $ do
+      "x or y\n" `shouldParseAsExpr` Or (Var "x") (Var "y")
+
+    it "parses \"not y\" successfully" $ do
+      "not y\n" `shouldParseAsExpr` Not (Var "y")
+
+    it "parses \"4<5\" successfully" $ do
+      "4<5\n" `shouldParseAsExpr` Less (Lit 4.0) (Lit 5.0)
+
+    it "parses \"3>1\" successfully" $ do
+      "3>1\n" `shouldParseAsExpr` More (Lit 3.0) (Lit 1.0)
+
+    it "parses \"x<=1\" successfully" $ do
+      "x<=1\n" `shouldParseAsExpr` LEq (Var "x") (Lit 1.0)
+
+    it "parses \"x>=1\" successfully" $ do
+      "x>=1\n" `shouldParseAsExpr` MEq (Var "x") (Lit 1.0)
+
+    it "parses \"1=1\" successfully" $ do
+      "1=1\n" `shouldParseAsExpr` Eq (Lit 1.0) (Lit 1.0)
+
+    it "parses \"2/=1\" successfully" $ do
+      "2/=1\n" `shouldParseAsExpr` NEq (Lit 2.0) (Lit 1.0)
+
+    it "preserves order of operations" $ do
+      "10 - x * 5 = 0 and y <= 3 or 0 /= z" `shouldParseAsExpr` Or
+        (And
+          (Eq (Sub (Lit 10.0) (Mul (Var "x") (Lit 5.0))) (Lit 0.0))
+          (LEq (Var "y") (Lit 3.0))
+        )
+        (NEq (Lit 0.0) (Var "z"))
+
   describe "parseType" $ do
     it "parses \"num\" successfully" $ do
       "num" `shouldParseAsType` Number
