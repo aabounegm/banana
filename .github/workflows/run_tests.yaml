@@ -27,6 +27,12 @@ jobs:
           enable-stack: true
           stack-no-global: true
 
+      - name: Configure additional paths on Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          New-Item -itemType Directory -Force -Path "${{ env.STACK_ROOT }}"
+          echo "local-programs-path: ${{ env.STACK_ROOT }}" >> "${{ env.STACK_ROOT }}\config.yaml"
+
       - name: 💾 Cache
         uses: actions/cache@v2
         with:

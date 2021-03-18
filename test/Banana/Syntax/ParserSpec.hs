@@ -21,7 +21,7 @@ shouldParseAsExpr = shouldParseAs parseExpr
 shouldParseAsType :: String -> Type -> Expectation
 shouldParseAsType = shouldParseAs parseType
 
-shouldParseAsVarDecl :: String -> VarDecl -> Expectation
+shouldParseAsVarDecl :: String -> VarDecl String -> Expectation
 shouldParseAsVarDecl = shouldParseAs parseVarDecl
 
 shouldParseAsVarAssign :: String -> VarAssign String -> Expectation
@@ -40,6 +40,49 @@ spec = do
       "x+(5*2)-(x+2)\n" `shouldParseAsExpr` Sub
         (Add (Var "x") (Mul (Lit 5.0) (Lit 2.0)))
         (Add (Var "x") (Lit 2.0))
+
+    it "parses function calls in expressions" $ do
+      "x + func(5) * f2(42, x)" `shouldParseAsExpr` Add
+        (Var "x")
+        (Mul
+          (FuncCallExpr (FuncCall "func" [Lit 5.0]))
+          (FuncCallExpr (FuncCall "f2" [Lit 42.0, Var "x"]))
+        )
+
+    it "parses \"x and y\" successfully" $ do
+      "x and y\n" `shouldParseAsExpr` And (Var "x") (Var "y")
+
+    it "parses \"x or y\" successfully" $ do
+      "x or y\n" `shouldParseAsExpr` Or (Var "x") (Var "y")
+
+    it "parses \"not y\" successfully" $ do
+      "not y\n" `shouldParseAsExpr` Not (Var "y")
+
+    it "parses \"4<5\" successfully" $ do
+      "4<5\n" `shouldParseAsExpr` Less (Lit 4.0) (Lit 5.0)
+
+    it "parses \"3>1\" successfully" $ do
+      "3>1\n" `shouldParseAsExpr` More (Lit 3.0) (Lit 1.0)
+
+    it "parses \"x<=1\" successfully" $ do
+      "x<=1\n" `shouldParseAsExpr` LEq (Var "x") (Lit 1.0)
+
+    it "parses \"x>=1\" successfully" $ do
+      "x>=1\n" `shouldParseAsExpr` MEq (Var "x") (Lit 1.0)
+
+    it "parses \"1=1\" successfully" $ do
+      "1=1\n" `shouldParseAsExpr` Eq (Lit 1.0) (Lit 1.0)
+
+    it "parses \"2/=1\" successfully" $ do
+      "2/=1\n" `shouldParseAsExpr` NEq (Lit 2.0) (Lit 1.0)
+
+    it "preserves order of operations" $ do
+      "10 - x * 5 = 0 and y <= 3 or 0 /= z" `shouldParseAsExpr` Or
+        (And
+          (Eq (Sub (Lit 10.0) (Mul (Var "x") (Lit 5.0))) (Lit 0.0))
+          (LEq (Var "y") (Lit 3.0))
+        )
+        (NEq (Lit 0.0) (Var "z"))
 
   describe "parseType" $ do
     it "parses \"num\" successfully" $ do
@@ -73,30 +116,38 @@ spec = do
   describe "parseProgram" $ do
     it "parses a series of variable declarations successfully" $ do
       "var x: num\nvar y: array 5 num\n" `shouldParseAsProgram` Program
-        { varDecls =
-            [ VarDecl "x" Number
-            , VarDecl "y" (Array 5 Number)
+        { functions = []
+        , statements =
+            [ VarDeclaration $ VarDecl "x" Number
+            , VarDeclaration $ VarDecl "y" (Array 5 Number)
             ]
-        , assignments = []
         }
 
     it "parses a series of assignments successfully" $ do
       "x := 42\npi:=22/7\n" `shouldParseAsProgram` Program
-        { varDecls = []
-        , assignments =
-            [ VarAssign (Var "x") (Lit 42.0)
-            , VarAssign (Var "pi") (Div (Lit 22.0) (Lit 7.0))
+        { functions = []
+        , statements =
+            [ VarAssignment $ VarAssign (Var "x") (Lit 42.0)
+            , VarAssignment $ VarAssign (Var "pi") (Div (Lit 22.0) (Lit 7.0))
             ]
         }
 
     it "parses lines of interleaved assignments and declarations" $ do
       "var x: num\nx:=4+y\nvar y: array 1 num\ny := 5" `shouldParseAsProgram` Program
-        { varDecls =
-            [ VarDecl "x" Number
-            , VarDecl "y" (Array 1 Number)
+        { functions = []
+        , statements =
+            [ VarDeclaration $ VarDecl "x" Number
+            , VarAssignment  $ VarAssign (Var "x") (Add (Lit 4.0) (Var "y"))
+            , VarDeclaration $ VarDecl "y" (Array 1 Number)
+            , VarAssignment  $ VarAssign (Var "y") (Lit 5.0)
             ]
-        , assignments =
-            [ VarAssign (Var "x") (Add (Lit 4.0) (Var "y"))
-            , VarAssign (Var "y") (Lit 5.0)
+        }
+
+    it "parses function calls as statements" $ do
+      "print(42)\nmyFunc23(-1)" `shouldParseAsProgram` Program
+        { functions = []
+        , statements =
+            [ FuncCallStatement (FuncCall "print" [Lit 42])
+            , FuncCallStatement (FuncCall "myFunc23" [Lit (-1)])
             ]
         }

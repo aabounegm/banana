@@ -11,12 +11,13 @@ module Banana.Syntax.Parser (
   parseExpr,
   parseVarAssign,
   parseProgram,
+  parseFuncCall
 ) where
 
 import           Banana.Syntax.AST
 import           Control.Applicative
 import           Text.Parser.Char
-import           Text.Parser.Combinators (eof)
+import           Text.Parser.Combinators (eof, try)
 import           Text.Parser.Expression
 import           Text.Parser.Token
 import           Text.Parser.Token.Style
@@ -32,12 +33,16 @@ parseType = (string "num" >> return Number)
               Array size <$> parseType)
 
 -- | Parse variable declarations
-parseVarDecl :: Parser VarDecl
+parseVarDecl :: Parser (VarDecl String)
 parseVarDecl = do
   string "var" >> space >> whiteSpace
   name <- ident emptyIdents
   whiteSpace >> char ':' >> whiteSpace
   VarDecl name <$> (parseType <* whiteSpace)
+
+-- | Parse a function call
+parseFuncCall :: Parser (FuncCall String)
+parseFuncCall = FuncCall <$> ident emptyIdents <*> parens (commaSep parseExpr)
 
 -- | Parse an arithmetic expression
 parseExpr :: Parser (Expr String)
@@ -45,8 +50,9 @@ parseExpr = buildExpressionParser table term
 
 term :: Parser (Expr String)
 term = parens parseExpr
-   <|> Var <$> ident emptyIdents
    <|> Lit . toDouble <$> integerOrDouble
+   <|> try (FuncCallExpr <$> parseFuncCall)
+   <|> Var <$> ident emptyIdents
     where
       toDouble (Left i)  = fromInteger i
       toDouble (Right d) = d
@@ -54,12 +60,22 @@ term = parens parseExpr
 table :: [[Operator Parser (Expr a)]]
 table = [ [binary "*" Mul AssocLeft, binary "/" Div AssocLeft ]
         , [binary "+" Add AssocLeft, binary "-" Sub AssocLeft ]
+        , [ binary "="  Eq   AssocLeft
+          , binary "/=" NEq  AssocLeft
+          , binary "<"  Less AssocLeft
+          , binary ">"  More AssocLeft
+          , binary "<=" LEq  AssocLeft
+          , binary ">=" MEq  AssocLeft
+          ]
+        , [prefix "not" Not]
+        , [binary "and" And AssocLeft]
+        , [binary "or"  Or  AssocLeft]
         ]
 -- http://hackage.haskell.org/package/parsers-0.12.10/docs/Text-Parser-Expression.html
 binary :: String -> (a -> a -> a) -> Assoc -> Operator Parser a
 binary  name fun = Infix (fun <$ reservedOp name)
--- prefix :: String -> (a -> a) -> Operator Parser a
--- prefix  name fun = Prefix (fun <$ reservedOp name)
+prefix :: String -> (a -> a) -> Operator Parser a
+prefix  name fun = Prefix (fun <$ reservedOp name)
 -- postfix :: String -> (a -> a) -> Operator Parser a
 -- postfix name fun = Postfix (fun <$ reservedOp name)
 
@@ -79,12 +95,17 @@ parseProgram = do
     do
       var  <- parseVarDecl
       prog <- parseProgram <* whiteSpace
-      return prog { varDecls = var : varDecls prog }
+      return prog { statements = VarDeclaration var : statements prog }
+  <|>
+    try (do
+      funcCall <- parseFuncCall
+      prog <- parseProgram <* whiteSpace
+      return prog { statements = FuncCallStatement funcCall : statements prog })
   <|>
     do
       assign <- parseVarAssign
       prog   <- parseProgram <* whiteSpace
-      return prog { assignments = assign : assignments prog }
+      return prog { statements = VarAssignment assign : statements prog }
   <|>
     do
       whiteSpace >> eof
