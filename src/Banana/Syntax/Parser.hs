@@ -28,17 +28,16 @@ parseType :: Parser Type
 parseType = (string "num" >> return Number)
         <|> (string "array" >> do
               space >> whiteSpace
-              size <- natural
-              whiteSpace
+              size <- token natural
               Array size <$> parseType)
 
 -- | Parse variable declarations
 parseVarDecl :: Parser (VarDecl String)
 parseVarDecl = do
   string "var" >> space >> whiteSpace
-  name <- ident emptyIdents
-  whiteSpace >> char ':' >> whiteSpace
-  VarDecl name <$> (parseType <* whiteSpace)
+  name <- token (ident emptyIdents)
+  char ':' >> whiteSpace
+  VarDecl name <$> token parseType
 
 -- | Parse a function call
 parseFuncCall :: Parser (FuncCall String)
@@ -85,26 +84,26 @@ reservedOp = reserve emptyOps
 -- | Parse the variable assignment statement
 parseVarAssign :: Parser (VarAssign String)
 parseVarAssign = do
-  var <- parseExpr
-  whiteSpace >> string ":=" >> whiteSpace
-  VarAssign var <$> (parseExpr <* whiteSpace)
+  var <- token parseExpr
+  _   <- token (string ":=")
+  VarAssign var <$> token parseExpr
 
 -- | Parse a program consisting of variable declarations and assignments
 parseProgram :: Parser (Program String)
 parseProgram = do
     do
       var  <- parseVarDecl
-      prog <- parseProgram <* whiteSpace
+      prog <- token parseProgram
       return prog { statements = VarDeclaration var : statements prog }
   <|>
     try (do
       funcCall <- parseFuncCall
-      prog <- parseProgram <* whiteSpace
+      prog     <- token parseProgram
       return prog { statements = FuncCallStatement funcCall : statements prog })
   <|>
     do
       assign <- parseVarAssign
-      prog   <- parseProgram <* whiteSpace
+      prog   <- token parseProgram
       return prog { statements = VarAssignment assign : statements prog }
   <|>
     do
