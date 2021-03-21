@@ -13,7 +13,7 @@
         "languages": [{
             "id": "banana",
             "aliases": ["Banana", "banana"],
-            "extensions": [".b",".ba",".banana"],
+            "extensions": [".b", ".ba", ".banana"],
             "configuration": "./language-configuration.json"
         }],
         "grammars": [{

@@ -2,30 +2,49 @@
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
 	"name": "Banana",
 	"patterns": [
-		{
-			"include": "#keywords"
-		},
-		{
-			"include": "#strings"
-		}
+		{ "include": "#keywords" },
+		{ "include": "#comments" },
+		{ "include": "#funcCall" },
+		{ "include": "#identifiers" },
+		{ "include": "#numbers" },
+		{ "include": "#operators" }
 	],
 	"repository": {
-		"keywords": {
-			"patterns": [{
-				"name": "keyword.control.banana",
-				"match": "\\b(if|while|for|return)\\b"
-			}]
+		"comments": {
+			"name": "comment.line.double-slash",
+			"match": "^\\/\\/[^\\n]*$"
 		},
-		"strings": {
-			"name": "string.quoted.double.banana",
-			"begin": "\"",
-			"end": "\"",
+		"keywords": {
 			"patterns": [
 				{
-					"name": "constant.character.escape.banana",
-					"match": "\\\\."
+					"name": "keyword.control",
+					"match": "\\b(if|then|else|while|loop|def|do|return|end)\\b"
+				},
+				{
+					"name": "storage.type",
+					"match": "\\b(number|array)\\b"
+				},
+				{
+					"name": "entity.name.type",
+					"match": "\\bvar\\b"
 				}
 			]
+		},
+		"identifiers": {
+			"name": "variable",
+			"match": "\\b([_a-zA-Z][_a-zA-Z0-9]*)\\b"
+		},
+		"numbers": {
+			"name": "constant.numeric",
+			"match": "\\d+"
+		},
+		"funcCall": {
+			"name": "entity.name.function",
+			"match": "\\b([_a-zA-Z][_a-zA-Z0-9]*)\\b(?=\\()"
+		},
+		"operators": {
+			"name": "keyword.operator",
+			"match": "(=|\\/=|:=|:|and|or|not|<|<=|>|>=)"
 		}
 	},
 	"scopeName": "source.banana"
