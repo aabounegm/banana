@@ -17,11 +17,15 @@ module Banana.Syntax.Parser (
 import           Banana.Syntax.AST
 import           Control.Applicative
 import           Text.Parser.Char
-import           Text.Parser.Combinators (eof, try)
+import           Text.Parser.Combinators (eof, manyTill, try)
 import           Text.Parser.Expression
 import           Text.Parser.Token
 import           Text.Parser.Token.Style
 import           Text.Trifecta.Parser
+
+-- | Parses a single-line comment
+parseComment :: Parser String
+parseComment = string "//" *> manyTill anyChar (try newline)
 
 -- | Parse a type
 parseType :: Parser Type
@@ -91,6 +95,10 @@ parseVarAssign = do
 -- | Parse a program consisting of variable declarations and assignments
 parseProgram :: Parser (Program String)
 parseProgram = do
+    do
+      _ <- parseComment
+      parseProgram
+  <|>
     do
       var  <- parseVarDecl
       prog <- token parseProgram
