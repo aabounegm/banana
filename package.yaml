@@ -31,16 +31,22 @@ dependencies:
 library:
   source-dirs: src
 
+_exe-defs: &exe-defaults
+  main:                Main.hs
+  ghc-options:
+  - -threaded
+  - -rtsopts
+  - -with-rtsopts=-N
+  dependencies:
+  - banana
+
 executables:
   banana-exe:
-    main:                Main.hs
-    source-dirs:         app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - banana
+    <<: *exe-defaults
+    source-dirs:         app/Compiler
+  lsp-exe:
+    <<: *exe-defaults
+    source-dirs:         app/Server
 
 tests:
   spec:
