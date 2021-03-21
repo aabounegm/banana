@@ -23,6 +23,10 @@ dependencies:
 - base >= 4.7 && < 5
 - trifecta
 - parsers
+- lsp
+- text
+- containers
+- sorted-list
 
 library:
   source-dirs: src
