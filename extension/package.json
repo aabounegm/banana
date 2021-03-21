@@ -1,0 +1,25 @@
+{
+    "name": "banana",
+    "displayName": "Banana",
+    "description": "",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.54.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "banana",
+            "aliases": ["Banana", "banana"],
+            "extensions": [".b",".ba",".banana"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "banana",
+            "scopeName": "source.banana",
+            "path": "./syntaxes/banana.tmLanguage.json"
+        }]
+    }
+}
