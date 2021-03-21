@@ -22,7 +22,7 @@
 				},
 				{
 					"name": "storage.type",
-					"match": "\\b(number|array)\\b"
+					"match": "\\b(num|array)\\b"
 				},
 				{
 					"name": "entity.name.type",

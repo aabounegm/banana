@@ -26,5 +26,11 @@
         ["(", ")"],
         // ["\"", "\""],
         // ["'", "'"]
-    ]
+    ],
+    "folding": {
+        "markers": {
+            "start": "\\b(loop|do|then|else)\\b",
+            "end": "\\bend\\b"
+        }
+    }
 }

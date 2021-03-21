@@ -20,6 +20,12 @@
             "language": "banana",
             "scopeName": "source.banana",
             "path": "./syntaxes/banana.tmLanguage.json"
-        }]
+        }],
+        "snippets": [
+            {
+                "language": "banana",
+                "path": "./snippets.json"
+            }
+        ]
     }
 }

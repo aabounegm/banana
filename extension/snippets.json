@@ -1,0 +1,22 @@
+{
+	"if": {
+		"prefix": ["if"],
+		"body": ["if ${1:condition} then", "\t$0", "end"]
+	},
+	"if else": {
+		"prefix": ["ifelse", "if"],
+		"body": ["if ${1:condition} then", "\t$2", "else", "\t$0", "end"]
+	},
+	"while loop": {
+		"prefix": ["while"],
+		"body": ["while ${1:condition} do", "\t$0", "end"]
+	},
+	"void function definition": {
+		"prefix": ["def"],
+		"body": ["def ${1:function_name}($2) do", "\t$0", "end"]
+	},
+	"function definition with type": {
+		"prefix": ["defret", "def"],
+		"body": ["def ${1:function_name}($2): ${3:type} do", "\t$0", "end"]
+	}
+}
