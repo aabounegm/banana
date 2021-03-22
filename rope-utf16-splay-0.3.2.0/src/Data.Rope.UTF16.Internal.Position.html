@@ -1,0 +1,224 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.Rope.UTF16.Internal.Position</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Semigroup</span></span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">data</span><span> </span><span id="RowColumn"><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html#RowColumn"><span class="hs-identifier hs-var">RowColumn</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="RowColumn"><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html#RowColumn"><span class="hs-identifier hs-var">RowColumn</span></a></span></span><span>
+</span><span id="line-6"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="row"><span class="annot"><span class="annottext">RowColumn -&gt; Int
+</span><a href="Data.Rope.UTF16.Internal.Position.html#row"><span class="hs-identifier hs-var hs-var">row</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-comment">-- ^ Number of newlines before this position</span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="column"><span class="annot"><span class="annottext">RowColumn -&gt; Int
+</span><a href="Data.Rope.UTF16.Internal.Position.html#column"><span class="hs-identifier hs-var hs-var">column</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-comment">-- ^ Number of code units since last newline or start of string</span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679040595"><span id="local-6989586621679040597"><span class="annot"><span class="annottext">RowColumn -&gt; RowColumn -&gt; Bool
+(RowColumn -&gt; RowColumn -&gt; Bool)
+-&gt; (RowColumn -&gt; RowColumn -&gt; Bool) -&gt; Eq RowColumn
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: RowColumn -&gt; RowColumn -&gt; Bool
+$c/= :: RowColumn -&gt; RowColumn -&gt; Bool
+== :: RowColumn -&gt; RowColumn -&gt; Bool
+$c== :: RowColumn -&gt; RowColumn -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679040579"><span id="local-6989586621679040581"><span id="local-6989586621679040583"><span id="local-6989586621679040585"><span id="local-6989586621679040587"><span id="local-6989586621679040589"><span id="local-6989586621679040591"><span class="annot"><span class="annottext">Eq RowColumn
+Eq RowColumn
+-&gt; (RowColumn -&gt; RowColumn -&gt; Ordering)
+-&gt; (RowColumn -&gt; RowColumn -&gt; Bool)
+-&gt; (RowColumn -&gt; RowColumn -&gt; Bool)
+-&gt; (RowColumn -&gt; RowColumn -&gt; Bool)
+-&gt; (RowColumn -&gt; RowColumn -&gt; Bool)
+-&gt; (RowColumn -&gt; RowColumn -&gt; RowColumn)
+-&gt; (RowColumn -&gt; RowColumn -&gt; RowColumn)
+-&gt; Ord RowColumn
+RowColumn -&gt; RowColumn -&gt; Bool
+RowColumn -&gt; RowColumn -&gt; Ordering
+RowColumn -&gt; RowColumn -&gt; RowColumn
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: RowColumn -&gt; RowColumn -&gt; RowColumn
+$cmin :: RowColumn -&gt; RowColumn -&gt; RowColumn
+max :: RowColumn -&gt; RowColumn -&gt; RowColumn
+$cmax :: RowColumn -&gt; RowColumn -&gt; RowColumn
+&gt;= :: RowColumn -&gt; RowColumn -&gt; Bool
+$c&gt;= :: RowColumn -&gt; RowColumn -&gt; Bool
+&gt; :: RowColumn -&gt; RowColumn -&gt; Bool
+$c&gt; :: RowColumn -&gt; RowColumn -&gt; Bool
+&lt;= :: RowColumn -&gt; RowColumn -&gt; Bool
+$c&lt;= :: RowColumn -&gt; RowColumn -&gt; Bool
+&lt; :: RowColumn -&gt; RowColumn -&gt; Bool
+$c&lt; :: RowColumn -&gt; RowColumn -&gt; Bool
+compare :: RowColumn -&gt; RowColumn -&gt; Ordering
+$ccompare :: RowColumn -&gt; RowColumn -&gt; Ordering
+$cp1Ord :: Eq RowColumn
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679040572"><span id="local-6989586621679040574"><span id="local-6989586621679040576"><span class="annot"><span class="annottext">Int -&gt; RowColumn -&gt; ShowS
+[RowColumn] -&gt; ShowS
+RowColumn -&gt; String
+(Int -&gt; RowColumn -&gt; ShowS)
+-&gt; (RowColumn -&gt; String)
+-&gt; ([RowColumn] -&gt; ShowS)
+-&gt; Show RowColumn
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [RowColumn] -&gt; ShowS
+$cshowList :: [RowColumn] -&gt; ShowS
+show :: RowColumn -&gt; String
+$cshow :: RowColumn -&gt; String
+showsPrec :: Int -&gt; RowColumn -&gt; ShowS
+$cshowsPrec :: Int -&gt; RowColumn -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679040566"><span id="local-6989586621679040568"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html#RowColumn"><span class="hs-identifier hs-type">RowColumn</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-11"></span><span>  </span><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html#RowColumn"><span class="hs-identifier hs-type">RowColumn</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span> </span><span id="local-6989586621679040564"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040564"><span class="hs-identifier hs-var">c1</span></a></span></span><span> </span><span id="local-6989586621679040563"><span class="annot"><span class="annottext">&lt;&gt; :: RowColumn -&gt; RowColumn -&gt; RowColumn
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></span></span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html#RowColumn"><span class="hs-identifier hs-type">RowColumn</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span> </span><span id="local-6989586621679040562"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040562"><span class="hs-identifier hs-var">c2</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; RowColumn
+</span><a href="Data.Rope.UTF16.Internal.Position.html#RowColumn"><span class="hs-identifier hs-var">RowColumn</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">(Int -&gt; RowColumn) -&gt; Int -&gt; RowColumn
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040564"><span class="hs-identifier hs-var">c1</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040562"><span class="hs-identifier hs-var">c2</span></a></span><span>
+</span><span id="line-12"></span><span>  </span><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html#RowColumn"><span class="hs-identifier hs-type">RowColumn</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span id="local-6989586621679040560"><span class="annot"><span class="annottext">RowColumn
+</span><a href="#local-6989586621679040560"><span class="hs-identifier hs-var">v2</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">RowColumn
+</span><a href="#local-6989586621679040560"><span class="hs-identifier hs-var">v2</span></a></span><span>
+</span><span id="line-13"></span><span>  </span><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html#RowColumn"><span class="hs-identifier hs-type">RowColumn</span></a></span><span> </span><span id="local-6989586621679040559"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040559"><span class="hs-identifier hs-var">r1</span></a></span></span><span> </span><span id="local-6989586621679040558"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040558"><span class="hs-identifier hs-var">c1</span></a></span></span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html#RowColumn"><span class="hs-identifier hs-type">RowColumn</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span> </span><span id="local-6989586621679040557"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040557"><span class="hs-identifier hs-var">c2</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; RowColumn
+</span><a href="Data.Rope.UTF16.Internal.Position.html#RowColumn"><span class="hs-identifier hs-var">RowColumn</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040559"><span class="hs-identifier hs-var">r1</span></a></span><span> </span><span class="annot"><span class="annottext">(Int -&gt; RowColumn) -&gt; Int -&gt; RowColumn
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040558"><span class="hs-identifier hs-var">c1</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040557"><span class="hs-identifier hs-var">c2</span></a></span><span>
+</span><span id="line-14"></span><span>  </span><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html#RowColumn"><span class="hs-identifier hs-type">RowColumn</span></a></span><span> </span><span id="local-6989586621679040556"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040556"><span class="hs-identifier hs-var">r1</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html#RowColumn"><span class="hs-identifier hs-type">RowColumn</span></a></span><span> </span><span id="local-6989586621679040555"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040555"><span class="hs-identifier hs-var">r2</span></a></span></span><span> </span><span id="local-6989586621679040554"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040554"><span class="hs-identifier hs-var">c2</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; RowColumn
+</span><a href="Data.Rope.UTF16.Internal.Position.html#RowColumn"><span class="hs-identifier hs-var">RowColumn</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040556"><span class="hs-identifier hs-var">r1</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040555"><span class="hs-identifier hs-var">r2</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040554"><span class="hs-identifier hs-var">c2</span></a></span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679040549"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html#RowColumn"><span class="hs-identifier hs-type">RowColumn</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-17"></span><span>  </span><span id="local-6989586621679040547"><span class="annot"><span class="annottext">mempty :: RowColumn
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; RowColumn
+</span><a href="Data.Rope.UTF16.Internal.Position.html#RowColumn"><span class="hs-identifier hs-var">RowColumn</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-18"></span><span>  </span><span id="local-6989586621679040546"><span class="annot"><span class="annottext">mappend :: RowColumn -&gt; RowColumn -&gt; RowColumn
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mappend</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">RowColumn -&gt; RowColumn -&gt; RowColumn
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(&lt;&gt;)</span></span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">data</span><span> </span><span id="Position"><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html#Position"><span class="hs-identifier hs-var">Position</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Position"><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html#Position"><span class="hs-identifier hs-var">Position</span></a></span></span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="codeUnits"><span class="annot"><span class="annottext">Position -&gt; Int
+</span><a href="Data.Rope.UTF16.Internal.Position.html#codeUnits"><span class="hs-identifier hs-var hs-var">codeUnits</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="rowColumn"><span class="annot"><span class="annottext">Position -&gt; RowColumn
+</span><a href="Data.Rope.UTF16.Internal.Position.html#rowColumn"><span class="hs-identifier hs-var hs-var">rowColumn</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html#RowColumn"><span class="hs-identifier hs-type">RowColumn</span></a></span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679040539"><span id="local-6989586621679040541"><span class="annot"><span class="annottext">Position -&gt; Position -&gt; Bool
+(Position -&gt; Position -&gt; Bool)
+-&gt; (Position -&gt; Position -&gt; Bool) -&gt; Eq Position
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Position -&gt; Position -&gt; Bool
+$c/= :: Position -&gt; Position -&gt; Bool
+== :: Position -&gt; Position -&gt; Bool
+$c== :: Position -&gt; Position -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679040524"><span id="local-6989586621679040526"><span id="local-6989586621679040528"><span id="local-6989586621679040530"><span id="local-6989586621679040532"><span id="local-6989586621679040534"><span id="local-6989586621679040536"><span class="annot"><span class="annottext">Eq Position
+Eq Position
+-&gt; (Position -&gt; Position -&gt; Ordering)
+-&gt; (Position -&gt; Position -&gt; Bool)
+-&gt; (Position -&gt; Position -&gt; Bool)
+-&gt; (Position -&gt; Position -&gt; Bool)
+-&gt; (Position -&gt; Position -&gt; Bool)
+-&gt; (Position -&gt; Position -&gt; Position)
+-&gt; (Position -&gt; Position -&gt; Position)
+-&gt; Ord Position
+Position -&gt; Position -&gt; Bool
+Position -&gt; Position -&gt; Ordering
+Position -&gt; Position -&gt; Position
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: Position -&gt; Position -&gt; Position
+$cmin :: Position -&gt; Position -&gt; Position
+max :: Position -&gt; Position -&gt; Position
+$cmax :: Position -&gt; Position -&gt; Position
+&gt;= :: Position -&gt; Position -&gt; Bool
+$c&gt;= :: Position -&gt; Position -&gt; Bool
+&gt; :: Position -&gt; Position -&gt; Bool
+$c&gt; :: Position -&gt; Position -&gt; Bool
+&lt;= :: Position -&gt; Position -&gt; Bool
+$c&lt;= :: Position -&gt; Position -&gt; Bool
+&lt; :: Position -&gt; Position -&gt; Bool
+$c&lt; :: Position -&gt; Position -&gt; Bool
+compare :: Position -&gt; Position -&gt; Ordering
+$ccompare :: Position -&gt; Position -&gt; Ordering
+$cp1Ord :: Eq Position
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679040518"><span id="local-6989586621679040520"><span id="local-6989586621679040522"><span class="annot"><span class="annottext">Int -&gt; Position -&gt; ShowS
+[Position] -&gt; ShowS
+Position -&gt; String
+(Int -&gt; Position -&gt; ShowS)
+-&gt; (Position -&gt; String) -&gt; ([Position] -&gt; ShowS) -&gt; Show Position
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Position] -&gt; ShowS
+$cshowList :: [Position] -&gt; ShowS
+show :: Position -&gt; String
+$cshow :: Position -&gt; String
+showsPrec :: Int -&gt; Position -&gt; ShowS
+$cshowsPrec :: Int -&gt; Position -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679040513"><span id="local-6989586621679040515"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html#Position"><span class="hs-identifier hs-type">Position</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-26"></span><span>  </span><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html#Position"><span class="hs-identifier hs-type">Position</span></a></span><span> </span><span id="local-6989586621679040512"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040512"><span class="hs-identifier hs-var">cp1</span></a></span></span><span> </span><span id="local-6989586621679040511"><span class="annot"><span class="annottext">RowColumn
+</span><a href="#local-6989586621679040511"><span class="hs-identifier hs-var">v1</span></a></span></span><span> </span><span id="local-6989586621679040510"><span class="annot"><span class="annottext">&lt;&gt; :: Position -&gt; Position -&gt; Position
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></span></span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html#Position"><span class="hs-identifier hs-type">Position</span></a></span><span> </span><span id="local-6989586621679040509"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040509"><span class="hs-identifier hs-var">cp2</span></a></span></span><span> </span><span id="local-6989586621679040508"><span class="annot"><span class="annottext">RowColumn
+</span><a href="#local-6989586621679040508"><span class="hs-identifier hs-var">v2</span></a></span></span><span>
+</span><span id="line-27"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; RowColumn -&gt; Position
+</span><a href="Data.Rope.UTF16.Internal.Position.html#Position"><span class="hs-identifier hs-var">Position</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040512"><span class="hs-identifier hs-var">cp1</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040509"><span class="hs-identifier hs-var">cp2</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">RowColumn
+</span><a href="#local-6989586621679040511"><span class="hs-identifier hs-var">v1</span></a></span><span> </span><span class="annot"><span class="annottext">RowColumn -&gt; RowColumn -&gt; RowColumn
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">RowColumn
+</span><a href="#local-6989586621679040508"><span class="hs-identifier hs-var">v2</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679040503"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html#Position"><span class="hs-identifier hs-type">Position</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-30"></span><span>  </span><span id="local-6989586621679040502"><span class="annot"><span class="annottext">mempty :: Position
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; RowColumn -&gt; Position
+</span><a href="Data.Rope.UTF16.Internal.Position.html#Position"><span class="hs-identifier hs-var">Position</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">RowColumn
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-31"></span><span>  </span><span id="local-6989586621679040501"><span class="annot"><span class="annottext">mappend :: Position -&gt; Position -&gt; Position
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mappend</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Position -&gt; Position -&gt; Position
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(&lt;&gt;)</span></span><span>
+</span><span id="line-32"></span></pre></body></html>

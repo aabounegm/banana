@@ -1,0 +1,535 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell       #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.WatchedFiles</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>  </span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Bits</span></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Scientific</span></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html"><span class="hs-identifier">Language.LSP.Types.Common</span></a></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Uri.html"><span class="hs-identifier">Language.LSP.Types.Uri</span></a></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">data</span><span> </span><span id="DidChangeWatchedFilesClientCapabilities"><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#DidChangeWatchedFilesClientCapabilities"><span class="hs-identifier hs-var">DidChangeWatchedFilesClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="DidChangeWatchedFilesClientCapabilities"><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#DidChangeWatchedFilesClientCapabilities"><span class="hs-identifier hs-var">DidChangeWatchedFilesClientCapabilities</span></a></span></span><span>
+</span><span id="line-18"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Did change watched files notification supports dynamic</span><span>
+</span><span id="line-19"></span><span>    </span><span class="hs-comment">-- registration.</span><span>
+</span><span id="line-20"></span><span>    </span><span id="%24sel%3A_dynamicRegistration%3ADidChangeWatchedFilesClientCapabilities"><span class="annot"><span class="annottext">DidChangeWatchedFilesClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.WatchedFiles.html#%24sel%3A_dynamicRegistration%3ADidChangeWatchedFilesClientCapabilities"><span class="hs-identifier hs-var hs-var">_dynamicRegistration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680442427"><span id="local-6989586621680442429"><span id="local-6989586621680442431"><span class="annot"><span class="annottext">Int -&gt; DidChangeWatchedFilesClientCapabilities -&gt; ShowS
+[DidChangeWatchedFilesClientCapabilities] -&gt; ShowS
+DidChangeWatchedFilesClientCapabilities -&gt; String
+(Int -&gt; DidChangeWatchedFilesClientCapabilities -&gt; ShowS)
+-&gt; (DidChangeWatchedFilesClientCapabilities -&gt; String)
+-&gt; ([DidChangeWatchedFilesClientCapabilities] -&gt; ShowS)
+-&gt; Show DidChangeWatchedFilesClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [DidChangeWatchedFilesClientCapabilities] -&gt; ShowS
+$cshowList :: [DidChangeWatchedFilesClientCapabilities] -&gt; ShowS
+show :: DidChangeWatchedFilesClientCapabilities -&gt; String
+$cshow :: DidChangeWatchedFilesClientCapabilities -&gt; String
+showsPrec :: Int -&gt; DidChangeWatchedFilesClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; DidChangeWatchedFilesClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680442418"><span id="local-6989586621680442420"><span id="local-6989586621680442422"><span id="local-6989586621680442424"><span class="annot"><span class="annottext">ReadPrec [DidChangeWatchedFilesClientCapabilities]
+ReadPrec DidChangeWatchedFilesClientCapabilities
+Int -&gt; ReadS DidChangeWatchedFilesClientCapabilities
+ReadS [DidChangeWatchedFilesClientCapabilities]
+(Int -&gt; ReadS DidChangeWatchedFilesClientCapabilities)
+-&gt; ReadS [DidChangeWatchedFilesClientCapabilities]
+-&gt; ReadPrec DidChangeWatchedFilesClientCapabilities
+-&gt; ReadPrec [DidChangeWatchedFilesClientCapabilities]
+-&gt; Read DidChangeWatchedFilesClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [DidChangeWatchedFilesClientCapabilities]
+$creadListPrec :: ReadPrec [DidChangeWatchedFilesClientCapabilities]
+readPrec :: ReadPrec DidChangeWatchedFilesClientCapabilities
+$creadPrec :: ReadPrec DidChangeWatchedFilesClientCapabilities
+readList :: ReadS [DidChangeWatchedFilesClientCapabilities]
+$creadList :: ReadS [DidChangeWatchedFilesClientCapabilities]
+readsPrec :: Int -&gt; ReadS DidChangeWatchedFilesClientCapabilities
+$creadsPrec :: Int -&gt; ReadS DidChangeWatchedFilesClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680442413"><span id="local-6989586621680442415"><span class="annot"><span class="annottext">DidChangeWatchedFilesClientCapabilities
+-&gt; DidChangeWatchedFilesClientCapabilities -&gt; Bool
+(DidChangeWatchedFilesClientCapabilities
+ -&gt; DidChangeWatchedFilesClientCapabilities -&gt; Bool)
+-&gt; (DidChangeWatchedFilesClientCapabilities
+    -&gt; DidChangeWatchedFilesClientCapabilities -&gt; Bool)
+-&gt; Eq DidChangeWatchedFilesClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: DidChangeWatchedFilesClientCapabilities
+-&gt; DidChangeWatchedFilesClientCapabilities -&gt; Bool
+$c/= :: DidChangeWatchedFilesClientCapabilities
+-&gt; DidChangeWatchedFilesClientCapabilities -&gt; Bool
+== :: DidChangeWatchedFilesClientCapabilities
+-&gt; DidChangeWatchedFilesClientCapabilities -&gt; Bool
+$c== :: DidChangeWatchedFilesClientCapabilities
+-&gt; DidChangeWatchedFilesClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span id="local-6989586621680442400"><span id="local-6989586621680442402"><span id="local-6989586621680442404"><span id="local-6989586621680442406"><span id="local-6989586621680442408"><span id="local-6989586621680442410"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DidChangeWatchedFilesClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-comment">-- | Describe options to be used when registering for file system change events.</span><span>
+</span><span id="line-26"></span><span class="hs-keyword">data</span><span> </span><span id="DidChangeWatchedFilesRegistrationOptions"><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#DidChangeWatchedFilesRegistrationOptions"><span class="hs-identifier hs-var">DidChangeWatchedFilesRegistrationOptions</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-27"></span><span>  </span><span id="DidChangeWatchedFilesRegistrationOptions"><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#DidChangeWatchedFilesRegistrationOptions"><span class="hs-identifier hs-var">DidChangeWatchedFilesRegistrationOptions</span></a></span></span><span>
+</span><span id="line-28"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The watchers to register.</span><span>
+</span><span id="line-29"></span><span>    </span><span id="%24sel%3A_watchers%3ADidChangeWatchedFilesRegistrationOptions"><span class="annot"><span class="annottext">DidChangeWatchedFilesRegistrationOptions -&gt; List FileSystemWatcher
+</span><a href="Language.LSP.Types.WatchedFiles.html#%24sel%3A_watchers%3ADidChangeWatchedFilesRegistrationOptions"><span class="hs-identifier hs-var hs-var">_watchers</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#FileSystemWatcher"><span class="hs-identifier hs-type">FileSystemWatcher</span></a></span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680442387"><span id="local-6989586621680442389"><span id="local-6989586621680442391"><span class="annot"><span class="annottext">Int -&gt; DidChangeWatchedFilesRegistrationOptions -&gt; ShowS
+[DidChangeWatchedFilesRegistrationOptions] -&gt; ShowS
+DidChangeWatchedFilesRegistrationOptions -&gt; String
+(Int -&gt; DidChangeWatchedFilesRegistrationOptions -&gt; ShowS)
+-&gt; (DidChangeWatchedFilesRegistrationOptions -&gt; String)
+-&gt; ([DidChangeWatchedFilesRegistrationOptions] -&gt; ShowS)
+-&gt; Show DidChangeWatchedFilesRegistrationOptions
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [DidChangeWatchedFilesRegistrationOptions] -&gt; ShowS
+$cshowList :: [DidChangeWatchedFilesRegistrationOptions] -&gt; ShowS
+show :: DidChangeWatchedFilesRegistrationOptions -&gt; String
+$cshow :: DidChangeWatchedFilesRegistrationOptions -&gt; String
+showsPrec :: Int -&gt; DidChangeWatchedFilesRegistrationOptions -&gt; ShowS
+$cshowsPrec :: Int -&gt; DidChangeWatchedFilesRegistrationOptions -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680442379"><span id="local-6989586621680442381"><span id="local-6989586621680442383"><span id="local-6989586621680442385"><span class="annot"><span class="annottext">ReadPrec [DidChangeWatchedFilesRegistrationOptions]
+ReadPrec DidChangeWatchedFilesRegistrationOptions
+Int -&gt; ReadS DidChangeWatchedFilesRegistrationOptions
+ReadS [DidChangeWatchedFilesRegistrationOptions]
+(Int -&gt; ReadS DidChangeWatchedFilesRegistrationOptions)
+-&gt; ReadS [DidChangeWatchedFilesRegistrationOptions]
+-&gt; ReadPrec DidChangeWatchedFilesRegistrationOptions
+-&gt; ReadPrec [DidChangeWatchedFilesRegistrationOptions]
+-&gt; Read DidChangeWatchedFilesRegistrationOptions
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [DidChangeWatchedFilesRegistrationOptions]
+$creadListPrec :: ReadPrec [DidChangeWatchedFilesRegistrationOptions]
+readPrec :: ReadPrec DidChangeWatchedFilesRegistrationOptions
+$creadPrec :: ReadPrec DidChangeWatchedFilesRegistrationOptions
+readList :: ReadS [DidChangeWatchedFilesRegistrationOptions]
+$creadList :: ReadS [DidChangeWatchedFilesRegistrationOptions]
+readsPrec :: Int -&gt; ReadS DidChangeWatchedFilesRegistrationOptions
+$creadsPrec :: Int -&gt; ReadS DidChangeWatchedFilesRegistrationOptions
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680442375"><span id="local-6989586621680442377"><span class="annot"><span class="annottext">DidChangeWatchedFilesRegistrationOptions
+-&gt; DidChangeWatchedFilesRegistrationOptions -&gt; Bool
+(DidChangeWatchedFilesRegistrationOptions
+ -&gt; DidChangeWatchedFilesRegistrationOptions -&gt; Bool)
+-&gt; (DidChangeWatchedFilesRegistrationOptions
+    -&gt; DidChangeWatchedFilesRegistrationOptions -&gt; Bool)
+-&gt; Eq DidChangeWatchedFilesRegistrationOptions
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: DidChangeWatchedFilesRegistrationOptions
+-&gt; DidChangeWatchedFilesRegistrationOptions -&gt; Bool
+$c/= :: DidChangeWatchedFilesRegistrationOptions
+-&gt; DidChangeWatchedFilesRegistrationOptions -&gt; Bool
+== :: DidChangeWatchedFilesRegistrationOptions
+-&gt; DidChangeWatchedFilesRegistrationOptions -&gt; Bool
+$c== :: DidChangeWatchedFilesRegistrationOptions
+-&gt; DidChangeWatchedFilesRegistrationOptions -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">data</span><span> </span><span id="FileSystemWatcher"><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#FileSystemWatcher"><span class="hs-identifier hs-var">FileSystemWatcher</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-33"></span><span>  </span><span id="FileSystemWatcher"><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#FileSystemWatcher"><span class="hs-identifier hs-var">FileSystemWatcher</span></a></span></span><span>
+</span><span id="line-34"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The glob pattern to watch.</span><span>
+</span><span id="line-35"></span><span>    </span><span class="hs-comment">-- Glob patterns can have the following syntax:</span><span>
+</span><span id="line-36"></span><span>    </span><span class="hs-comment">-- - @*@ to match one or more characters in a path segment</span><span>
+</span><span id="line-37"></span><span>    </span><span class="hs-comment">-- - @?@ to match on one character in a path segment</span><span>
+</span><span id="line-38"></span><span>    </span><span class="hs-comment">-- - @**@ to match any number of path segments, including none</span><span>
+</span><span id="line-39"></span><span>    </span><span class="hs-comment">-- - @{}@ to group conditions (e.g. @**&#8203;/*.{ts,js}@ matches all TypeScript and JavaScript files)</span><span>
+</span><span id="line-40"></span><span>    </span><span class="hs-comment">-- - @[]@ to declare a range of characters to match in a path segment (e.g., @example.[0-9]@ to match on @example.0@, @example.1@, &#8230;)</span><span>
+</span><span id="line-41"></span><span>    </span><span class="hs-comment">-- - @[!...]@ to negate a range of characters to match in a path segment (e.g., @example.[!0-9]@ to match on @example.a@, @example.b@, but not @example.0@)</span><span>
+</span><span id="line-42"></span><span>    </span><span id="%24sel%3A_globPattern%3AFileSystemWatcher"><span class="annot"><span class="annottext">FileSystemWatcher -&gt; Text
+</span><a href="Language.LSP.Types.WatchedFiles.html#%24sel%3A_globPattern%3AFileSystemWatcher"><span class="hs-identifier hs-var hs-var">_globPattern</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">,</span><span>
+</span><span id="line-43"></span><span>    </span><span class="hs-comment">-- | The kind of events of interest. If omitted it defaults</span><span>
+</span><span id="line-44"></span><span>    </span><span class="hs-comment">-- to WatchKind.Create | WatchKind.Change | WatchKind.Delete</span><span>
+</span><span id="line-45"></span><span>    </span><span class="hs-comment">-- which is 7.</span><span>
+</span><span id="line-46"></span><span>    </span><span id="%24sel%3A_kind%3AFileSystemWatcher"><span class="annot"><span class="annottext">FileSystemWatcher -&gt; Maybe WatchKind
+</span><a href="Language.LSP.Types.WatchedFiles.html#%24sel%3A_kind%3AFileSystemWatcher"><span class="hs-identifier hs-var hs-var">_kind</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#WatchKind"><span class="hs-identifier hs-type">WatchKind</span></a></span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680442366"><span id="local-6989586621680442368"><span id="local-6989586621680442370"><span class="annot"><span class="annottext">Int -&gt; FileSystemWatcher -&gt; ShowS
+[FileSystemWatcher] -&gt; ShowS
+FileSystemWatcher -&gt; String
+(Int -&gt; FileSystemWatcher -&gt; ShowS)
+-&gt; (FileSystemWatcher -&gt; String)
+-&gt; ([FileSystemWatcher] -&gt; ShowS)
+-&gt; Show FileSystemWatcher
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [FileSystemWatcher] -&gt; ShowS
+$cshowList :: [FileSystemWatcher] -&gt; ShowS
+show :: FileSystemWatcher -&gt; String
+$cshow :: FileSystemWatcher -&gt; String
+showsPrec :: Int -&gt; FileSystemWatcher -&gt; ShowS
+$cshowsPrec :: Int -&gt; FileSystemWatcher -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680442358"><span id="local-6989586621680442360"><span id="local-6989586621680442362"><span id="local-6989586621680442364"><span class="annot"><span class="annottext">ReadPrec [FileSystemWatcher]
+ReadPrec FileSystemWatcher
+Int -&gt; ReadS FileSystemWatcher
+ReadS [FileSystemWatcher]
+(Int -&gt; ReadS FileSystemWatcher)
+-&gt; ReadS [FileSystemWatcher]
+-&gt; ReadPrec FileSystemWatcher
+-&gt; ReadPrec [FileSystemWatcher]
+-&gt; Read FileSystemWatcher
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [FileSystemWatcher]
+$creadListPrec :: ReadPrec [FileSystemWatcher]
+readPrec :: ReadPrec FileSystemWatcher
+$creadPrec :: ReadPrec FileSystemWatcher
+readList :: ReadS [FileSystemWatcher]
+$creadList :: ReadS [FileSystemWatcher]
+readsPrec :: Int -&gt; ReadS FileSystemWatcher
+$creadsPrec :: Int -&gt; ReadS FileSystemWatcher
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680442354"><span id="local-6989586621680442356"><span class="annot"><span class="annottext">FileSystemWatcher -&gt; FileSystemWatcher -&gt; Bool
+(FileSystemWatcher -&gt; FileSystemWatcher -&gt; Bool)
+-&gt; (FileSystemWatcher -&gt; FileSystemWatcher -&gt; Bool)
+-&gt; Eq FileSystemWatcher
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: FileSystemWatcher -&gt; FileSystemWatcher -&gt; Bool
+$c/= :: FileSystemWatcher -&gt; FileSystemWatcher -&gt; Bool
+== :: FileSystemWatcher -&gt; FileSystemWatcher -&gt; Bool
+$c== :: FileSystemWatcher -&gt; FileSystemWatcher -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span class="hs-keyword">data</span><span> </span><span id="WatchKind"><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#WatchKind"><span class="hs-identifier hs-var">WatchKind</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-50"></span><span>  </span><span id="WatchKind"><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#WatchKind"><span class="hs-identifier hs-var">WatchKind</span></a></span></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-51"></span><span>    </span><span class="hs-comment">-- | Watch for create events</span><span>
+</span><span id="line-52"></span><span>    </span><span id="%24sel%3A_watchCreate%3AWatchKind"><span class="annot"><span class="annottext">WatchKind -&gt; Bool
+</span><a href="Language.LSP.Types.WatchedFiles.html#%24sel%3A_watchCreate%3AWatchKind"><span class="hs-identifier hs-var hs-var">_watchCreate</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span>
+</span><span id="line-53"></span><span>    </span><span class="hs-comment">-- | Watch for change events</span><span>
+</span><span id="line-54"></span><span>    </span><span id="%24sel%3A_watchChange%3AWatchKind"><span class="annot"><span class="annottext">WatchKind -&gt; Bool
+</span><a href="Language.LSP.Types.WatchedFiles.html#%24sel%3A_watchChange%3AWatchKind"><span class="hs-identifier hs-var hs-var">_watchChange</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span>
+</span><span id="line-55"></span><span>    </span><span class="hs-comment">-- | Watch for delete events</span><span>
+</span><span id="line-56"></span><span>    </span><span id="%24sel%3A_watchDelete%3AWatchKind"><span class="annot"><span class="annottext">WatchKind -&gt; Bool
+</span><a href="Language.LSP.Types.WatchedFiles.html#%24sel%3A_watchDelete%3AWatchKind"><span class="hs-identifier hs-var hs-var">_watchDelete</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-57"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680442344"><span id="local-6989586621680442346"><span id="local-6989586621680442348"><span class="annot"><span class="annottext">Int -&gt; WatchKind -&gt; ShowS
+[WatchKind] -&gt; ShowS
+WatchKind -&gt; String
+(Int -&gt; WatchKind -&gt; ShowS)
+-&gt; (WatchKind -&gt; String)
+-&gt; ([WatchKind] -&gt; ShowS)
+-&gt; Show WatchKind
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [WatchKind] -&gt; ShowS
+$cshowList :: [WatchKind] -&gt; ShowS
+show :: WatchKind -&gt; String
+$cshow :: WatchKind -&gt; String
+showsPrec :: Int -&gt; WatchKind -&gt; ShowS
+$cshowsPrec :: Int -&gt; WatchKind -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680442336"><span id="local-6989586621680442338"><span id="local-6989586621680442340"><span id="local-6989586621680442342"><span class="annot"><span class="annottext">ReadPrec [WatchKind]
+ReadPrec WatchKind
+Int -&gt; ReadS WatchKind
+ReadS [WatchKind]
+(Int -&gt; ReadS WatchKind)
+-&gt; ReadS [WatchKind]
+-&gt; ReadPrec WatchKind
+-&gt; ReadPrec [WatchKind]
+-&gt; Read WatchKind
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [WatchKind]
+$creadListPrec :: ReadPrec [WatchKind]
+readPrec :: ReadPrec WatchKind
+$creadPrec :: ReadPrec WatchKind
+readList :: ReadS [WatchKind]
+$creadList :: ReadS [WatchKind]
+readsPrec :: Int -&gt; ReadS WatchKind
+$creadsPrec :: Int -&gt; ReadS WatchKind
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680442332"><span id="local-6989586621680442334"><span class="annot"><span class="annottext">WatchKind -&gt; WatchKind -&gt; Bool
+(WatchKind -&gt; WatchKind -&gt; Bool)
+-&gt; (WatchKind -&gt; WatchKind -&gt; Bool) -&gt; Eq WatchKind
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: WatchKind -&gt; WatchKind -&gt; Bool
+$c/= :: WatchKind -&gt; WatchKind -&gt; Bool
+== :: WatchKind -&gt; WatchKind -&gt; Bool
+$c== :: WatchKind -&gt; WatchKind -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680442325"><span id="local-6989586621680442327"><span id="local-6989586621680442329"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#WatchKind"><span class="hs-identifier hs-type">WatchKind</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-60"></span><span>  </span><span id="local-6989586621680442324"><span class="annot"><span class="annottext">toJSON :: WatchKind -&gt; Value
+</span><a href="#local-6989586621680442324"><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></a></span></span><span> </span><span id="local-6989586621680442323"><span class="annot"><span class="annottext">WatchKind
+</span><a href="#local-6989586621680442323"><span class="hs-identifier hs-var">wk</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Scientific
+</span><a href="#local-6989586621680442321"><span class="hs-identifier hs-var">createNum</span></a></span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Scientific -&gt; Scientific
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><a href="#local-6989586621680442319"><span class="hs-identifier hs-var">changeNum</span></a></span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Scientific -&gt; Scientific
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><a href="#local-6989586621680442318"><span class="hs-identifier hs-var">deleteNum</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-61"></span><span>    </span><span class="hs-keyword">where</span><span>
+</span><span id="line-62"></span><span>      </span><span id="local-6989586621680442321"><span class="annot"><span class="annottext">createNum :: Scientific
+</span><a href="#local-6989586621680442321"><span class="hs-identifier hs-var hs-var">createNum</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">WatchKind -&gt; Bool
+</span><a href="Language.LSP.Types.WatchedFiles.html#%24sel%3A_watchCreate%3AWatchKind"><span class="hs-identifier hs-var hs-var">_watchCreate</span></a></span><span> </span><span class="annot"><span class="annottext">WatchKind
+</span><a href="#local-6989586621680442323"><span class="hs-identifier hs-var">wk</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">0x1</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">0x0</span></span><span>
+</span><span id="line-63"></span><span>      </span><span id="local-6989586621680442319"><span class="annot"><span class="annottext">changeNum :: Scientific
+</span><a href="#local-6989586621680442319"><span class="hs-identifier hs-var hs-var">changeNum</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">WatchKind -&gt; Bool
+</span><a href="Language.LSP.Types.WatchedFiles.html#%24sel%3A_watchChange%3AWatchKind"><span class="hs-identifier hs-var hs-var">_watchChange</span></a></span><span> </span><span class="annot"><span class="annottext">WatchKind
+</span><a href="#local-6989586621680442323"><span class="hs-identifier hs-var">wk</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">0x2</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">0x0</span></span><span>
+</span><span id="line-64"></span><span>      </span><span id="local-6989586621680442318"><span class="annot"><span class="annottext">deleteNum :: Scientific
+</span><a href="#local-6989586621680442318"><span class="hs-identifier hs-var hs-var">deleteNum</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">WatchKind -&gt; Bool
+</span><a href="Language.LSP.Types.WatchedFiles.html#%24sel%3A_watchDelete%3AWatchKind"><span class="hs-identifier hs-var hs-var">_watchDelete</span></a></span><span> </span><span class="annot"><span class="annottext">WatchKind
+</span><a href="#local-6989586621680442323"><span class="hs-identifier hs-var">wk</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">0x4</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">0x0</span></span><span>
+</span><span id="line-65"></span><span>
+</span><span id="line-66"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680442315"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#WatchKind"><span class="hs-identifier hs-type">WatchKind</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-67"></span><span>  </span><span id="local-6989586621680442314"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser WatchKind
+</span><a href="#local-6989586621680442314"><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span id="local-6989586621680442313"><span class="annot"><span class="annottext">Scientific
+</span><a href="#local-6989586621680442313"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-68"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621680442312"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680442312"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Either Double Int
+forall r i. (RealFloat r, Integral i) =&gt; Scientific -&gt; Either r i
+</span><span class="hs-identifier hs-var">floatingOrInteger</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><a href="#local-6989586621680442313"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-69"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;=</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680442312"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680442312"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;=</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">7</span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-70"></span><span>        </span><span class="annot"><span class="annottext">WatchKind -&gt; Parser WatchKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">(WatchKind -&gt; Parser WatchKind) -&gt; WatchKind -&gt; Parser WatchKind
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool -&gt; WatchKind
+</span><a href="Language.LSP.Types.WatchedFiles.html#WatchKind"><span class="hs-identifier hs-var">WatchKind</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Bits a =&gt; a -&gt; Int -&gt; Bool
+</span><span class="hs-identifier hs-var">testBit</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680442312"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0x0</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Bits a =&gt; a -&gt; Int -&gt; Bool
+</span><span class="hs-identifier hs-var">testBit</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680442312"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0x1</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Bits a =&gt; a -&gt; Int -&gt; Bool
+</span><span class="hs-identifier hs-var">testBit</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680442312"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0x2</span></span><span class="hs-special">)</span><span>
+</span><span id="line-71"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser WatchKind
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-72"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><span class="hs-identifier">_</span></span><span>            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser WatchKind
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-73"></span><span>
+</span><span id="line-74"></span><span id="local-6989586621680442296"><span id="local-6989586621680442298"><span id="local-6989586621680442300"><span id="local-6989586621680442302"><span id="local-6989586621680442304"><span id="local-6989586621680442306"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DidChangeWatchedFilesRegistrationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-75"></span><span id="local-6989586621680442284"><span id="local-6989586621680442286"><span id="local-6989586621680442288"><span id="local-6989586621680442290"><span id="local-6989586621680442292"><span id="local-6989586621680442294"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">FileSystemWatcher</span></span></span></span></span></span></span><span>
+</span><span id="line-76"></span><span>
+</span><span id="line-77"></span><span class="hs-comment">-- | The file event type.</span><span>
+</span><span id="line-78"></span><span class="hs-keyword">data</span><span> </span><span id="FileChangeType"><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#FileChangeType"><span class="hs-identifier hs-var">FileChangeType</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="FcCreated"><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#FcCreated"><span class="hs-identifier hs-var">FcCreated</span></a></span></span><span> </span><span class="hs-comment">-- ^ The file got created.</span><span>
+</span><span id="line-79"></span><span>                    </span><span class="hs-glyph">|</span><span> </span><span id="FcChanged"><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#FcChanged"><span class="hs-identifier hs-var">FcChanged</span></a></span></span><span> </span><span class="hs-comment">-- ^ The file got changed.</span><span>
+</span><span id="line-80"></span><span>                    </span><span class="hs-glyph">|</span><span> </span><span id="FcDeleted"><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#FcDeleted"><span class="hs-identifier hs-var">FcDeleted</span></a></span></span><span> </span><span class="hs-comment">-- ^ The file got deleted.</span><span>
+</span><span id="line-81"></span><span>       </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680442273"><span id="local-6989586621680442275"><span id="local-6989586621680442277"><span id="local-6989586621680442279"><span class="annot"><span class="annottext">ReadPrec [FileChangeType]
+ReadPrec FileChangeType
+Int -&gt; ReadS FileChangeType
+ReadS [FileChangeType]
+(Int -&gt; ReadS FileChangeType)
+-&gt; ReadS [FileChangeType]
+-&gt; ReadPrec FileChangeType
+-&gt; ReadPrec [FileChangeType]
+-&gt; Read FileChangeType
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [FileChangeType]
+$creadListPrec :: ReadPrec [FileChangeType]
+readPrec :: ReadPrec FileChangeType
+$creadPrec :: ReadPrec FileChangeType
+readList :: ReadS [FileChangeType]
+$creadList :: ReadS [FileChangeType]
+readsPrec :: Int -&gt; ReadS FileChangeType
+$creadsPrec :: Int -&gt; ReadS FileChangeType
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680442267"><span id="local-6989586621680442269"><span id="local-6989586621680442271"><span class="annot"><span class="annottext">Int -&gt; FileChangeType -&gt; ShowS
+[FileChangeType] -&gt; ShowS
+FileChangeType -&gt; String
+(Int -&gt; FileChangeType -&gt; ShowS)
+-&gt; (FileChangeType -&gt; String)
+-&gt; ([FileChangeType] -&gt; ShowS)
+-&gt; Show FileChangeType
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [FileChangeType] -&gt; ShowS
+$cshowList :: [FileChangeType] -&gt; ShowS
+show :: FileChangeType -&gt; String
+$cshow :: FileChangeType -&gt; String
+showsPrec :: Int -&gt; FileChangeType -&gt; ShowS
+$cshowsPrec :: Int -&gt; FileChangeType -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680442263"><span id="local-6989586621680442265"><span class="annot"><span class="annottext">FileChangeType -&gt; FileChangeType -&gt; Bool
+(FileChangeType -&gt; FileChangeType -&gt; Bool)
+-&gt; (FileChangeType -&gt; FileChangeType -&gt; Bool) -&gt; Eq FileChangeType
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: FileChangeType -&gt; FileChangeType -&gt; Bool
+$c/= :: FileChangeType -&gt; FileChangeType -&gt; Bool
+== :: FileChangeType -&gt; FileChangeType -&gt; Bool
+$c== :: FileChangeType -&gt; FileChangeType -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-82"></span><span>
+</span><span id="line-83"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680442256"><span id="local-6989586621680442258"><span id="local-6989586621680442260"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#FileChangeType"><span class="hs-identifier hs-type">FileChangeType</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-84"></span><span>  </span><span id="local-6989586621680442255"><span class="annot"><span class="annottext">toJSON :: FileChangeType -&gt; Value
+</span><a href="#local-6989586621680442255"><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></a></span></span><span> </span><span class="annot"><span class="annottext">FileChangeType
+</span><a href="Language.LSP.Types.WatchedFiles.html#FcCreated"><span class="hs-identifier hs-var">FcCreated</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-85"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">FileChangeType
+</span><a href="Language.LSP.Types.WatchedFiles.html#FcChanged"><span class="hs-identifier hs-var">FcChanged</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">2</span></span><span>
+</span><span id="line-86"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">FileChangeType
+</span><a href="Language.LSP.Types.WatchedFiles.html#FcDeleted"><span class="hs-identifier hs-var">FcDeleted</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">3</span></span><span>
+</span><span id="line-87"></span><span>
+</span><span id="line-88"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680442252"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#FileChangeType"><span class="hs-identifier hs-type">FileChangeType</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-89"></span><span>  </span><span id="local-6989586621680442251"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser FileChangeType
+</span><a href="#local-6989586621680442251"><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FileChangeType -&gt; Parser FileChangeType
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">FileChangeType
+</span><a href="Language.LSP.Types.WatchedFiles.html#FcCreated"><span class="hs-identifier hs-var">FcCreated</span></a></span><span>
+</span><span id="line-90"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">2</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FileChangeType -&gt; Parser FileChangeType
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">FileChangeType
+</span><a href="Language.LSP.Types.WatchedFiles.html#FcChanged"><span class="hs-identifier hs-var">FcChanged</span></a></span><span>
+</span><span id="line-91"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">3</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FileChangeType -&gt; Parser FileChangeType
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">FileChangeType
+</span><a href="Language.LSP.Types.WatchedFiles.html#FcDeleted"><span class="hs-identifier hs-var">FcDeleted</span></a></span><span>
+</span><span id="line-92"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><span class="hs-identifier">_</span></span><span>            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser FileChangeType
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-93"></span><span>
+</span><span id="line-94"></span><span>
+</span><span id="line-95"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-96"></span><span>
+</span><span id="line-97"></span><span class="hs-comment">-- | An event describing a file change.</span><span>
+</span><span id="line-98"></span><span class="hs-keyword">data</span><span> </span><span id="FileEvent"><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#FileEvent"><span class="hs-identifier hs-var">FileEvent</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-99"></span><span>  </span><span id="FileEvent"><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#FileEvent"><span class="hs-identifier hs-var">FileEvent</span></a></span></span><span>
+</span><span id="line-100"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The file's URI.</span><span>
+</span><span id="line-101"></span><span>    </span><span id="%24sel%3A_uri%3AFileEvent"><span class="annot"><span class="annottext">FileEvent -&gt; Uri
+</span><a href="Language.LSP.Types.WatchedFiles.html#%24sel%3A_uri%3AFileEvent"><span class="hs-identifier hs-var hs-var">_uri</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Uri.html#Uri"><span class="hs-identifier hs-type">Uri</span></a></span><span>
+</span><span id="line-102"></span><span>    </span><span class="hs-comment">-- | The change type.</span><span>
+</span><span id="line-103"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_xtype%3AFileEvent"><span class="annot"><span class="annottext">FileEvent -&gt; FileChangeType
+</span><a href="Language.LSP.Types.WatchedFiles.html#%24sel%3A_xtype%3AFileEvent"><span class="hs-identifier hs-var hs-var">_xtype</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#FileChangeType"><span class="hs-identifier hs-type">FileChangeType</span></a></span><span>
+</span><span id="line-104"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680442240"><span id="local-6989586621680442242"><span id="local-6989586621680442244"><span id="local-6989586621680442246"><span class="annot"><span class="annottext">ReadPrec [FileEvent]
+ReadPrec FileEvent
+Int -&gt; ReadS FileEvent
+ReadS [FileEvent]
+(Int -&gt; ReadS FileEvent)
+-&gt; ReadS [FileEvent]
+-&gt; ReadPrec FileEvent
+-&gt; ReadPrec [FileEvent]
+-&gt; Read FileEvent
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [FileEvent]
+$creadListPrec :: ReadPrec [FileEvent]
+readPrec :: ReadPrec FileEvent
+$creadPrec :: ReadPrec FileEvent
+readList :: ReadS [FileEvent]
+$creadList :: ReadS [FileEvent]
+readsPrec :: Int -&gt; ReadS FileEvent
+$creadsPrec :: Int -&gt; ReadS FileEvent
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680442234"><span id="local-6989586621680442236"><span id="local-6989586621680442238"><span class="annot"><span class="annottext">Int -&gt; FileEvent -&gt; ShowS
+[FileEvent] -&gt; ShowS
+FileEvent -&gt; String
+(Int -&gt; FileEvent -&gt; ShowS)
+-&gt; (FileEvent -&gt; String)
+-&gt; ([FileEvent] -&gt; ShowS)
+-&gt; Show FileEvent
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [FileEvent] -&gt; ShowS
+$cshowList :: [FileEvent] -&gt; ShowS
+show :: FileEvent -&gt; String
+$cshow :: FileEvent -&gt; String
+showsPrec :: Int -&gt; FileEvent -&gt; ShowS
+$cshowsPrec :: Int -&gt; FileEvent -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680442230"><span id="local-6989586621680442232"><span class="annot"><span class="annottext">FileEvent -&gt; FileEvent -&gt; Bool
+(FileEvent -&gt; FileEvent -&gt; Bool)
+-&gt; (FileEvent -&gt; FileEvent -&gt; Bool) -&gt; Eq FileEvent
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: FileEvent -&gt; FileEvent -&gt; Bool
+$c/= :: FileEvent -&gt; FileEvent -&gt; Bool
+== :: FileEvent -&gt; FileEvent -&gt; Bool
+$c== :: FileEvent -&gt; FileEvent -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-105"></span><span>
+</span><span id="line-106"></span><span id="local-6989586621680442218"><span id="local-6989586621680442220"><span id="local-6989586621680442222"><span id="local-6989586621680442224"><span id="local-6989586621680442226"><span id="local-6989586621680442228"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">FileEvent</span></span></span></span></span></span></span><span>
+</span><span id="line-107"></span><span>
+</span><span id="line-108"></span><span class="hs-keyword">data</span><span> </span><span id="DidChangeWatchedFilesParams"><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#DidChangeWatchedFilesParams"><span class="hs-identifier hs-var">DidChangeWatchedFilesParams</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-109"></span><span>  </span><span id="DidChangeWatchedFilesParams"><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#DidChangeWatchedFilesParams"><span class="hs-identifier hs-var">DidChangeWatchedFilesParams</span></a></span></span><span>
+</span><span id="line-110"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The actual file events.</span><span>
+</span><span id="line-111"></span><span>    </span><span id="%24sel%3A_changes%3ADidChangeWatchedFilesParams"><span class="annot"><span class="annottext">DidChangeWatchedFilesParams -&gt; List FileEvent
+</span><a href="Language.LSP.Types.WatchedFiles.html#%24sel%3A_changes%3ADidChangeWatchedFilesParams"><span class="hs-identifier hs-var hs-var">_changes</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#FileEvent"><span class="hs-identifier hs-type">FileEvent</span></a></span><span>
+</span><span id="line-112"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680442208"><span id="local-6989586621680442210"><span id="local-6989586621680442212"><span id="local-6989586621680442214"><span class="annot"><span class="annottext">ReadPrec [DidChangeWatchedFilesParams]
+ReadPrec DidChangeWatchedFilesParams
+Int -&gt; ReadS DidChangeWatchedFilesParams
+ReadS [DidChangeWatchedFilesParams]
+(Int -&gt; ReadS DidChangeWatchedFilesParams)
+-&gt; ReadS [DidChangeWatchedFilesParams]
+-&gt; ReadPrec DidChangeWatchedFilesParams
+-&gt; ReadPrec [DidChangeWatchedFilesParams]
+-&gt; Read DidChangeWatchedFilesParams
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [DidChangeWatchedFilesParams]
+$creadListPrec :: ReadPrec [DidChangeWatchedFilesParams]
+readPrec :: ReadPrec DidChangeWatchedFilesParams
+$creadPrec :: ReadPrec DidChangeWatchedFilesParams
+readList :: ReadS [DidChangeWatchedFilesParams]
+$creadList :: ReadS [DidChangeWatchedFilesParams]
+readsPrec :: Int -&gt; ReadS DidChangeWatchedFilesParams
+$creadsPrec :: Int -&gt; ReadS DidChangeWatchedFilesParams
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680442202"><span id="local-6989586621680442204"><span id="local-6989586621680442206"><span class="annot"><span class="annottext">Int -&gt; DidChangeWatchedFilesParams -&gt; ShowS
+[DidChangeWatchedFilesParams] -&gt; ShowS
+DidChangeWatchedFilesParams -&gt; String
+(Int -&gt; DidChangeWatchedFilesParams -&gt; ShowS)
+-&gt; (DidChangeWatchedFilesParams -&gt; String)
+-&gt; ([DidChangeWatchedFilesParams] -&gt; ShowS)
+-&gt; Show DidChangeWatchedFilesParams
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [DidChangeWatchedFilesParams] -&gt; ShowS
+$cshowList :: [DidChangeWatchedFilesParams] -&gt; ShowS
+show :: DidChangeWatchedFilesParams -&gt; String
+$cshow :: DidChangeWatchedFilesParams -&gt; String
+showsPrec :: Int -&gt; DidChangeWatchedFilesParams -&gt; ShowS
+$cshowsPrec :: Int -&gt; DidChangeWatchedFilesParams -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680442198"><span id="local-6989586621680442200"><span class="annot"><span class="annottext">DidChangeWatchedFilesParams -&gt; DidChangeWatchedFilesParams -&gt; Bool
+(DidChangeWatchedFilesParams
+ -&gt; DidChangeWatchedFilesParams -&gt; Bool)
+-&gt; (DidChangeWatchedFilesParams
+    -&gt; DidChangeWatchedFilesParams -&gt; Bool)
+-&gt; Eq DidChangeWatchedFilesParams
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: DidChangeWatchedFilesParams -&gt; DidChangeWatchedFilesParams -&gt; Bool
+$c/= :: DidChangeWatchedFilesParams -&gt; DidChangeWatchedFilesParams -&gt; Bool
+== :: DidChangeWatchedFilesParams -&gt; DidChangeWatchedFilesParams -&gt; Bool
+$c== :: DidChangeWatchedFilesParams -&gt; DidChangeWatchedFilesParams -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-113"></span><span>
+</span><span id="line-114"></span><span id="local-6989586621680442186"><span id="local-6989586621680442188"><span id="local-6989586621680442190"><span id="local-6989586621680442192"><span id="local-6989586621680442194"><span id="local-6989586621680442196"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DidChangeWatchedFilesParams</span></span></span></span></span></span></span><span>
+</span><span id="line-115"></span></pre></body></html>

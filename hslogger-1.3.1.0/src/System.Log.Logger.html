@@ -1,0 +1,1076 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP, ExistentialQuantification #-}</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-comment">{- |
+   Module     : System.Log.Logger
+   Copyright  : Copyright (C) 2004-2011 John Goerzen
+   License    : BSD3
+
+   Portability: portable
+
+Haskell Logging Framework, Primary Interface
+
+Written by John Goerzen, jgoerzen\@complete.org
+
+Welcome to the error and information logging system for Haskell.
+
+This system is patterned after Python\'s @logging@ module,
+&lt;http://www.python.org/doc/current/lib/module-logging.html&gt; and some of
+the documentation here was based on documentation there.
+
+To log a message, you perform operations on 'Logger's.  Each 'Logger' has a
+name, and they are arranged hierarchically.  Periods serve as separators.
+Therefore, a 'Logger' named \&quot;foo\&quot; is the parent of loggers \&quot;foo.printing\&quot;,
+\&quot;foo.html\&quot;, and \&quot;foo.io\&quot;.  These names can be anything you want.  They're
+used to indicate the area of an application or library in which a logged
+message originates.  Later you will see how you can use this concept to
+fine-tune logging behaviors based on specific application areas.
+
+You can also tune logging behaviors based upon how important a message is.
+Each message you log will have an importance associated with it.  The different
+importance levels are given by the 'Priority' type.  I've also provided
+some convenient functions that correspond to these importance levels:
+'debugM' through 'emergencyM' log messages with the specified importance.
+
+Now, an importance level (or 'Priority')
+is associated not just with a particular message but also
+with a 'Logger'.  If the 'Priority' of a given log message is lower than
+the 'Priority' configured in the 'Logger', that message is ignored.  This
+way, you can globally control how verbose your logging output is.
+
+Now, let's follow what happens under the hood when you log a message.  We'll
+assume for the moment that you are logging something with a high enough
+'Priority' that it passes the test in your 'Logger'.  In your code, you'll
+call 'logM' or something like 'debugM' to log the message.  Your 'Logger'
+decides to accept the message.  What next?
+
+Well, we also have a notion of /handlers/ ('LogHandler's, to be precise).
+A 'LogHandler' is a thing that takes a message and sends it somewhere.
+That \&quot;somewhere\&quot; may be your screen (via standard error), your system's
+logging infrastructure (via syslog), a file, or other things.  Each
+'Logger' can have zero or more 'LogHandler's associated with it.  When your
+'Logger' has a message to log, it passes it to every 'LogHandler' it knows
+of to process.  What's more, it is also passed to /all handlers of all
+ancestors of the Logger/, regardless of whether those 'Logger's would
+normally have passed on the message.
+
+Each 'Logger' can /optionally/ store a 'Priority'.  If a given Logger does
+not have a Priority, and you log a message to that logger, the system will
+use the priority of the parent of the destination logger to find out whether
+to log the message.  If the parent has no priority associated with it,
+the system continues walking up the tree to figure out a priority until
+it hits the root logger.  In this way, you can easily adjust the priority
+of an entire subtree of loggers.  When a new logger is created, it has no
+priority by default.  The exception is the root logger, which has a WARNING
+priority by default.
+
+To give you one extra little knob to turn, 'LogHandler's can also have
+importance levels ('Priority') associated with them in the same way
+that 'Logger's do.  They act just like the 'Priority' value in the
+'Logger's -- as a filter.  It's useful, for instance, to make sure that
+under no circumstances will a mere 'DEBUG' message show up in your syslog.
+
+There are three built-in handlers given in two built-in modules:
+&quot;System.Log.Handler.Simple&quot; and &quot;System.Log.Handler.Syslog&quot;.
+
+There is a special logger known as the /root logger/ that sits at the top
+of the logger hierarchy.  It is always present, and handlers attached
+there will be called for every message.  You can use 'getRootLogger' to get
+it or 'rootLoggerName' to work with it by name.
+
+The formatting of log messages may be customized by setting a 'LogFormatter'
+on the desired 'LogHandler'.  There are a number of simple formatters defined
+in &quot;System.Log.Formatter&quot;, which may be used directly, or extend to create
+your own formatter.
+
+Here's an example to illustrate some of these concepts:
+
+&gt; import System.Log.Logger
+&gt; import System.Log.Handler.Syslog
+&gt; import System.Log.Handler.Simple
+&gt; import System.Log.Handler (setFormatter)
+&gt; import System.Log.Formatter
+&gt;
+&gt; -- By default, all messages of level WARNING and above are sent to stderr.
+&gt; -- Everything else is ignored.
+&gt;
+&gt; -- &quot;MyApp.Component&quot; is an arbitrary string; you can tune
+&gt; -- logging behavior based on it later.
+&gt; main = do
+&gt;        debugM &quot;MyApp.Component&quot;  &quot;This is a debug message -- never to be seen&quot;
+&gt;        warningM &quot;MyApp.Component2&quot; &quot;Something Bad is about to happen.&quot;
+&gt;
+&gt;        -- Copy everything to syslog from here on out.
+&gt;        s &lt;- openlog &quot;SyslogStuff&quot; [PID] USER DEBUG
+&gt;        updateGlobalLogger rootLoggerName (addHandler s)
+&gt;
+&gt;        errorM &quot;MyApp.Component&quot; &quot;This is going to stderr and syslog.&quot;
+&gt;
+&gt;        -- Now we'd like to see everything from BuggyComponent
+&gt;        -- at DEBUG or higher go to syslog and stderr.
+&gt;        -- Also, we'd like to still ignore things less than
+&gt;        -- WARNING in other areas.
+&gt;        --
+&gt;        -- So, we adjust the Logger for MyApp.BuggyComponent.
+&gt;
+&gt;        updateGlobalLogger &quot;MyApp.BuggyComponent&quot;
+&gt;                           (setLevel DEBUG)
+&gt;
+&gt;        -- This message will go to syslog and stderr
+&gt;        debugM &quot;MyApp.BuggyComponent&quot; &quot;This buggy component is buggy&quot;
+&gt;
+&gt;        -- This message will go to syslog and stderr too.
+&gt;        warningM &quot;MyApp.BuggyComponent&quot; &quot;Still Buggy&quot;
+&gt;
+&gt;        -- This message goes nowhere.
+&gt;        debugM &quot;MyApp.WorkingComponent&quot; &quot;Hello&quot;
+&gt;
+&gt;        -- Now we decide we'd also like to log everything from BuggyComponent at DEBUG
+&gt;        -- or higher to a file for later diagnostics.  We'd also like to customize the
+&gt;        -- format of the log message, so we use a 'simpleLogFormatter'
+&gt;
+&gt;        h &lt;- fileHandler &quot;debug.log&quot; DEBUG &gt;&gt;= \lh -&gt; return $
+&gt;                 setFormatter lh (simpleLogFormatter &quot;[$time : $loggername : $prio] $msg&quot;)
+&gt;        updateGlobalLogger &quot;MyApp.BuggyComponent&quot; (addHandler h)
+&gt;
+&gt;        -- This message will go to syslog and stderr,
+&gt;        -- and to the file &quot;debug.log&quot; with a format like :
+&gt;        -- [2010-05-23 16:47:28 : MyApp.BuggyComponent : DEBUG] Some useful diagnostics...
+&gt;        debugM &quot;MyApp.BuggyComponent&quot; &quot;Some useful diagnostics...&quot;
+&gt;
+&gt;
+-}</span><span>
+</span><span id="line-142"></span><span>
+</span><span id="line-143"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">System.Log.Logger</span><span class="hs-special">(</span><span>
+</span><span id="line-144"></span><span>                               </span><span class="annot"><span class="hs-comment">-- * Basic Types</span></span><span>
+</span><span id="line-145"></span><span>                               </span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier">Logger</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-146"></span><span>                               </span><span class="annot"><span class="hs-comment">-- ** Re-Exported from System.Log</span></span><span>
+</span><span id="line-147"></span><span>                               </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier">Priority</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-148"></span><span>                               </span><span class="annot"><span class="hs-comment">-- * Logging Messages</span></span><span>
+</span><span id="line-149"></span><span>                               </span><span class="annot"><span class="hs-comment">-- ** Basic</span></span><span>
+</span><span id="line-150"></span><span>                               </span><span class="annot"><a href="System.Log.Logger.html#logM"><span class="hs-identifier">logM</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-151"></span><span>                               </span><span class="annot"><span class="hs-comment">-- ** Utility Functions</span></span><span>
+</span><span id="line-152"></span><span>                               </span><span class="hs-comment">-- These functions are wrappers for 'logM' to</span><span>
+</span><span id="line-153"></span><span>                               </span><span class="hs-comment">-- make your job easier.</span><span>
+</span><span id="line-154"></span><span>                               </span><span class="annot"><a href="System.Log.Logger.html#debugM"><span class="hs-identifier">debugM</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.Log.Logger.html#infoM"><span class="hs-identifier">infoM</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.Log.Logger.html#noticeM"><span class="hs-identifier">noticeM</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.Log.Logger.html#warningM"><span class="hs-identifier">warningM</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.Log.Logger.html#errorM"><span class="hs-identifier">errorM</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-155"></span><span>                               </span><span class="annot"><a href="System.Log.Logger.html#criticalM"><span class="hs-identifier">criticalM</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.Log.Logger.html#alertM"><span class="hs-identifier">alertM</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.Log.Logger.html#emergencyM"><span class="hs-identifier">emergencyM</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-156"></span><span>                               </span><span class="annot"><a href="System.Log.Logger.html#removeAllHandlers"><span class="hs-identifier">removeAllHandlers</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-157"></span><span>                               </span><span class="annot"><a href="System.Log.Logger.html#traplogging"><span class="hs-identifier">traplogging</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-158"></span><span>                               </span><span class="annot"><span class="hs-comment">-- ** Logging to a particular Logger by object</span></span><span>
+</span><span id="line-159"></span><span>                               </span><span class="annot"><a href="System.Log.Logger.html#logL"><span class="hs-identifier">logL</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-160"></span><span>                               </span><span class="annot"><span class="hs-comment">-- * Logger Manipulation</span></span><span>
+</span><span id="line-161"></span><span class="annot"><span class="hs-comment">{- | These functions help you work with loggers.  There are some
+special things to be aware of.
+
+First of all, whenever you first access a given logger by name, it
+magically springs to life.  It has a default 'Priority' of Nothing
+and an empty handler list -- which means that it will inherit whatever its
+parents do.
+-}</span></span><span>
+</span><span id="line-169"></span><span>                               </span><span class="annot"><span class="hs-comment">-- ** Finding \/ Creating Loggers</span></span><span>
+</span><span id="line-170"></span><span>                               </span><span class="annot"><a href="System.Log.Logger.html#getLogger"><span class="hs-identifier">getLogger</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.Log.Logger.html#getRootLogger"><span class="hs-identifier">getRootLogger</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.Log.Logger.html#rootLoggerName"><span class="hs-identifier">rootLoggerName</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-171"></span><span>                               </span><span class="annot"><span class="hs-comment">-- ** Modifying Loggers</span></span><span>
+</span><span id="line-172"></span><span class="annot"><span class="hs-comment">{- | Keep in mind that \&quot;modification\&quot; here is modification in the Haskell
+sense.  We do not actually cause mutation in a specific 'Logger'.  Rather,
+we return you a new 'Logger' object with the change applied.
+
+Also, please note that these functions will not have an effect on the
+global 'Logger' hierarchy.  You may use your new 'Logger's locally,
+but other functions won't see the changes.  To make a change global,
+you'll need to use 'updateGlobalLogger' or 'saveGlobalLogger'.
+-}</span></span><span>
+</span><span id="line-181"></span><span>                               </span><span class="annot"><a href="System.Log.Logger.html#addHandler"><span class="hs-identifier">addHandler</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.Log.Logger.html#removeHandler"><span class="hs-identifier">removeHandler</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.Log.Logger.html#setHandlers"><span class="hs-identifier">setHandlers</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-182"></span><span>                               </span><span class="annot"><a href="System.Log.Logger.html#getLevel"><span class="hs-identifier">getLevel</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.Log.Logger.html#setLevel"><span class="hs-identifier">setLevel</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.Log.Logger.html#clearLevel"><span class="hs-identifier">clearLevel</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-183"></span><span>                               </span><span class="annot"><span class="hs-comment">-- ** Saving Your Changes</span></span><span>
+</span><span id="line-184"></span><span class="annot"><span class="hs-comment">{- | These functions commit changes you've made to loggers to the global
+logger hierarchy. -}</span></span><span>
+</span><span id="line-186"></span><span>                               </span><span class="annot"><a href="System.Log.Logger.html#saveGlobalLogger"><span class="hs-identifier">saveGlobalLogger</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-187"></span><span>                               </span><span class="annot"><a href="System.Log.Logger.html#updateGlobalLogger"><span class="hs-identifier">updateGlobalLogger</span></a></span><span>
+</span><span id="line-188"></span><span>                               </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-189"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="System.Log.html"><span class="hs-identifier">System.Log</span></a></span><span>
+</span><span id="line-190"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="System.Log.Handler.html"><span class="hs-identifier">System.Log.Handler</span></a></span><span class="hs-special">(</span><span class="annot"><a href="System.Log.Handler.html#LogHandler"><span class="hs-identifier">LogHandler</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.Log.Handler.html#close"><span class="hs-identifier">close</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-191"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="System.Log.Formatter.html"><span class="hs-identifier">System.Log.Formatter</span></a></span><span class="hs-special">(</span><span class="annot"><a href="System.Log.Formatter.html#LogFormatter"><span class="hs-identifier">LogFormatter</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-comment">-- for Haddock</span><span>
+</span><span id="line-192"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="System.Log.Handler.html"><span class="hs-identifier">System.Log.Handler</span></a></span><span class="hs-special">(</span><span class="annot"><a href="System.Log.Handler.html#handle"><span class="hs-identifier">handle</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-193"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="System.Log.Handler.Simple.html"><span class="hs-identifier">System.Log.Handler.Simple</span></a></span><span>
+</span><span id="line-194"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.IO</span></span><span>
+</span><span id="line-195"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.IO.Unsafe</span></span><span>
+</span><span id="line-196"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Concurrent.MVar</span></span><span>
+</span><span id="line-197"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">map</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">isPrefixOf</span></span><span class="hs-special">)</span><span>
+</span><span id="line-198"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Maybe</span></span><span>
+</span><span id="line-199"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Map</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Map</span></span><span>
+</span><span id="line-200"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Control.Exception</span></span><span>
+</span><span id="line-201"></span><span>
+</span><span id="line-202"></span><span class="hs-comment">---------------------------------------------------------------------------</span><span>
+</span><span id="line-203"></span><span class="hs-comment">-- Basic logger types</span><span>
+</span><span id="line-204"></span><span class="hs-comment">---------------------------------------------------------------------------</span><span>
+</span><span id="line-205"></span><span class="hs-keyword">data</span><span> </span><span id="HandlerT"><span class="annot"><a href="System.Log.Logger.html#HandlerT"><span class="hs-identifier hs-var">HandlerT</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679050812"><span class="annot"><a href="#local-6989586621679050812"><span class="hs-identifier hs-type">a</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="annot"><a href="System.Log.Handler.html#LogHandler"><span class="hs-identifier hs-type">LogHandler</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679050812"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span id="HandlerT"><span class="annot"><a href="System.Log.Logger.html#HandlerT"><span class="hs-identifier hs-var">HandlerT</span></a></span></span><span> </span><span class="annot"><a href="#local-6989586621679050812"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-206"></span><span>
+</span><span id="line-207"></span><span class="hs-keyword">data</span><span> </span><span id="Logger"><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-var">Logger</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Logger"><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-var">Logger</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="level"><span class="annot"><span class="annottext">Logger -&gt; Maybe Priority
+</span><a href="System.Log.Logger.html#level"><span class="hs-identifier hs-var hs-var">level</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-208"></span><span>                       </span><span id="handlers"><span class="annot"><span class="annottext">Logger -&gt; [HandlerT]
+</span><a href="System.Log.Logger.html#handlers"><span class="hs-identifier hs-var hs-var">handlers</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="System.Log.Logger.html#HandlerT"><span class="hs-identifier hs-type">HandlerT</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span>
+</span><span id="line-209"></span><span>                       </span><span id="name"><span class="annot"><span class="annottext">Logger -&gt; String
+</span><a href="System.Log.Logger.html#name"><span class="hs-identifier hs-var hs-var">name</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">}</span><span>
+</span><span id="line-210"></span><span>
+</span><span id="line-211"></span><span class="hs-keyword">type</span><span> </span><span id="LogTree"><span class="annot"><a href="System.Log.Logger.html#LogTree"><span class="hs-identifier hs-var">LogTree</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Map.Map</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span><span>
+</span><span id="line-212"></span><span>
+</span><span id="line-213"></span><span class="hs-comment">{- | This is the base class for the various log handlers.  They should
+all adhere to this class. -}</span><span>
+</span><span id="line-215"></span><span>
+</span><span id="line-216"></span><span>
+</span><span id="line-217"></span><span class="hs-comment">---------------------------------------------------------------------------</span><span>
+</span><span id="line-218"></span><span class="hs-comment">-- Utilities</span><span>
+</span><span id="line-219"></span><span class="hs-comment">---------------------------------------------------------------------------</span><span>
+</span><span id="line-220"></span><span>
+</span><span id="line-221"></span><span class="hs-comment">-- | The name of the root logger, which is always defined and present</span><span>
+</span><span id="line-222"></span><span class="hs-comment">-- on the system.</span><span>
+</span><span id="line-223"></span><span class="annot"><a href="System.Log.Logger.html#rootLoggerName"><span class="hs-identifier hs-type">rootLoggerName</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-224"></span><span id="rootLoggerName"><span class="annot"><span class="annottext">rootLoggerName :: String
+</span><a href="System.Log.Logger.html#rootLoggerName"><span class="hs-identifier hs-var hs-var">rootLoggerName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-225"></span><span>
+</span><span id="line-226"></span><span class="hs-comment">---------------------------------------------------------------------------</span><span>
+</span><span id="line-227"></span><span class="hs-comment">-- Logger Tree Storage</span><span>
+</span><span id="line-228"></span><span class="hs-comment">---------------------------------------------------------------------------</span><span>
+</span><span id="line-229"></span><span>
+</span><span id="line-230"></span><span class="hs-comment">-- | The log tree.  Initialize it with a default root logger</span><span>
+</span><span id="line-231"></span><span class="hs-comment">-- and (FIXME) a logger for MissingH itself.</span><span>
+</span><span id="line-232"></span><span>
+</span><span id="line-233"></span><span class="hs-pragma">{-# NOINLINE</span><span> </span><span class="annot"><a href="System.Log.Logger.html#logTree"><span class="hs-pragma hs-type">logTree</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-234"></span><span>
+</span><span id="line-235"></span><span class="annot"><a href="System.Log.Logger.html#logTree"><span class="hs-identifier hs-type">logTree</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MVar</span></span><span> </span><span class="annot"><a href="System.Log.Logger.html#LogTree"><span class="hs-identifier hs-type">LogTree</span></a></span><span>
+</span><span id="line-236"></span><span class="hs-comment">-- note: only kick up tree if handled locally</span><span>
+</span><span id="line-237"></span><span id="logTree"><span class="annot"><span class="annottext">logTree :: MVar LogTree
+</span><a href="System.Log.Logger.html#logTree"><span class="hs-identifier hs-var hs-var">logTree</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-238"></span><span>    </span><span class="annot"><span class="annottext">IO (MVar LogTree) -&gt; MVar LogTree
+forall a. IO a -&gt; a
+</span><span class="hs-identifier hs-var">unsafePerformIO</span></span><span> </span><span class="annot"><span class="annottext">(IO (MVar LogTree) -&gt; MVar LogTree)
+-&gt; IO (MVar LogTree) -&gt; MVar LogTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-239"></span><span>                      </span><span id="local-6989586621679050701"><span class="annot"><span class="annottext">GenericHandler Handle
+</span><a href="#local-6989586621679050701"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; Priority -&gt; IO (GenericHandler Handle)
+</span><a href="System.Log.Handler.Simple.html#streamHandler"><span class="hs-identifier hs-var">streamHandler</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><span class="hs-identifier hs-var">stderr</span></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#DEBUG"><span class="hs-identifier hs-var">DEBUG</span></a></span><span>
+</span><span id="line-240"></span><span>                      </span><span class="annot"><span class="annottext">LogTree -&gt; IO (MVar LogTree)
+forall a. a -&gt; IO (MVar a)
+</span><span class="hs-identifier hs-var">newMVar</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Logger -&gt; LogTree
+forall k a. k -&gt; a -&gt; Map k a
+</span><span class="hs-identifier hs-var">Map.singleton</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="System.Log.Logger.html#rootLoggerName"><span class="hs-identifier hs-var">rootLoggerName</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Logger :: Maybe Priority -&gt; [HandlerT] -&gt; String -&gt; Logger
+</span><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span><span>
+</span><span id="line-241"></span><span>                                                   </span><span class="hs-special">{</span><span class="annot"><span class="annottext">level :: Maybe Priority
+</span><a href="System.Log.Logger.html#level"><span class="hs-identifier hs-var">level</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Priority -&gt; Maybe Priority
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#WARNING"><span class="hs-identifier hs-var">WARNING</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-242"></span><span>                                                    </span><span class="annot"><span class="annottext">name :: String
+</span><a href="System.Log.Logger.html#name"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-243"></span><span>                                                    </span><span class="annot"><span class="annottext">handlers :: [HandlerT]
+</span><a href="System.Log.Logger.html#handlers"><span class="hs-identifier hs-var">handlers</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">GenericHandler Handle -&gt; HandlerT
+forall a. LogHandler a =&gt; a -&gt; HandlerT
+</span><a href="System.Log.Logger.html#HandlerT"><span class="hs-identifier hs-var">HandlerT</span></a></span><span> </span><span class="annot"><span class="annottext">GenericHandler Handle
+</span><a href="#local-6989586621679050701"><span class="hs-identifier hs-var">h</span></a></span><span class="hs-special">]</span><span class="hs-special">}</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-244"></span><span>
+</span><span id="line-245"></span><span class="hs-comment">{- | Given a name, return all components of it, starting from the root.
+Example return value:
+
+&gt;[&quot;&quot;, &quot;MissingH&quot;, &quot;System.Cmd.Utils&quot;, &quot;System.Cmd.Utils.pOpen&quot;]
+
+-}</span><span>
+</span><span id="line-251"></span><span class="annot"><a href="System.Log.Logger.html#componentsOfName"><span class="hs-identifier hs-type">componentsOfName</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span>
+</span><span id="line-252"></span><span id="componentsOfName"><span class="annot"><span class="annottext">componentsOfName :: String -&gt; [String]
+</span><a href="System.Log.Logger.html#componentsOfName"><span class="hs-identifier hs-var hs-var">componentsOfName</span></a></span></span><span> </span><span id="local-6989586621679050693"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050693"><span class="hs-identifier hs-var">name'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-253"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679050692"><span class="annot"><span class="annottext">joinComp :: [String] -&gt; String -&gt; [String]
+</span><a href="#local-6989586621679050692"><span class="hs-identifier hs-var hs-var">joinComp</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-254"></span><span>        </span><span class="annot"><a href="#local-6989586621679050692"><span class="hs-identifier hs-var">joinComp</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679050691"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050691"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679050690"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679050690"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050691"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; [String]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String -&gt; [String]
+</span><a href="#local-6989586621679050692"><span class="hs-identifier hs-var">joinComp</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679050690"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050691"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-255"></span><span>        </span><span class="annot"><a href="#local-6989586621679050692"><span class="hs-identifier hs-var">joinComp</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679050689"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050689"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679050688"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679050688"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679050687"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050687"><span class="hs-identifier hs-var">accum</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-256"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679050686"><span class="annot"><span class="annottext">newlevel :: String
+</span><a href="#local-6989586621679050686"><span class="hs-identifier hs-var hs-var">newlevel</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050687"><span class="hs-identifier hs-var">accum</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;.&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050689"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">in</span><span>
+</span><span id="line-257"></span><span>                </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050686"><span class="hs-identifier hs-var">newlevel</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; [String]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String -&gt; [String]
+</span><a href="#local-6989586621679050692"><span class="hs-identifier hs-var">joinComp</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679050688"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050686"><span class="hs-identifier hs-var">newlevel</span></a></span><span>
+</span><span id="line-258"></span><span>        </span><span class="hs-keyword">in</span><span>
+</span><span id="line-259"></span><span>        </span><span class="annot"><span class="annottext">String
+</span><a href="System.Log.Logger.html#rootLoggerName"><span class="hs-identifier hs-var">rootLoggerName</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; [String]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String -&gt; [String]
+</span><a href="#local-6989586621679050692"><span class="hs-identifier hs-var">joinComp</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; String -&gt; [String]
+forall a. Eq a =&gt; [a] -&gt; [a] -&gt; [[a]]
+</span><a href="System.Log.Logger.html#split"><span class="hs-identifier hs-var">split</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;.&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050693"><span class="hs-identifier hs-var">name'</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-260"></span><span>
+</span><span id="line-261"></span><span class="hs-comment">---------------------------------------------------------------------------</span><span>
+</span><span id="line-262"></span><span class="hs-comment">-- Logging With Location</span><span>
+</span><span id="line-263"></span><span class="hs-comment">---------------------------------------------------------------------------</span><span>
+</span><span id="line-264"></span><span>
+</span><span id="line-265"></span><span class="hs-comment">{- | Log a message using the given logger at a given priority. -}</span><span>
+</span><span id="line-266"></span><span>
+</span><span id="line-267"></span><span class="annot"><a href="System.Log.Logger.html#logM"><span class="hs-identifier hs-type">logM</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                           </span><span class="hs-comment">-- ^ Name of the logger to use</span><span>
+</span><span id="line-268"></span><span>     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span>                         </span><span class="hs-comment">-- ^ Priority of this message</span><span>
+</span><span id="line-269"></span><span>     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                           </span><span class="hs-comment">-- ^ The log text itself</span><span>
+</span><span id="line-270"></span><span>     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-271"></span><span>
+</span><span id="line-272"></span><span id="logM"><span class="annot"><span class="annottext">logM :: String -&gt; Priority -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#logM"><span class="hs-identifier hs-var hs-var">logM</span></a></span></span><span> </span><span id="local-6989586621679050684"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050684"><span class="hs-identifier hs-var">logname</span></a></span></span><span> </span><span id="local-6989586621679050683"><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050683"><span class="hs-identifier hs-var">pri</span></a></span></span><span> </span><span id="local-6989586621679050682"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050682"><span class="hs-identifier hs-var">msg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-273"></span><span>                       </span><span id="local-6989586621679050681"><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050681"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO Logger
+</span><a href="System.Log.Logger.html#getLogger"><span class="hs-identifier hs-var">getLogger</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050684"><span class="hs-identifier hs-var">logname</span></a></span><span>
+</span><span id="line-274"></span><span>                       </span><span class="annot"><span class="annottext">Logger -&gt; Priority -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#logL"><span class="hs-identifier hs-var">logL</span></a></span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050681"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050683"><span class="hs-identifier hs-var">pri</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050682"><span class="hs-identifier hs-var">msg</span></a></span><span>
+</span><span id="line-275"></span><span>
+</span><span id="line-276"></span><span class="hs-comment">---------------------------------------------------------------------------</span><span>
+</span><span id="line-277"></span><span class="hs-comment">-- Utility functions</span><span>
+</span><span id="line-278"></span><span class="hs-comment">---------------------------------------------------------------------------</span><span>
+</span><span id="line-279"></span><span>
+</span><span id="line-280"></span><span class="hs-comment">{- | Log a message at 'DEBUG' priority -}</span><span>
+</span><span id="line-281"></span><span class="annot"><a href="System.Log.Logger.html#debugM"><span class="hs-identifier hs-type">debugM</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                         </span><span class="hs-comment">-- ^ Logger name</span><span>
+</span><span id="line-282"></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                         </span><span class="hs-comment">-- ^ Log message</span><span>
+</span><span id="line-283"></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-284"></span><span id="debugM"><span class="annot"><span class="annottext">debugM :: String -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#debugM"><span class="hs-identifier hs-var hs-var">debugM</span></a></span></span><span> </span><span id="local-6989586621679050680"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050680"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Priority -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#logM"><span class="hs-identifier hs-var">logM</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050680"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#DEBUG"><span class="hs-identifier hs-var">DEBUG</span></a></span><span>
+</span><span id="line-285"></span><span>
+</span><span id="line-286"></span><span class="hs-comment">{- | Log a message at 'INFO' priority -}</span><span>
+</span><span id="line-287"></span><span class="annot"><a href="System.Log.Logger.html#infoM"><span class="hs-identifier hs-type">infoM</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                         </span><span class="hs-comment">-- ^ Logger name</span><span>
+</span><span id="line-288"></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                         </span><span class="hs-comment">-- ^ Log message</span><span>
+</span><span id="line-289"></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-290"></span><span id="infoM"><span class="annot"><span class="annottext">infoM :: String -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#infoM"><span class="hs-identifier hs-var hs-var">infoM</span></a></span></span><span> </span><span id="local-6989586621679050679"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050679"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Priority -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#logM"><span class="hs-identifier hs-var">logM</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050679"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#INFO"><span class="hs-identifier hs-var">INFO</span></a></span><span>
+</span><span id="line-291"></span><span>
+</span><span id="line-292"></span><span class="hs-comment">{- | Log a message at 'NOTICE' priority -}</span><span>
+</span><span id="line-293"></span><span class="annot"><a href="System.Log.Logger.html#noticeM"><span class="hs-identifier hs-type">noticeM</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                         </span><span class="hs-comment">-- ^ Logger name</span><span>
+</span><span id="line-294"></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                         </span><span class="hs-comment">-- ^ Log message</span><span>
+</span><span id="line-295"></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-296"></span><span id="noticeM"><span class="annot"><span class="annottext">noticeM :: String -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#noticeM"><span class="hs-identifier hs-var hs-var">noticeM</span></a></span></span><span> </span><span id="local-6989586621679050677"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050677"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Priority -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#logM"><span class="hs-identifier hs-var">logM</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050677"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#NOTICE"><span class="hs-identifier hs-var">NOTICE</span></a></span><span>
+</span><span id="line-297"></span><span>
+</span><span id="line-298"></span><span class="hs-comment">{- | Log a message at 'WARNING' priority -}</span><span>
+</span><span id="line-299"></span><span class="annot"><a href="System.Log.Logger.html#warningM"><span class="hs-identifier hs-type">warningM</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                         </span><span class="hs-comment">-- ^ Logger name</span><span>
+</span><span id="line-300"></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                         </span><span class="hs-comment">-- ^ Log message</span><span>
+</span><span id="line-301"></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-302"></span><span id="warningM"><span class="annot"><span class="annottext">warningM :: String -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#warningM"><span class="hs-identifier hs-var hs-var">warningM</span></a></span></span><span> </span><span id="local-6989586621679050675"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050675"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Priority -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#logM"><span class="hs-identifier hs-var">logM</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050675"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#WARNING"><span class="hs-identifier hs-var">WARNING</span></a></span><span>
+</span><span id="line-303"></span><span>
+</span><span id="line-304"></span><span class="hs-comment">{- | Log a message at 'ERROR' priority -}</span><span>
+</span><span id="line-305"></span><span class="annot"><a href="System.Log.Logger.html#errorM"><span class="hs-identifier hs-type">errorM</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                         </span><span class="hs-comment">-- ^ Logger name</span><span>
+</span><span id="line-306"></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                         </span><span class="hs-comment">-- ^ Log message</span><span>
+</span><span id="line-307"></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-308"></span><span id="errorM"><span class="annot"><span class="annottext">errorM :: String -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#errorM"><span class="hs-identifier hs-var hs-var">errorM</span></a></span></span><span> </span><span id="local-6989586621679050674"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050674"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Priority -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#logM"><span class="hs-identifier hs-var">logM</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050674"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#ERROR"><span class="hs-identifier hs-var">ERROR</span></a></span><span>
+</span><span id="line-309"></span><span>
+</span><span id="line-310"></span><span class="hs-comment">{- | Log a message at 'CRITICAL' priority -}</span><span>
+</span><span id="line-311"></span><span class="annot"><a href="System.Log.Logger.html#criticalM"><span class="hs-identifier hs-type">criticalM</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                         </span><span class="hs-comment">-- ^ Logger name</span><span>
+</span><span id="line-312"></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                         </span><span class="hs-comment">-- ^ Log message</span><span>
+</span><span id="line-313"></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-314"></span><span id="criticalM"><span class="annot"><span class="annottext">criticalM :: String -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#criticalM"><span class="hs-identifier hs-var hs-var">criticalM</span></a></span></span><span> </span><span id="local-6989586621679050672"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050672"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Priority -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#logM"><span class="hs-identifier hs-var">logM</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050672"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#CRITICAL"><span class="hs-identifier hs-var">CRITICAL</span></a></span><span>
+</span><span id="line-315"></span><span>
+</span><span id="line-316"></span><span class="hs-comment">{- | Log a message at 'ALERT' priority -}</span><span>
+</span><span id="line-317"></span><span class="annot"><a href="System.Log.Logger.html#alertM"><span class="hs-identifier hs-type">alertM</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                         </span><span class="hs-comment">-- ^ Logger name</span><span>
+</span><span id="line-318"></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                         </span><span class="hs-comment">-- ^ Log message</span><span>
+</span><span id="line-319"></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-320"></span><span id="alertM"><span class="annot"><span class="annottext">alertM :: String -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#alertM"><span class="hs-identifier hs-var hs-var">alertM</span></a></span></span><span> </span><span id="local-6989586621679050670"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050670"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Priority -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#logM"><span class="hs-identifier hs-var">logM</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050670"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#ALERT"><span class="hs-identifier hs-var">ALERT</span></a></span><span>
+</span><span id="line-321"></span><span>
+</span><span id="line-322"></span><span class="hs-comment">{- | Log a message at 'EMERGENCY' priority -}</span><span>
+</span><span id="line-323"></span><span class="annot"><a href="System.Log.Logger.html#emergencyM"><span class="hs-identifier hs-type">emergencyM</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                         </span><span class="hs-comment">-- ^ Logger name</span><span>
+</span><span id="line-324"></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                         </span><span class="hs-comment">-- ^ Log message</span><span>
+</span><span id="line-325"></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-326"></span><span id="emergencyM"><span class="annot"><span class="annottext">emergencyM :: String -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#emergencyM"><span class="hs-identifier hs-var hs-var">emergencyM</span></a></span></span><span> </span><span id="local-6989586621679050668"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050668"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Priority -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#logM"><span class="hs-identifier hs-var">logM</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050668"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#EMERGENCY"><span class="hs-identifier hs-var">EMERGENCY</span></a></span><span>
+</span><span id="line-327"></span><span>
+</span><span id="line-328"></span><span class="hs-comment">---------------------------------------------------------------------------</span><span>
+</span><span id="line-329"></span><span class="hs-comment">-- Public Logger Interaction Support</span><span>
+</span><span id="line-330"></span><span class="hs-comment">---------------------------------------------------------------------------</span><span>
+</span><span id="line-331"></span><span>
+</span><span id="line-332"></span><span class="hs-comment">-- | Returns the logger for the given name.  If no logger with that name</span><span>
+</span><span id="line-333"></span><span class="hs-comment">-- exists, creates new loggers and any necessary parent loggers, with</span><span>
+</span><span id="line-334"></span><span class="hs-comment">-- no connected handlers.</span><span>
+</span><span id="line-335"></span><span>
+</span><span id="line-336"></span><span class="annot"><a href="System.Log.Logger.html#getLogger"><span class="hs-identifier hs-type">getLogger</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span><span>
+</span><span id="line-337"></span><span id="getLogger"><span class="annot"><span class="annottext">getLogger :: String -&gt; IO Logger
+</span><a href="System.Log.Logger.html#getLogger"><span class="hs-identifier hs-var hs-var">getLogger</span></a></span></span><span> </span><span id="local-6989586621679050666"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050666"><span class="hs-identifier hs-var">lname</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MVar LogTree -&gt; (LogTree -&gt; IO (LogTree, Logger)) -&gt; IO Logger
+forall a b. MVar a -&gt; (a -&gt; IO (a, b)) -&gt; IO b
+</span><span class="hs-identifier hs-var">modifyMVar</span></span><span> </span><span class="annot"><span class="annottext">MVar LogTree
+</span><a href="System.Log.Logger.html#logTree"><span class="hs-identifier hs-var">logTree</span></a></span><span> </span><span class="annot"><span class="annottext">((LogTree -&gt; IO (LogTree, Logger)) -&gt; IO Logger)
+-&gt; (LogTree -&gt; IO (LogTree, Logger)) -&gt; IO Logger
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679050664"><span class="annot"><span class="annottext">LogTree
+</span><a href="#local-6989586621679050664"><span class="hs-identifier hs-var">lt</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-338"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; LogTree -&gt; Maybe Logger
+forall k a. Ord k =&gt; k -&gt; Map k a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Map.lookup</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050666"><span class="hs-identifier hs-var">lname</span></a></span><span> </span><span class="annot"><span class="annottext">LogTree
+</span><a href="#local-6989586621679050664"><span class="hs-identifier hs-var">lt</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-339"></span><span>         </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679050662"><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050662"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>  </span><span class="annot"><span class="annottext">(LogTree, Logger) -&gt; IO (LogTree, Logger)
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LogTree
+</span><a href="#local-6989586621679050664"><span class="hs-identifier hs-var">lt</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050662"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-comment">-- A logger exists; return it and leave tree</span><span>
+</span><span id="line-340"></span><span>         </span><span class="annot"><span class="annottext">Maybe Logger
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-341"></span><span>                    </span><span class="hs-comment">-- Add logger(s).  Then call myself to retrieve it.</span><span>
+</span><span id="line-342"></span><span>                    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679050661"><span class="annot"><span class="annottext">newlt :: LogTree
+</span><a href="#local-6989586621679050661"><span class="hs-identifier hs-var hs-var">newlt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; LogTree -&gt; LogTree
+</span><a href="#local-6989586621679050660"><span class="hs-identifier hs-var">createLoggers</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><a href="System.Log.Logger.html#componentsOfName"><span class="hs-identifier hs-var">componentsOfName</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050666"><span class="hs-identifier hs-var">lname</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">LogTree
+</span><a href="#local-6989586621679050664"><span class="hs-identifier hs-var">lt</span></a></span><span>
+</span><span id="line-343"></span><span>                    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679050659"><span class="annot"><span class="annottext">result :: Logger
+</span><a href="#local-6989586621679050659"><span class="hs-identifier hs-var hs-var">result</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Logger -&gt; Logger
+forall a. HasCallStack =&gt; Maybe a -&gt; a
+</span><span class="hs-identifier hs-var">fromJust</span></span><span> </span><span class="annot"><span class="annottext">(Maybe Logger -&gt; Logger) -&gt; Maybe Logger -&gt; Logger
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; LogTree -&gt; Maybe Logger
+forall k a. Ord k =&gt; k -&gt; Map k a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Map.lookup</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050666"><span class="hs-identifier hs-var">lname</span></a></span><span> </span><span class="annot"><span class="annottext">LogTree
+</span><a href="#local-6989586621679050661"><span class="hs-identifier hs-var">newlt</span></a></span><span>
+</span><span id="line-344"></span><span>                    </span><span class="annot"><span class="annottext">(LogTree, Logger) -&gt; IO (LogTree, Logger)
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LogTree
+</span><a href="#local-6989586621679050661"><span class="hs-identifier hs-var">newlt</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050659"><span class="hs-identifier hs-var">result</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-345"></span><span>    </span><span class="hs-keyword">where</span><span> </span><span class="annot"><a href="#local-6989586621679050660"><span class="hs-identifier hs-type">createLoggers</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.Logger.html#LogTree"><span class="hs-identifier hs-type">LogTree</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.Logger.html#LogTree"><span class="hs-identifier hs-type">LogTree</span></a></span><span>
+</span><span id="line-346"></span><span>          </span><span id="local-6989586621679050660"><span class="annot"><span class="annottext">createLoggers :: [String] -&gt; LogTree -&gt; LogTree
+</span><a href="#local-6989586621679050660"><span class="hs-identifier hs-var hs-var">createLoggers</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span id="local-6989586621679050657"><span class="annot"><span class="annottext">LogTree
+</span><a href="#local-6989586621679050657"><span class="hs-identifier hs-var">lt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LogTree
+</span><a href="#local-6989586621679050657"><span class="hs-identifier hs-var">lt</span></a></span><span> </span><span class="hs-comment">-- No names to add; return tree unmodified</span><span>
+</span><span id="line-347"></span><span>          </span><span class="annot"><a href="#local-6989586621679050660"><span class="hs-identifier hs-var">createLoggers</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679050656"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050656"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679050655"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679050655"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679050654"><span class="annot"><span class="annottext">LogTree
+</span><a href="#local-6989586621679050654"><span class="hs-identifier hs-var">lt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-comment">-- Add logger to tree</span><span>
+</span><span id="line-348"></span><span>              </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">String -&gt; LogTree -&gt; Bool
+forall k a. Ord k =&gt; k -&gt; Map k a -&gt; Bool
+</span><span class="hs-identifier hs-var">Map.member</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050656"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">LogTree
+</span><a href="#local-6989586621679050654"><span class="hs-identifier hs-var">lt</span></a></span><span>
+</span><span id="line-349"></span><span>                 </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; LogTree -&gt; LogTree
+</span><a href="#local-6989586621679050660"><span class="hs-identifier hs-var">createLoggers</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679050655"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">LogTree
+</span><a href="#local-6989586621679050654"><span class="hs-identifier hs-var">lt</span></a></span><span>
+</span><span id="line-350"></span><span>                 </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; LogTree -&gt; LogTree
+</span><a href="#local-6989586621679050660"><span class="hs-identifier hs-var">createLoggers</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679050655"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-351"></span><span>                          </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Logger -&gt; LogTree -&gt; LogTree
+forall k a. Ord k =&gt; k -&gt; a -&gt; Map k a -&gt; Map k a
+</span><span class="hs-identifier hs-var">Map.insert</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050656"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050651"><span class="hs-identifier hs-var">defaultLogger</span></a></span><span> </span><span class="hs-special">{</span><span class="annot"><span class="annottext">name :: String
+</span><a href="System.Log.Logger.html#name"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-glyph">=</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050656"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">}</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">LogTree
+</span><a href="#local-6989586621679050654"><span class="hs-identifier hs-var">lt</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-352"></span><span>          </span><span id="local-6989586621679050651"><span class="annot"><span class="annottext">defaultLogger :: Logger
+</span><a href="#local-6989586621679050651"><span class="hs-identifier hs-var hs-var">defaultLogger</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Priority -&gt; [HandlerT] -&gt; String -&gt; Logger
+</span><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-var">Logger</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Priority
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">String
+forall a. HasCallStack =&gt; a
+</span><span class="hs-identifier hs-var">undefined</span></span><span>
+</span><span id="line-353"></span><span>
+</span><span id="line-354"></span><span class="hs-comment">-- | Returns the root logger.</span><span>
+</span><span id="line-355"></span><span>
+</span><span id="line-356"></span><span class="annot"><a href="System.Log.Logger.html#getRootLogger"><span class="hs-identifier hs-type">getRootLogger</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span><span>
+</span><span id="line-357"></span><span id="getRootLogger"><span class="annot"><span class="annottext">getRootLogger :: IO Logger
+</span><a href="System.Log.Logger.html#getRootLogger"><span class="hs-identifier hs-var hs-var">getRootLogger</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO Logger
+</span><a href="System.Log.Logger.html#getLogger"><span class="hs-identifier hs-var">getLogger</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="System.Log.Logger.html#rootLoggerName"><span class="hs-identifier hs-var">rootLoggerName</span></a></span><span>
+</span><span id="line-358"></span><span>
+</span><span id="line-359"></span><span class="hs-comment">-- | Log a message, assuming the current logger's level permits it.</span><span>
+</span><span id="line-360"></span><span class="annot"><a href="System.Log.Logger.html#logL"><span class="hs-identifier hs-type">logL</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-361"></span><span id="logL"><span class="annot"><span class="annottext">logL :: Logger -&gt; Priority -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#logL"><span class="hs-identifier hs-var hs-var">logL</span></a></span></span><span> </span><span id="local-6989586621679050649"><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050649"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679050648"><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050648"><span class="hs-identifier hs-var">pri</span></a></span></span><span> </span><span id="local-6989586621679050647"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050647"><span class="hs-identifier hs-var">msg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Logger -&gt; LogRecord -&gt; IO ()
+</span><a href="System.Log.Logger.html#handle"><span class="hs-identifier hs-var">handle</span></a></span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050649"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050648"><span class="hs-identifier hs-var">pri</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050647"><span class="hs-identifier hs-var">msg</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-362"></span><span>
+</span><span id="line-363"></span><span class="hs-comment">-- | Handle a log request.</span><span>
+</span><span id="line-364"></span><span class="annot"><a href="System.Log.Logger.html#handle"><span class="hs-identifier hs-type">handle</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.html#LogRecord"><span class="hs-identifier hs-type">LogRecord</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-365"></span><span id="handle"><span class="annot"><span class="annottext">handle :: Logger -&gt; LogRecord -&gt; IO ()
+</span><a href="System.Log.Logger.html#handle"><span class="hs-identifier hs-var hs-var">handle</span></a></span></span><span> </span><span id="local-6989586621679050645"><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050645"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679050644"><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050644"><span class="hs-identifier hs-var">pri</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679050643"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050643"><span class="hs-identifier hs-var">msg</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-366"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span class="annot"><a href="#local-6989586621679050642"><span class="hs-identifier hs-type">parentLoggers</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-367"></span><span>        </span><span id="local-6989586621679050642"><span class="annot"><span class="annottext">parentLoggers :: String -&gt; IO [Logger]
+</span><a href="#local-6989586621679050642"><span class="hs-identifier hs-var hs-var">parentLoggers</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Logger] -&gt; IO [Logger]
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-368"></span><span>        </span><span class="annot"><a href="#local-6989586621679050642"><span class="hs-identifier hs-var">parentLoggers</span></a></span><span> </span><span id="local-6989586621679050641"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050641"><span class="hs-identifier hs-var">name'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-369"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679050640"><span class="annot"><span class="annottext">pname :: String
+</span><a href="#local-6989586621679050640"><span class="hs-identifier hs-var hs-var">pname</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[String] -&gt; String
+forall a. [a] -&gt; a
+</span><span class="hs-identifier hs-var">head</span></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; String) -&gt; (String -&gt; [String]) -&gt; String -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; [String] -&gt; [String]
+forall a. Int -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">drop</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; [String])
+-&gt; (String -&gt; [String]) -&gt; String -&gt; [String]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[String] -&gt; [String]
+forall a. [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">reverse</span></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; [String])
+-&gt; (String -&gt; [String]) -&gt; String -&gt; [String]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><a href="System.Log.Logger.html#componentsOfName"><span class="hs-identifier hs-var">componentsOfName</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050641"><span class="hs-identifier hs-var">name'</span></a></span><span>
+</span><span id="line-370"></span><span>                </span><span class="hs-keyword">in</span><span>
+</span><span id="line-371"></span><span>                </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679050635"><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050635"><span class="hs-identifier hs-var">parent</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO Logger
+</span><a href="System.Log.Logger.html#getLogger"><span class="hs-identifier hs-var">getLogger</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050640"><span class="hs-identifier hs-var">pname</span></a></span><span>
+</span><span id="line-372"></span><span>                   </span><span id="local-6989586621679050634"><span class="annot"><span class="annottext">[Logger]
+</span><a href="#local-6989586621679050634"><span class="hs-identifier hs-var">next</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO [Logger]
+</span><a href="#local-6989586621679050642"><span class="hs-identifier hs-var">parentLoggers</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050640"><span class="hs-identifier hs-var">pname</span></a></span><span>
+</span><span id="line-373"></span><span>                   </span><span class="annot"><span class="annottext">[Logger] -&gt; IO [Logger]
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050635"><span class="hs-identifier hs-var">parent</span></a></span><span> </span><span class="annot"><span class="annottext">Logger -&gt; [Logger] -&gt; [Logger]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Logger]
+</span><a href="#local-6989586621679050634"><span class="hs-identifier hs-var">next</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-374"></span><span>        </span><span class="annot"><a href="#local-6989586621679050633"><span class="hs-identifier hs-type">parentHandlers</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="System.Log.Logger.html#HandlerT"><span class="hs-identifier hs-type">HandlerT</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-375"></span><span>        </span><span id="local-6989586621679050633"><span class="annot"><span class="annottext">parentHandlers :: String -&gt; IO [HandlerT]
+</span><a href="#local-6989586621679050633"><span class="hs-identifier hs-var hs-var">parentHandlers</span></a></span></span><span> </span><span id="local-6989586621679050632"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050632"><span class="hs-identifier hs-var">name'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO [Logger]
+</span><a href="#local-6989586621679050642"><span class="hs-identifier hs-var">parentLoggers</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050632"><span class="hs-identifier hs-var">name'</span></a></span><span> </span><span class="annot"><span class="annottext">IO [Logger] -&gt; ([Logger] -&gt; IO [HandlerT]) -&gt; IO [HandlerT]
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[HandlerT] -&gt; IO [HandlerT]
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">([HandlerT] -&gt; IO [HandlerT])
+-&gt; ([Logger] -&gt; [HandlerT]) -&gt; [Logger] -&gt; IO [HandlerT]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Logger -&gt; [HandlerT]) -&gt; [Logger] -&gt; [HandlerT]
+forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span><span class="hs-identifier hs-var">concatMap</span></span><span> </span><span class="annot"><span class="annottext">Logger -&gt; [HandlerT]
+</span><a href="System.Log.Logger.html#handlers"><span class="hs-identifier hs-var hs-var">handlers</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-376"></span><span>
+</span><span id="line-377"></span><span>        </span><span class="hs-comment">-- Get the priority we should use.  Find the first logger in the tree,</span><span>
+</span><span id="line-378"></span><span>        </span><span class="hs-comment">-- starting here, with a set priority.  If even root doesn't have one,</span><span>
+</span><span id="line-379"></span><span>        </span><span class="hs-comment">-- assume DEBUG.</span><span>
+</span><span id="line-380"></span><span>        </span><span class="annot"><a href="#local-6989586621679050630"><span class="hs-identifier hs-type">getLoggerPriority</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span>
+</span><span id="line-381"></span><span>        </span><span id="local-6989586621679050630"><span class="annot"><span class="annottext">getLoggerPriority :: String -&gt; IO Priority
+</span><a href="#local-6989586621679050630"><span class="hs-identifier hs-var hs-var">getLoggerPriority</span></a></span></span><span> </span><span id="local-6989586621679050629"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050629"><span class="hs-identifier hs-var">name'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-382"></span><span>            </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679050628"><span class="annot"><span class="annottext">[Logger]
+</span><a href="#local-6989586621679050628"><span class="hs-identifier hs-var">pl</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO [Logger]
+</span><a href="#local-6989586621679050642"><span class="hs-identifier hs-var">parentLoggers</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050629"><span class="hs-identifier hs-var">name'</span></a></span><span>
+</span><span id="line-383"></span><span>               </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[Maybe Priority] -&gt; [Priority]
+forall a. [Maybe a] -&gt; [a]
+</span><span class="hs-identifier hs-var">catMaybes</span></span><span> </span><span class="annot"><span class="annottext">([Maybe Priority] -&gt; [Priority])
+-&gt; ([Logger] -&gt; [Maybe Priority]) -&gt; [Logger] -&gt; [Priority]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Logger -&gt; Maybe Priority) -&gt; [Logger] -&gt; [Maybe Priority]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Logger -&gt; Maybe Priority
+</span><a href="System.Log.Logger.html#level"><span class="hs-identifier hs-var hs-var">level</span></a></span><span> </span><span class="annot"><span class="annottext">([Logger] -&gt; [Priority]) -&gt; [Logger] -&gt; [Priority]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050645"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Logger -&gt; [Logger] -&gt; [Logger]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Logger]
+</span><a href="#local-6989586621679050628"><span class="hs-identifier hs-var">pl</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-384"></span><span>                 </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Priority -&gt; IO Priority
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#DEBUG"><span class="hs-identifier hs-var">DEBUG</span></a></span><span>
+</span><span id="line-385"></span><span>                 </span><span class="hs-special">(</span><span id="local-6989586621679050626"><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050626"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[Priority]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Priority -&gt; IO Priority
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050626"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-386"></span><span>        </span><span class="hs-keyword">in</span><span>
+</span><span id="line-387"></span><span>        </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679050625"><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050625"><span class="hs-identifier hs-var">lp</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO Priority
+</span><a href="#local-6989586621679050630"><span class="hs-identifier hs-var">getLoggerPriority</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Logger -&gt; String
+</span><a href="System.Log.Logger.html#name"><span class="hs-identifier hs-var hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050645"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-388"></span><span>           </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050644"><span class="hs-identifier hs-var">pri</span></a></span><span> </span><span class="annot"><span class="annottext">Priority -&gt; Priority -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050625"><span class="hs-identifier hs-var">lp</span></a></span><span>
+</span><span id="line-389"></span><span>              </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-390"></span><span>                </span><span id="local-6989586621679050624"><span class="annot"><span class="annottext">[HandlerT]
+</span><a href="#local-6989586621679050624"><span class="hs-identifier hs-var">ph</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO [HandlerT]
+</span><a href="#local-6989586621679050633"><span class="hs-identifier hs-var">parentHandlers</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Logger -&gt; String
+</span><a href="System.Log.Logger.html#name"><span class="hs-identifier hs-var hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050645"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-391"></span><span>                </span><span class="annot"><span class="annottext">[IO ()] -&gt; IO ()
+forall (t :: * -&gt; *) (m :: * -&gt; *) a.
+(Foldable t, Monad m) =&gt;
+t (m a) -&gt; m ()
+</span><span class="hs-identifier hs-var">sequence_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[HandlerT] -&gt; LogRecord -&gt; String -&gt; [IO ()]
+</span><a href="System.Log.Logger.html#handlerActions"><span class="hs-identifier hs-var">handlerActions</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[HandlerT]
+</span><a href="#local-6989586621679050624"><span class="hs-identifier hs-var">ph</span></a></span><span> </span><span class="annot"><span class="annottext">[HandlerT] -&gt; [HandlerT] -&gt; [HandlerT]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Logger -&gt; [HandlerT]
+</span><a href="System.Log.Logger.html#handlers"><span class="hs-identifier hs-var hs-var">handlers</span></a></span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050645"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050644"><span class="hs-identifier hs-var">pri</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050643"><span class="hs-identifier hs-var">msg</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-392"></span><span>                                          </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Logger -&gt; String
+</span><a href="System.Log.Logger.html#name"><span class="hs-identifier hs-var hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050645"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-393"></span><span>              </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">() -&gt; IO ()
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-394"></span><span>
+</span><span id="line-395"></span><span class="hs-comment">-- | Call a handler given a HandlerT.</span><span>
+</span><span id="line-396"></span><span class="annot"><a href="System.Log.Logger.html#callHandler"><span class="hs-identifier hs-type">callHandler</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="System.Log.html#LogRecord"><span class="hs-identifier hs-type">LogRecord</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.Logger.html#HandlerT"><span class="hs-identifier hs-type">HandlerT</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-397"></span><span id="callHandler"><span class="annot"><span class="annottext">callHandler :: LogRecord -&gt; String -&gt; HandlerT -&gt; IO ()
+</span><a href="System.Log.Logger.html#callHandler"><span class="hs-identifier hs-var hs-var">callHandler</span></a></span></span><span> </span><span id="local-6989586621679050620"><span class="annot"><span class="annottext">LogRecord
+</span><a href="#local-6989586621679050620"><span class="hs-identifier hs-var">lr</span></a></span></span><span> </span><span id="local-6989586621679050619"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050619"><span class="hs-identifier hs-var">loggername</span></a></span></span><span> </span><span id="local-6989586621679050618"><span class="annot"><span class="annottext">HandlerT
+</span><a href="#local-6989586621679050618"><span class="hs-identifier hs-var">ht</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-398"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">HandlerT
+</span><a href="#local-6989586621679050618"><span class="hs-identifier hs-var">ht</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-399"></span><span>            </span><span class="annot"><a href="System.Log.Logger.html#HandlerT"><span class="hs-identifier hs-type">HandlerT</span></a></span><span> </span><span id="local-6989586621679050617"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050617"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">a -&gt; LogRecord -&gt; String -&gt; IO ()
+forall a. LogHandler a =&gt; a -&gt; LogRecord -&gt; String -&gt; IO ()
+</span><a href="System.Log.Handler.html#handle"><span class="hs-identifier hs-var">System.Log.Handler.handle</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050617"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">LogRecord
+</span><a href="#local-6989586621679050620"><span class="hs-identifier hs-var">lr</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050619"><span class="hs-identifier hs-var">loggername</span></a></span><span>
+</span><span id="line-400"></span><span>
+</span><span id="line-401"></span><span class="hs-comment">-- | Generate IO actions for the handlers.</span><span>
+</span><span id="line-402"></span><span class="annot"><a href="System.Log.Logger.html#handlerActions"><span class="hs-identifier hs-type">handlerActions</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="System.Log.Logger.html#HandlerT"><span class="hs-identifier hs-type">HandlerT</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.html#LogRecord"><span class="hs-identifier hs-type">LogRecord</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-403"></span><span id="handlerActions"><span class="annot"><span class="annottext">handlerActions :: [HandlerT] -&gt; LogRecord -&gt; String -&gt; [IO ()]
+</span><a href="System.Log.Logger.html#handlerActions"><span class="hs-identifier hs-var hs-var">handlerActions</span></a></span></span><span> </span><span id="local-6989586621679050616"><span class="annot"><span class="annottext">[HandlerT]
+</span><a href="#local-6989586621679050616"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span id="local-6989586621679050615"><span class="annot"><span class="annottext">LogRecord
+</span><a href="#local-6989586621679050615"><span class="hs-identifier hs-var">lr</span></a></span></span><span> </span><span id="local-6989586621679050614"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050614"><span class="hs-identifier hs-var">loggername</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(HandlerT -&gt; IO ()) -&gt; [HandlerT] -&gt; [IO ()]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LogRecord -&gt; String -&gt; HandlerT -&gt; IO ()
+</span><a href="System.Log.Logger.html#callHandler"><span class="hs-identifier hs-var">callHandler</span></a></span><span> </span><span class="annot"><span class="annottext">LogRecord
+</span><a href="#local-6989586621679050615"><span class="hs-identifier hs-var">lr</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050614"><span class="hs-identifier hs-var">loggername</span></a></span><span> </span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[HandlerT]
+</span><a href="#local-6989586621679050616"><span class="hs-identifier hs-var">h</span></a></span><span>
+</span><span id="line-404"></span><span>
+</span><span id="line-405"></span><span class="hs-comment">-- | Add handler to 'Logger'.  Returns a new 'Logger'.</span><span>
+</span><span id="line-406"></span><span id="local-6989586621679050613"><span class="annot"><a href="System.Log.Logger.html#addHandler"><span class="hs-identifier hs-type">addHandler</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="System.Log.Handler.html#LogHandler"><span class="hs-identifier hs-type">LogHandler</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679050613"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050613"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span></span><span>
+</span><span id="line-407"></span><span id="addHandler"><span class="annot"><span class="annottext">addHandler :: a -&gt; Logger -&gt; Logger
+</span><a href="System.Log.Logger.html#addHandler"><span class="hs-identifier hs-var hs-var">addHandler</span></a></span></span><span> </span><span id="local-6989586621679050612"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050612"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span id="local-6989586621679050611"><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050611"><span class="hs-identifier hs-var">l</span></a></span></span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050611"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">handlers :: [HandlerT]
+</span><a href="System.Log.Logger.html#handlers"><span class="hs-identifier hs-var">handlers</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; HandlerT
+forall a. LogHandler a =&gt; a -&gt; HandlerT
+</span><a href="System.Log.Logger.html#HandlerT"><span class="hs-identifier hs-var">HandlerT</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050612"><span class="hs-identifier hs-var">h</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">HandlerT -&gt; [HandlerT] -&gt; [HandlerT]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Logger -&gt; [HandlerT]
+</span><a href="System.Log.Logger.html#handlers"><span class="hs-identifier hs-var hs-var">handlers</span></a></span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050611"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">)</span><span class="hs-special">}</span><span>
+</span><span id="line-408"></span><span>
+</span><span id="line-409"></span><span class="hs-comment">-- | Remove a handler from the 'Logger'.  Handlers are removed in the reverse</span><span>
+</span><span id="line-410"></span><span class="hs-comment">-- order they were added, so the following property holds for any 'LogHandler'</span><span>
+</span><span id="line-411"></span><span class="hs-comment">-- @h@:</span><span>
+</span><span id="line-412"></span><span class="hs-comment">--</span><span>
+</span><span id="line-413"></span><span class="hs-comment">-- &gt; removeHandler . addHandler h = id</span><span>
+</span><span id="line-414"></span><span class="hs-comment">--</span><span>
+</span><span id="line-415"></span><span class="hs-comment">-- If no handlers are associated with the 'Logger', it is returned unchanged.</span><span>
+</span><span id="line-416"></span><span class="hs-comment">--</span><span>
+</span><span id="line-417"></span><span class="hs-comment">-- The root logger's default handler that writes every message to stderr can</span><span>
+</span><span id="line-418"></span><span class="hs-comment">-- be removed by using this function before any handlers have been added</span><span>
+</span><span id="line-419"></span><span class="hs-comment">-- to the root logger:</span><span>
+</span><span id="line-420"></span><span class="hs-comment">--</span><span>
+</span><span id="line-421"></span><span class="hs-comment">-- &gt; updateGlobalLogger rootLoggerName removeHandler</span><span>
+</span><span id="line-422"></span><span class="annot"><a href="System.Log.Logger.html#removeHandler"><span class="hs-identifier hs-type">removeHandler</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span><span>
+</span><span id="line-423"></span><span id="removeHandler"><span class="annot"><span class="annottext">removeHandler :: Logger -&gt; Logger
+</span><a href="System.Log.Logger.html#removeHandler"><span class="hs-identifier hs-var hs-var">removeHandler</span></a></span></span><span> </span><span id="local-6989586621679050610"><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050610"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-424"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[HandlerT]
+</span><a href="#local-6989586621679050609"><span class="hs-identifier hs-var">hs</span></a></span><span> </span><span class="hs-keyword">of</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050610"><span class="hs-identifier hs-var">l</span></a></span><span>
+</span><span id="line-425"></span><span>               </span><span class="annot"><span class="annottext">[HandlerT]
+</span><span class="hs-identifier">_</span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050610"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">handlers :: [HandlerT]
+</span><a href="System.Log.Logger.html#handlers"><span class="hs-identifier hs-var">handlers</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[HandlerT] -&gt; [HandlerT]
+forall a. [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">tail</span></span><span> </span><span class="annot"><span class="annottext">[HandlerT]
+</span><a href="#local-6989586621679050609"><span class="hs-identifier hs-var">hs</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-426"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-427"></span><span>    </span><span id="local-6989586621679050609"><span class="annot"><span class="annottext">hs :: [HandlerT]
+</span><a href="#local-6989586621679050609"><span class="hs-identifier hs-var hs-var">hs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Logger -&gt; [HandlerT]
+</span><a href="System.Log.Logger.html#handlers"><span class="hs-identifier hs-var hs-var">handlers</span></a></span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050610"><span class="hs-identifier hs-var">l</span></a></span><span>
+</span><span id="line-428"></span><span>
+</span><span id="line-429"></span><span class="hs-comment">-- | Set the 'Logger'\'s list of handlers to the list supplied.</span><span>
+</span><span id="line-430"></span><span class="hs-comment">-- All existing handlers are removed first.</span><span>
+</span><span id="line-431"></span><span id="local-6989586621679050607"><span class="annot"><a href="System.Log.Logger.html#setHandlers"><span class="hs-identifier hs-type">setHandlers</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="System.Log.Handler.html#LogHandler"><span class="hs-identifier hs-type">LogHandler</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679050607"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679050607"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span></span><span>
+</span><span id="line-432"></span><span id="setHandlers"><span class="annot"><span class="annottext">setHandlers :: [a] -&gt; Logger -&gt; Logger
+</span><a href="System.Log.Logger.html#setHandlers"><span class="hs-identifier hs-var hs-var">setHandlers</span></a></span></span><span> </span><span id="local-6989586621679050606"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050606"><span class="hs-identifier hs-var">hl</span></a></span></span><span> </span><span id="local-6989586621679050605"><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050605"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-433"></span><span>    </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050605"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">handlers :: [HandlerT]
+</span><a href="System.Log.Logger.html#handlers"><span class="hs-identifier hs-var">handlers</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a -&gt; HandlerT) -&gt; [a] -&gt; [HandlerT]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679050604"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050604"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">a -&gt; HandlerT
+forall a. LogHandler a =&gt; a -&gt; HandlerT
+</span><a href="System.Log.Logger.html#HandlerT"><span class="hs-identifier hs-var">HandlerT</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050604"><span class="hs-identifier hs-var">h</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050606"><span class="hs-identifier hs-var">hl</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-434"></span><span>
+</span><span id="line-435"></span><span class="hs-comment">-- | Returns the &quot;level&quot; of the logger.  Items beneath this</span><span>
+</span><span id="line-436"></span><span class="hs-comment">-- level will be ignored.</span><span>
+</span><span id="line-437"></span><span>
+</span><span id="line-438"></span><span class="annot"><a href="System.Log.Logger.html#getLevel"><span class="hs-identifier hs-type">getLevel</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span>
+</span><span id="line-439"></span><span id="getLevel"><span class="annot"><span class="annottext">getLevel :: Logger -&gt; Maybe Priority
+</span><a href="System.Log.Logger.html#getLevel"><span class="hs-identifier hs-var hs-var">getLevel</span></a></span></span><span> </span><span id="local-6989586621679050603"><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050603"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Logger -&gt; Maybe Priority
+</span><a href="System.Log.Logger.html#level"><span class="hs-identifier hs-var hs-var">level</span></a></span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050603"><span class="hs-identifier hs-var">l</span></a></span><span>
+</span><span id="line-440"></span><span>
+</span><span id="line-441"></span><span class="hs-comment">-- | Sets the &quot;level&quot; of the 'Logger'.  Returns a new</span><span>
+</span><span id="line-442"></span><span class="hs-comment">-- 'Logger' object with the new level.</span><span>
+</span><span id="line-443"></span><span>
+</span><span id="line-444"></span><span class="annot"><a href="System.Log.Logger.html#setLevel"><span class="hs-identifier hs-type">setLevel</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span><span>
+</span><span id="line-445"></span><span id="setLevel"><span class="annot"><span class="annottext">setLevel :: Priority -&gt; Logger -&gt; Logger
+</span><a href="System.Log.Logger.html#setLevel"><span class="hs-identifier hs-var hs-var">setLevel</span></a></span></span><span> </span><span id="local-6989586621679050602"><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050602"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679050601"><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050601"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050601"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">level :: Maybe Priority
+</span><a href="System.Log.Logger.html#level"><span class="hs-identifier hs-var">level</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Priority -&gt; Maybe Priority
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050602"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-446"></span><span>
+</span><span id="line-447"></span><span class="hs-comment">-- | Clears the &quot;level&quot; of the 'Logger'.  It will now inherit the level of</span><span>
+</span><span id="line-448"></span><span class="hs-comment">-- | its parent.</span><span>
+</span><span id="line-449"></span><span>
+</span><span id="line-450"></span><span class="annot"><a href="System.Log.Logger.html#clearLevel"><span class="hs-identifier hs-type">clearLevel</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span><span>
+</span><span id="line-451"></span><span id="clearLevel"><span class="annot"><span class="annottext">clearLevel :: Logger -&gt; Logger
+</span><a href="System.Log.Logger.html#clearLevel"><span class="hs-identifier hs-var hs-var">clearLevel</span></a></span></span><span> </span><span id="local-6989586621679050600"><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050600"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050600"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="hs-special">{</span><span class="annot"><span class="annottext">level :: Maybe Priority
+</span><a href="System.Log.Logger.html#level"><span class="hs-identifier hs-var">level</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Priority
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">}</span><span>
+</span><span id="line-452"></span><span>
+</span><span id="line-453"></span><span class="hs-comment">-- | Updates the global record for the given logger to take into</span><span>
+</span><span id="line-454"></span><span class="hs-comment">-- account any changes you may have made.</span><span>
+</span><span id="line-455"></span><span>
+</span><span id="line-456"></span><span class="annot"><a href="System.Log.Logger.html#saveGlobalLogger"><span class="hs-identifier hs-type">saveGlobalLogger</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-457"></span><span id="saveGlobalLogger"><span class="annot"><span class="annottext">saveGlobalLogger :: Logger -&gt; IO ()
+</span><a href="System.Log.Logger.html#saveGlobalLogger"><span class="hs-identifier hs-var hs-var">saveGlobalLogger</span></a></span></span><span> </span><span id="local-6989586621679050599"><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050599"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MVar LogTree -&gt; (LogTree -&gt; IO LogTree) -&gt; IO ()
+forall a. MVar a -&gt; (a -&gt; IO a) -&gt; IO ()
+</span><span class="hs-identifier hs-var">modifyMVar_</span></span><span> </span><span class="annot"><span class="annottext">MVar LogTree
+</span><a href="System.Log.Logger.html#logTree"><span class="hs-identifier hs-var">logTree</span></a></span><span>
+</span><span id="line-458"></span><span>                     </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679050597"><span class="annot"><span class="annottext">LogTree
+</span><a href="#local-6989586621679050597"><span class="hs-identifier hs-var">lt</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">LogTree -&gt; IO LogTree
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(LogTree -&gt; IO LogTree) -&gt; LogTree -&gt; IO LogTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Logger -&gt; LogTree -&gt; LogTree
+forall k a. Ord k =&gt; k -&gt; a -&gt; Map k a -&gt; Map k a
+</span><span class="hs-identifier hs-var">Map.insert</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Logger -&gt; String
+</span><a href="System.Log.Logger.html#name"><span class="hs-identifier hs-var hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050599"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050599"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">LogTree
+</span><a href="#local-6989586621679050597"><span class="hs-identifier hs-var">lt</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-459"></span><span>
+</span><span id="line-460"></span><span class="hs-comment">{- | Helps you make changes on the given logger.  Takes a function
+that makes changes and writes those changes back to the global
+database.  Here's an example from above (\&quot;s\&quot; is a 'LogHandler'):
+
+&gt; updateGlobalLogger &quot;MyApp.BuggyComponent&quot;
+&gt;                    (setLevel DEBUG . setHandlers [s])
+-}</span><span>
+</span><span id="line-467"></span><span>
+</span><span id="line-468"></span><span class="annot"><a href="System.Log.Logger.html#updateGlobalLogger"><span class="hs-identifier hs-type">updateGlobalLogger</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>            </span><span class="hs-comment">-- ^ Logger name</span><span>
+</span><span id="line-469"></span><span>                      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.Logger.html#Logger"><span class="hs-identifier hs-type">Logger</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-comment">-- ^ Function to call</span><span>
+</span><span id="line-470"></span><span>                      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-471"></span><span id="updateGlobalLogger"><span class="annot"><span class="annottext">updateGlobalLogger :: String -&gt; (Logger -&gt; Logger) -&gt; IO ()
+</span><a href="System.Log.Logger.html#updateGlobalLogger"><span class="hs-identifier hs-var hs-var">updateGlobalLogger</span></a></span></span><span> </span><span id="local-6989586621679050596"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050596"><span class="hs-identifier hs-var">ln</span></a></span></span><span> </span><span id="local-6989586621679050595"><span class="annot"><span class="annottext">Logger -&gt; Logger
+</span><a href="#local-6989586621679050595"><span class="hs-identifier hs-var">func</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-472"></span><span>    </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679050594"><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050594"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO Logger
+</span><a href="System.Log.Logger.html#getLogger"><span class="hs-identifier hs-var">getLogger</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050596"><span class="hs-identifier hs-var">ln</span></a></span><span>
+</span><span id="line-473"></span><span>       </span><span class="annot"><span class="annottext">Logger -&gt; IO ()
+</span><a href="System.Log.Logger.html#saveGlobalLogger"><span class="hs-identifier hs-var">saveGlobalLogger</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Logger -&gt; Logger
+</span><a href="#local-6989586621679050595"><span class="hs-identifier hs-var">func</span></a></span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050594"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-474"></span><span>
+</span><span id="line-475"></span><span class="hs-comment">-- | Allow graceful shutdown. Release all opened files/handlers/etc.</span><span>
+</span><span id="line-476"></span><span class="annot"><a href="System.Log.Logger.html#removeAllHandlers"><span class="hs-identifier hs-type">removeAllHandlers</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-477"></span><span id="removeAllHandlers"><span class="annot"><span class="annottext">removeAllHandlers :: IO ()
+</span><a href="System.Log.Logger.html#removeAllHandlers"><span class="hs-identifier hs-var hs-var">removeAllHandlers</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-478"></span><span>    </span><span class="annot"><span class="annottext">MVar LogTree -&gt; (LogTree -&gt; IO LogTree) -&gt; IO ()
+forall a. MVar a -&gt; (a -&gt; IO a) -&gt; IO ()
+</span><span class="hs-identifier hs-var">modifyMVar_</span></span><span> </span><span class="annot"><span class="annottext">MVar LogTree
+</span><a href="System.Log.Logger.html#logTree"><span class="hs-identifier hs-var">logTree</span></a></span><span> </span><span class="annot"><span class="annottext">((LogTree -&gt; IO LogTree) -&gt; IO ())
+-&gt; (LogTree -&gt; IO LogTree) -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679050593"><span class="annot"><span class="annottext">LogTree
+</span><a href="#local-6989586621679050593"><span class="hs-identifier hs-var">lt</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-479"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679050592"><span class="annot"><span class="annottext">allHandlers :: [HandlerT]
+</span><a href="#local-6989586621679050592"><span class="hs-identifier hs-var hs-var">allHandlers</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Logger -&gt; [HandlerT] -&gt; [HandlerT])
+-&gt; [HandlerT] -&gt; LogTree -&gt; [HandlerT]
+forall a b k. (a -&gt; b -&gt; b) -&gt; b -&gt; Map k a -&gt; b
+</span><a href="System.Log.Logger.html#mapFoldr"><span class="hs-identifier hs-var">mapFoldr</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679050590"><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050590"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679050589"><span class="annot"><span class="annottext">[HandlerT]
+</span><a href="#local-6989586621679050589"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[[HandlerT]] -&gt; [HandlerT]
+forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">concat</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">[HandlerT]
+</span><a href="#local-6989586621679050589"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Logger -&gt; [HandlerT]
+</span><a href="System.Log.Logger.html#handlers"><span class="hs-identifier hs-var hs-var">handlers</span></a></span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050590"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">LogTree
+</span><a href="#local-6989586621679050593"><span class="hs-identifier hs-var">lt</span></a></span><span>
+</span><span id="line-480"></span><span>        </span><span class="annot"><span class="annottext">(HandlerT -&gt; IO ()) -&gt; [HandlerT] -&gt; IO ()
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Foldable t, Monad m) =&gt;
+(a -&gt; m b) -&gt; t a -&gt; m ()
+</span><span class="hs-identifier hs-var">mapM_</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span class="annot"><a href="System.Log.Logger.html#HandlerT"><span class="hs-identifier hs-type">HandlerT</span></a></span><span> </span><span id="local-6989586621679050586"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050586"><span class="hs-identifier hs-var">h</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">a -&gt; IO ()
+forall a. LogHandler a =&gt; a -&gt; IO ()
+</span><a href="System.Log.Handler.html#close"><span class="hs-identifier hs-var">close</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050586"><span class="hs-identifier hs-var">h</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[HandlerT]
+</span><a href="#local-6989586621679050592"><span class="hs-identifier hs-var">allHandlers</span></a></span><span>
+</span><span id="line-481"></span><span>        </span><span class="annot"><span class="annottext">LogTree -&gt; IO LogTree
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(LogTree -&gt; IO LogTree) -&gt; LogTree -&gt; IO LogTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(Logger -&gt; Logger) -&gt; LogTree -&gt; LogTree
+forall a b k. (a -&gt; b) -&gt; Map k a -&gt; Map k b
+</span><span class="hs-identifier hs-var">Map.map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679050584"><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050584"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Logger
+</span><a href="#local-6989586621679050584"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="hs-special">{</span><span class="annot"><span class="annottext">handlers :: [HandlerT]
+</span><a href="System.Log.Logger.html#handlers"><span class="hs-identifier hs-var">handlers</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">}</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">LogTree
+</span><a href="#local-6989586621679050593"><span class="hs-identifier hs-var">lt</span></a></span><span>
+</span><span id="line-482"></span><span>
+</span><span id="line-483"></span><span id="local-6989586621679050768"><span id="local-6989586621679050769"><span id="local-6989586621679050770"><span class="annot"><a href="System.Log.Logger.html#mapFoldr"><span class="hs-identifier hs-type">mapFoldr</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679050770"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050769"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050769"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050769"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Map.Map</span></span><span> </span><span class="annot"><a href="#local-6989586621679050768"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679050770"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050769"><span class="hs-identifier hs-type">b</span></a></span></span></span></span><span class="hs-cpp">
+#if MIN_VERSION_containers(0,4,2)
+</span><span id="mapFoldr"><span class="annot"><span class="annottext">mapFoldr :: (a -&gt; b -&gt; b) -&gt; b -&gt; Map k a -&gt; b
+</span><a href="System.Log.Logger.html#mapFoldr"><span class="hs-identifier hs-var hs-var">mapFoldr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a -&gt; b -&gt; b) -&gt; b -&gt; Map k a -&gt; b
+forall a b k. (a -&gt; b -&gt; b) -&gt; b -&gt; Map k a -&gt; b
+</span><span class="hs-identifier hs-var">Map.foldr</span></span><span class="hs-cpp">
+#else
+</span><span class="hs-identifier">mapFoldr</span><span> </span><span class="hs-identifier">f</span><span> </span><span class="hs-identifier">z</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">foldr</span><span> </span><span class="hs-identifier">f</span><span> </span><span class="hs-identifier">z</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">Map.elems</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-490"></span><span class="hs-comment">{- | Traps exceptions that may occur, logging them, then passing them on.
+
+Takes a logger name, priority, leading description text (you can set it to
+@\&quot;\&quot;@ if you don't want any), and action to run.
+-}</span><span>
+</span><span id="line-495"></span><span>
+</span><span id="line-496"></span><span id="local-6989586621679050582"><span class="annot"><a href="System.Log.Logger.html#traplogging"><span class="hs-identifier hs-type">traplogging</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                   </span><span class="hs-comment">-- Logger name</span><span>
+</span><span id="line-497"></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span>                 </span><span class="hs-comment">-- Logging priority</span><span>
+</span><span id="line-498"></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>                   </span><span class="hs-comment">-- Descriptive text to prepend to logged messages</span><span>
+</span><span id="line-499"></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679050582"><span class="hs-identifier hs-type">a</span></a></span><span>                     </span><span class="hs-comment">-- Action to run</span><span>
+</span><span id="line-500"></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679050582"><span class="hs-identifier hs-type">a</span></a></span></span><span>                     </span><span class="hs-comment">-- Return value</span><span>
+</span><span id="line-501"></span><span id="traplogging"><span class="annot"><span class="annottext">traplogging :: String -&gt; Priority -&gt; String -&gt; IO a -&gt; IO a
+</span><a href="System.Log.Logger.html#traplogging"><span class="hs-identifier hs-var hs-var">traplogging</span></a></span></span><span> </span><span id="local-6989586621679050581"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050581"><span class="hs-identifier hs-var">logger</span></a></span></span><span> </span><span id="local-6989586621679050580"><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050580"><span class="hs-identifier hs-var">priority'</span></a></span></span><span> </span><span id="local-6989586621679050579"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050579"><span class="hs-identifier hs-var">desc</span></a></span></span><span> </span><span id="local-6989586621679050578"><span class="annot"><span class="annottext">IO a
+</span><a href="#local-6989586621679050578"><span class="hs-identifier hs-var">action</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-502"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679050577"><span class="annot"><span class="annottext">realdesc :: String
+</span><a href="#local-6989586621679050577"><span class="hs-identifier hs-var hs-var">realdesc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050579"><span class="hs-identifier hs-var">desc</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-503"></span><span>                             </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-504"></span><span>                             </span><span id="local-6989586621679050576"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050576"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050576"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;: &quot;</span></span><span>
+</span><span id="line-505"></span><span>        </span><span id="local-6989586621679050744"><span class="annot"><a href="#local-6989586621679050575"><span class="hs-identifier hs-type">handler</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Control.Exception.SomeException</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679050744"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-506"></span><span>        </span><span id="local-6989586621679050575"><span class="annot"><span class="annottext">handler :: SomeException -&gt; IO a
+</span><a href="#local-6989586621679050575"><span class="hs-identifier hs-var hs-var">handler</span></a></span></span><span> </span><span id="local-6989586621679050574"><span class="annot"><span class="annottext">SomeException
+</span><a href="#local-6989586621679050574"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-507"></span><span>                    </span><span class="annot"><span class="annottext">String -&gt; Priority -&gt; String -&gt; IO ()
+</span><a href="System.Log.Logger.html#logM"><span class="hs-identifier hs-var">logM</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050581"><span class="hs-identifier hs-var">logger</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050580"><span class="hs-identifier hs-var">priority'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050577"><span class="hs-identifier hs-var">realdesc</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">SomeException -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">SomeException
+</span><a href="#local-6989586621679050574"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-508"></span><span>                    </span><span class="annot"><span class="annottext">SomeException -&gt; IO a
+forall a e. Exception e =&gt; e -&gt; a
+</span><span class="hs-identifier hs-var">Control.Exception.throw</span></span><span> </span><span class="annot"><span class="annottext">SomeException
+</span><a href="#local-6989586621679050574"><span class="hs-identifier hs-var">e</span></a></span><span>             </span><span class="hs-comment">-- Re-raise it</span><span>
+</span><span id="line-509"></span><span>        </span><span class="hs-keyword">in</span><span>
+</span><span id="line-510"></span><span>        </span><span class="annot"><span class="annottext">IO a -&gt; (SomeException -&gt; IO a) -&gt; IO a
+forall e a. Exception e =&gt; IO a -&gt; (e -&gt; IO a) -&gt; IO a
+</span><span class="hs-identifier hs-var">Control.Exception.catch</span></span><span> </span><span class="annot"><span class="annottext">IO a
+</span><a href="#local-6989586621679050578"><span class="hs-identifier hs-var">action</span></a></span><span> </span><span class="annot"><span class="annottext">SomeException -&gt; IO a
+forall a. SomeException -&gt; IO a
+</span><a href="#local-6989586621679050575"><span class="hs-identifier hs-var">handler</span></a></span><span>
+</span><span id="line-511"></span><span>
+</span><span id="line-512"></span><span class="hs-comment">{- This function pulled in from MissingH to avoid a dep on it -}</span><span>
+</span><span id="line-513"></span><span id="local-6989586621679050809"><span class="annot"><a href="System.Log.Logger.html#split"><span class="hs-identifier hs-type">split</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="annot"><a href="#local-6989586621679050809"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679050809"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679050809"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679050809"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span class="hs-special">]</span></span><span>
+</span><span id="line-514"></span><span id="split"><span class="annot"><span class="annottext">split :: [a] -&gt; [a] -&gt; [[a]]
+</span><a href="System.Log.Logger.html#split"><span class="hs-identifier hs-var hs-var">split</span></a></span></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-515"></span><span class="annot"><a href="System.Log.Logger.html#split"><span class="hs-identifier hs-var">split</span></a></span><span> </span><span id="local-6989586621679050570"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050570"><span class="hs-identifier hs-var">delim</span></a></span></span><span> </span><span id="local-6989586621679050569"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050569"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-516"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679050568"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050568"><span class="hs-identifier hs-var">firstline</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679050567"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050567"><span class="hs-identifier hs-var">remainder</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([a] -&gt; Bool) -&gt; [a] -&gt; ([a], [a])
+forall a. ([a] -&gt; Bool) -&gt; [a] -&gt; ([a], [a])
+</span><a href="System.Log.Logger.html#breakList"><span class="hs-identifier hs-var">breakList</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[a] -&gt; [a] -&gt; Bool
+forall a. Eq a =&gt; [a] -&gt; [a] -&gt; Bool
+</span><span class="hs-identifier hs-var">isPrefixOf</span></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050570"><span class="hs-identifier hs-var">delim</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050569"><span class="hs-identifier hs-var">str</span></a></span><span>
+</span><span id="line-517"></span><span>        </span><span class="hs-keyword">in</span><span>
+</span><span id="line-518"></span><span>        </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050568"><span class="hs-identifier hs-var">firstline</span></a></span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [[a]] -&gt; [[a]]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050567"><span class="hs-identifier hs-var">remainder</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-519"></span><span>                                   </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-520"></span><span>                                   </span><span id="local-6989586621679050565"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050565"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050565"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [a] -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050570"><span class="hs-identifier hs-var">delim</span></a></span><span>
+</span><span id="line-521"></span><span>                                        </span><span class="hs-keyword">then</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [[a]] -&gt; [[a]]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-522"></span><span>                                        </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [a] -&gt; [[a]]
+forall a. Eq a =&gt; [a] -&gt; [a] -&gt; [[a]]
+</span><a href="System.Log.Logger.html#split"><span class="hs-identifier hs-var">split</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050570"><span class="hs-identifier hs-var">delim</span></a></span><span>
+</span><span id="line-523"></span><span>                                                 </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; [a] -&gt; [a]
+forall a. Int -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">drop</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050570"><span class="hs-identifier hs-var">delim</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050565"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-524"></span><span>
+</span><span id="line-525"></span><span class="hs-comment">-- This function also pulled from MissingH</span><span>
+</span><span id="line-526"></span><span id="local-6989586621679050742"><span class="annot"><a href="System.Log.Logger.html#breakList"><span class="hs-identifier hs-type">breakList</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679050742"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679050742"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679050742"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679050742"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span></span><span>
+</span><span id="line-527"></span><span id="breakList"><span class="annot"><span class="annottext">breakList :: ([a] -&gt; Bool) -&gt; [a] -&gt; ([a], [a])
+</span><a href="System.Log.Logger.html#breakList"><span class="hs-identifier hs-var hs-var">breakList</span></a></span></span><span> </span><span id="local-6989586621679050563"><span class="annot"><span class="annottext">[a] -&gt; Bool
+</span><a href="#local-6989586621679050563"><span class="hs-identifier hs-var">func</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([a] -&gt; Bool) -&gt; [a] -&gt; ([a], [a])
+forall a. ([a] -&gt; Bool) -&gt; [a] -&gt; ([a], [a])
+</span><a href="System.Log.Logger.html#spanList"><span class="hs-identifier hs-var">spanList</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="annot"><span class="annottext">(Bool -&gt; Bool) -&gt; ([a] -&gt; Bool) -&gt; [a] -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Bool
+</span><a href="#local-6989586621679050563"><span class="hs-identifier hs-var">func</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-528"></span><span>
+</span><span id="line-529"></span><span class="hs-comment">-- This function also pulled from MissingH</span><span>
+</span><span id="line-530"></span><span id="local-6989586621679050560"><span class="annot"><a href="System.Log.Logger.html#spanList"><span class="hs-identifier hs-type">spanList</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679050560"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679050560"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679050560"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679050560"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span></span><span>
+</span><span id="line-531"></span><span>
+</span><span id="line-532"></span><span id="spanList"><span class="annot"><span class="annottext">spanList :: ([a] -&gt; Bool) -&gt; [a] -&gt; ([a], [a])
+</span><a href="System.Log.Logger.html#spanList"><span class="hs-identifier hs-var hs-var">spanList</span></a></span></span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Bool
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-533"></span><span class="annot"><a href="System.Log.Logger.html#spanList"><span class="hs-identifier hs-var">spanList</span></a></span><span> </span><span id="local-6989586621679050559"><span class="annot"><span class="annottext">[a] -&gt; Bool
+</span><a href="#local-6989586621679050559"><span class="hs-identifier hs-var">func</span></a></span></span><span> </span><span id="local-6989586621679050558"><span class="annot"><span class="annottext">list :: [a]
+</span><a href="#local-6989586621679050558"><span class="hs-identifier hs-var">list</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span id="local-6989586621679050557"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050557"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679050556"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050556"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-534"></span><span>    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Bool
+</span><a href="#local-6989586621679050559"><span class="hs-identifier hs-var">func</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050558"><span class="hs-identifier hs-var">list</span></a></span><span>
+</span><span id="line-535"></span><span>       </span><span class="hs-keyword">then</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050557"><span class="hs-identifier hs-var">x</span></a></span><span class="annot"><span class="annottext">a -&gt; [a] -&gt; [a]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050555"><span class="hs-identifier hs-var">ys</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050554"><span class="hs-identifier hs-var">zs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-536"></span><span>       </span><span class="hs-keyword">else</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050558"><span class="hs-identifier hs-var">list</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-537"></span><span>    </span><span class="hs-keyword">where</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679050555"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050555"><span class="hs-identifier hs-var">ys</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679050554"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050554"><span class="hs-identifier hs-var">zs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([a] -&gt; Bool) -&gt; [a] -&gt; ([a], [a])
+forall a. ([a] -&gt; Bool) -&gt; [a] -&gt; ([a], [a])
+</span><a href="System.Log.Logger.html#spanList"><span class="hs-identifier hs-var">spanList</span></a></span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Bool
+</span><a href="#local-6989586621679050559"><span class="hs-identifier hs-var">func</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050556"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-538"></span></pre></body></html>

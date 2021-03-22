@@ -1,0 +1,84 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{- |
+   Module     : System.Log.Handler
+   Copyright  : Copyright (C) 2004-2011 John Goerzen
+   License    : BSD3
+
+   Portability: portable
+
+Definition of log handler support
+
+For some handlers, check out &quot;System.Log.Handler.Simple&quot; and
+&quot;System.Log.Handler.Syslog&quot;.
+
+Please see &quot;System.Log.Logger&quot; for extensive documentation on the
+logging system.
+
+Written by John Goerzen, jgoerzen\@complete.org
+-}</span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">System.Log.Handler</span><span class="hs-special">(</span><span class="annot"><span class="hs-comment">-- * Basic Types</span></span><span>
+</span><span id="line-20"></span><span>                                </span><span class="annot"><a href="System.Log.Handler.html#LogHandler"><span class="hs-identifier">LogHandler</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span>                               </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="System.Log.html"><span class="hs-identifier">System.Log</span></a></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="System.Log.Formatter.html"><span class="hs-identifier">System.Log.Formatter</span></a></span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-comment">{- | All log handlers should adhere to this. -}</span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span class="hs-comment">{- | This is the base class for the various log handlers.  They should
+all adhere to this class. -}</span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">class</span><span> </span><span id="LogHandler"><span class="annot"><a href="System.Log.Handler.html#LogHandler"><span class="hs-identifier hs-var">LogHandler</span></a></span></span><span> </span><span id="local-6989586621679050310"><span class="annot"><a href="#local-6989586621679050310"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-31"></span><span>                   </span><span class="hs-comment">-- | Sets the log level.  'handle' will drop</span><span>
+</span><span id="line-32"></span><span>                   </span><span class="hs-comment">-- items beneath this level.</span><span>
+</span><span id="line-33"></span><span>                   </span><span id="setLevel"><span class="annot"><a href="System.Log.Handler.html#setLevel"><span class="hs-identifier hs-type">setLevel</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679050310"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050310"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-34"></span><span>                   </span><span class="hs-comment">-- | Gets the current level.</span><span>
+</span><span id="line-35"></span><span>                   </span><span id="getLevel"><span class="annot"><a href="System.Log.Handler.html#getLevel"><span class="hs-identifier hs-type">getLevel</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679050310"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span>
+</span><span id="line-36"></span><span>                   </span><span class="hs-comment">-- | Set a log formatter to customize the log format for this Handler</span><span>
+</span><span id="line-37"></span><span>                   </span><span id="setFormatter"><span class="annot"><a href="System.Log.Handler.html#setFormatter"><span class="hs-identifier hs-type">setFormatter</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679050310"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.Formatter.html#LogFormatter"><span class="hs-identifier hs-type">LogFormatter</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679050310"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050310"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-38"></span><span>                   </span><span id="getFormatter"><span class="annot"><a href="System.Log.Handler.html#getFormatter"><span class="hs-identifier hs-type">getFormatter</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679050310"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.Formatter.html#LogFormatter"><span class="hs-identifier hs-type">LogFormatter</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679050310"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-39"></span><span>                   </span><span id="local-6989586621679050296"><span class="annot"><a href="System.Log.Handler.html#getFormatter"><span class="hs-identifier hs-var hs-var">getFormatter</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LogFormatter a
+forall a. LogFormatter a
+</span><a href="System.Log.Formatter.html#nullFormatter"><span class="hs-identifier hs-var">nullFormatter</span></a></span><span>
+</span><span id="line-40"></span><span>                   </span><span class="hs-comment">-- | Logs an event if it meets the requirements</span><span>
+</span><span id="line-41"></span><span>                   </span><span class="hs-comment">-- given by the most recent call to 'setLevel'.</span></span><span>
+</span><span id="line-42"></span><span>                   </span><span id="handle"><span class="annot"><a href="System.Log.Handler.html#handle"><span class="hs-identifier hs-type">handle</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679050310"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.html#LogRecord"><span class="hs-identifier hs-type">LogRecord</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span>                   </span><span id="local-6989586621679050293"><span class="annot"><a href="System.Log.Handler.html#handle"><span class="hs-identifier hs-var hs-var">handle</span></a></span><span> </span><span id="local-6989586621679050292"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050292"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679050291"><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050291"><span class="hs-identifier hs-var">pri</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679050290"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050290"><span class="hs-identifier hs-var">msg</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679050289"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050289"><span class="hs-identifier hs-var">logname</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-45"></span><span>                       </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050291"><span class="hs-identifier hs-var">pri</span></a></span><span> </span><span class="annot"><span class="annottext">Priority -&gt; Priority -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;=</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; Priority
+forall a. LogHandler a =&gt; a -&gt; Priority
+</span><a href="System.Log.Handler.html#getLevel"><span class="hs-identifier hs-var">getLevel</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050292"><span class="hs-identifier hs-var">h</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-46"></span><span>                          </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679050288"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050288"><span class="hs-identifier hs-var">formattedMsg</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; LogFormatter a
+forall a. LogHandler a =&gt; a -&gt; LogFormatter a
+</span><a href="System.Log.Handler.html#getFormatter"><span class="hs-identifier hs-var">getFormatter</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050292"><span class="hs-identifier hs-var">h</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050292"><span class="hs-identifier hs-var">h</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050291"><span class="hs-identifier hs-var">pri</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050290"><span class="hs-identifier hs-var">msg</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050289"><span class="hs-identifier hs-var">logname</span></a></span><span>
+</span><span id="line-47"></span><span>                                  </span><span class="annot"><span class="annottext">a -&gt; LogRecord -&gt; String -&gt; IO ()
+forall a. LogHandler a =&gt; a -&gt; LogRecord -&gt; String -&gt; IO ()
+</span><a href="System.Log.Handler.html#emit"><span class="hs-identifier hs-var">emit</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050292"><span class="hs-identifier hs-var">h</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050291"><span class="hs-identifier hs-var">pri</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050288"><span class="hs-identifier hs-var">formattedMsg</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050289"><span class="hs-identifier hs-var">logname</span></a></span><span>
+</span><span id="line-48"></span><span>                          </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">() -&gt; IO ()
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-49"></span><span>                   </span><span class="hs-comment">-- | Forces an event to be logged regardless of</span><span>
+</span><span id="line-50"></span><span>                   </span><span class="hs-comment">-- the configured level.</span></span><span>
+</span><span id="line-51"></span><span>                   </span><span id="emit"><span class="annot"><a href="System.Log.Handler.html#emit"><span class="hs-identifier hs-type">emit</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679050310"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.html#LogRecord"><span class="hs-identifier hs-type">LogRecord</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-52"></span><span>                   </span><span class="hs-comment">-- | Closes the logging system, causing it to close</span><span>
+</span><span id="line-53"></span><span>                   </span><span class="hs-comment">-- any open files, etc.</span><span>
+</span><span id="line-54"></span><span>                   </span><span id="close"><span class="annot"><a href="System.Log.Handler.html#close"><span class="hs-identifier hs-type">close</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679050310"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-55"></span></pre></body></html>

@@ -1,0 +1,1041 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# language CPP #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# language DeriveDataTypeable #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# language DeriveGeneric #-}</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- Copyright   :  (C) 2011-2019 Edward Kmett</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- License     :  BSD-style (see the file LICENSE)</span><span>
+</span><span id="line-8"></span><span class="hs-comment">--</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Stability   :  experimental</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- Portability :  non-portable</span><span>
+</span><span id="line-12"></span><span class="hs-comment">--</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- A 'Delta' keeps track of the cursor position of the parser, so it can be</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- referred to later, for example in error messages.</span><span>
+</span><span id="line-15"></span><span class="hs-comment">----------------------------------------------------------------------------</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.Trifecta.Delta</span><span>
+</span><span id="line-17"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier">Delta</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasDelta"><span class="hs-identifier">HasDelta</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasBytes"><span class="hs-identifier">HasBytes</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#prettyDelta"><span class="hs-identifier">prettyDelta</span></a></span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#nextTab"><span class="hs-identifier">nextTab</span></a></span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#rewind"><span class="hs-identifier">rewind</span></a></span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#near"><span class="hs-identifier">near</span></a></span><span>
+</span><span id="line-24"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#column"><span class="hs-identifier">column</span></a></span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#columnByte"><span class="hs-identifier">columnByte</span></a></span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span class="hs-cpp">
+
+#if !(MIN_VERSION_base(4,11,0))
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Semigroup</span><span class="hs-cpp">
+#endif
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Hashable</span></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Int</span></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Data</span></span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Word</span></span><span class="hs-cpp">
+#if __GLASGOW_HASKELL__ &lt; 710
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Foldable</span><span class="hs-cpp">
+#endif
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Function</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">on</span></span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.FingerTree</span></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">empty</span></span><span class="hs-special">)</span><span>
+</span><span id="line-40"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Strict</span></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">empty</span></span><span class="hs-special">)</span><span>
+</span><span id="line-41"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString.UTF8</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">UTF8</span></span><span>
+</span><span id="line-42"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Prettyprint.Doc</span></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">column</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">line'</span></span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Generics</span></span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.Pretty.html"><span class="hs-identifier">Text.Trifecta.Util.Pretty</span></a></span><span>
+</span><span id="line-46"></span><span>
+</span><span id="line-47"></span><span class="hs-keyword">class</span><span> </span><span id="HasBytes"><span class="annot"><a href="Text.Trifecta.Delta.html#HasBytes"><span class="hs-identifier hs-var">HasBytes</span></a></span></span><span> </span><span id="local-6989586621679236450"><span class="annot"><a href="#local-6989586621679236450"><span class="hs-identifier hs-type">t</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-48"></span><span>  </span><span id="bytes"><span class="annot"><a href="Text.Trifecta.Delta.html#bytes"><span class="hs-identifier hs-type">bytes</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679236450"><span class="hs-identifier hs-type">t</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span>
+</span><span id="line-49"></span><span>
+</span><span id="line-50"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasBytes"><span class="hs-identifier hs-type">HasBytes</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-51"></span><span>  </span><span id="local-6989586621679236327"><span class="annot"><span class="annottext">bytes :: ByteString -&gt; Int64
+</span><a href="#local-6989586621679236327"><span class="hs-identifier hs-var hs-var hs-var hs-var">bytes</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int64
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Int64) -&gt; (ByteString -&gt; Int) -&gt; ByteString -&gt; Int64
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Int
+</span><span class="hs-identifier hs-var">Strict.length</span></span><span>
+</span><span id="line-52"></span><span>
+</span><span id="line-53"></span><span id="local-6989586621679236323"><span id="local-6989586621679236324"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Measured</span></span><span> </span><span class="annot"><a href="#local-6989586621679236324"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679236323"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasBytes"><span class="hs-identifier hs-type">HasBytes</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679236324"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasBytes"><span class="hs-identifier hs-type">HasBytes</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">FingerTree</span></span><span> </span><span class="annot"><a href="#local-6989586621679236324"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679236323"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-54"></span><span>  </span><span id="local-6989586621679236321"><span class="annot"><span class="annottext">bytes :: FingerTree v a -&gt; Int64
+</span><a href="#local-6989586621679236321"><span class="hs-identifier hs-var hs-var hs-var hs-var">bytes</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">v -&gt; Int64
+forall t. HasBytes t =&gt; t -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#bytes"><span class="hs-identifier hs-var">bytes</span></a></span><span> </span><span class="annot"><span class="annottext">(v -&gt; Int64) -&gt; (FingerTree v a -&gt; v) -&gt; FingerTree v a -&gt; Int64
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">FingerTree v a -&gt; v
+forall v a. Measured v a =&gt; a -&gt; v
+</span><span class="hs-identifier hs-var">measure</span></span></span></span><span>
+</span><span id="line-55"></span><span>
+</span><span id="line-56"></span><span class="hs-comment">-- | Since there are multiple ways to be at a certain location, 'Delta' captures</span><span>
+</span><span id="line-57"></span><span class="hs-comment">-- all these alternatives as a single type.</span><span>
+</span><span id="line-58"></span><span id="local-6989586621679236318"><span id="local-6989586621679236319"></span></span><span class="hs-keyword">data</span><span> </span><span id="Delta"><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-var">Delta</span></a></span></span><span>
+</span><span id="line-59"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="Columns"><span class="annot"><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-var">Columns</span></a></span></span><span> </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span>
+</span><span id="line-60"></span><span>            </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span>
+</span><span id="line-61"></span><span>    </span><span class="hs-comment">-- ^ @</span><span>
+</span><span id="line-62"></span><span>    </span><span class="hs-comment">-- ( number of characters</span><span>
+</span><span id="line-63"></span><span>    </span><span class="hs-comment">-- , number of bytes )</span><span>
+</span><span id="line-64"></span><span>    </span><span class="hs-comment">-- @</span><span>
+</span><span id="line-65"></span><span>
+</span><span id="line-66"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="Tab"><span class="annot"><a href="Text.Trifecta.Delta.html#Tab"><span class="hs-identifier hs-var">Tab</span></a></span></span><span> </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span>
+</span><span id="line-67"></span><span>        </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span>
+</span><span id="line-68"></span><span>        </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span>
+</span><span id="line-69"></span><span>    </span><span class="hs-comment">-- ^ @</span><span>
+</span><span id="line-70"></span><span>    </span><span class="hs-comment">-- ( number of characters before the tab</span><span>
+</span><span id="line-71"></span><span>    </span><span class="hs-comment">-- , number of characters after the tab</span><span>
+</span><span id="line-72"></span><span>    </span><span class="hs-comment">-- , number of bytes )</span><span>
+</span><span id="line-73"></span><span>    </span><span class="hs-comment">-- @</span><span>
+</span><span id="line-74"></span><span>
+</span><span id="line-75"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="Lines"><span class="annot"><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-var">Lines</span></a></span></span><span> </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span>
+</span><span id="line-76"></span><span>          </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span>
+</span><span id="line-77"></span><span>          </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span>
+</span><span id="line-78"></span><span>          </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span>
+</span><span id="line-79"></span><span>    </span><span class="hs-comment">-- ^ @</span><span>
+</span><span id="line-80"></span><span>    </span><span class="hs-comment">-- ( number of newlines contained</span><span>
+</span><span id="line-81"></span><span>    </span><span class="hs-comment">-- , number of characters since the last newline</span><span>
+</span><span id="line-82"></span><span>    </span><span class="hs-comment">-- , number of bytes</span><span>
+</span><span id="line-83"></span><span>    </span><span class="hs-comment">-- , number of bytes since the last newline )</span><span>
+</span><span id="line-84"></span><span>    </span><span class="hs-comment">-- @</span><span>
+</span><span id="line-85"></span><span>
+</span><span id="line-86"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="Directed"><span class="annot"><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-var">Directed</span></a></span></span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span>
+</span><span id="line-87"></span><span>             </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span>
+</span><span id="line-88"></span><span>             </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span>
+</span><span id="line-89"></span><span>             </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span>
+</span><span id="line-90"></span><span>             </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span>
+</span><span id="line-91"></span><span>    </span><span class="hs-comment">-- ^ @</span><span>
+</span><span id="line-92"></span><span>    </span><span class="hs-comment">-- ( current file name</span><span>
+</span><span id="line-93"></span><span>    </span><span class="hs-comment">-- , number of lines since the last line directive</span><span>
+</span><span id="line-94"></span><span>    </span><span class="hs-comment">-- , number of characters since the last newline</span><span>
+</span><span id="line-95"></span><span>    </span><span class="hs-comment">-- , number of bytes</span><span>
+</span><span id="line-96"></span><span>    </span><span class="hs-comment">-- , number of bytes since the last newline )</span><span>
+</span><span id="line-97"></span><span>    </span><span class="hs-comment">-- @</span><span>
+</span><span id="line-98"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679236308"><span id="local-6989586621679236310"><span id="local-6989586621679236312"><span class="annot"><span class="annottext">Int -&gt; Delta -&gt; ShowS
+[Delta] -&gt; ShowS
+Delta -&gt; String
+(Int -&gt; Delta -&gt; ShowS)
+-&gt; (Delta -&gt; String) -&gt; ([Delta] -&gt; ShowS) -&gt; Show Delta
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Delta] -&gt; ShowS
+$cshowList :: [Delta] -&gt; ShowS
+show :: Delta -&gt; String
+$cshow :: Delta -&gt; String
+showsPrec :: Int -&gt; Delta -&gt; ShowS
+$cshowsPrec :: Int -&gt; Delta -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="%24cDirected"><span id="%24cLines"><span id="%24cTab"><span id="%24cColumns"><span id="%24tDelta"><span id="local-6989586621679236278"><span id="local-6989586621679236280"><span id="local-6989586621679236282"><span id="local-6989586621679236284"><span id="local-6989586621679236286"><span id="local-6989586621679236288"><span id="local-6989586621679236290"><span id="local-6989586621679236292"><span id="local-6989586621679236294"><span id="local-6989586621679236296"><span id="local-6989586621679236298"><span id="local-6989586621679236300"><span id="local-6989586621679236302"><span id="local-6989586621679236304"><span class="annot"><span class="annottext">Typeable Delta
+DataType
+Constr
+Typeable Delta
+-&gt; (forall (c :: * -&gt; *).
+    (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+    -&gt; (forall g. g -&gt; c g) -&gt; Delta -&gt; c Delta)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Delta)
+-&gt; (Delta -&gt; Constr)
+-&gt; (Delta -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Delta))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Delta))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; Delta -&gt; Delta)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Delta -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Delta -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; Delta -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Delta -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; Delta -&gt; m Delta)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; Delta -&gt; m Delta)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; Delta -&gt; m Delta)
+-&gt; Data Delta
+Delta -&gt; DataType
+Delta -&gt; Constr
+(forall b. Data b =&gt; b -&gt; b) -&gt; Delta -&gt; Delta
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Delta -&gt; c Delta
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Delta
+forall a.
+Typeable a
+-&gt; (forall (c :: * -&gt; *).
+    (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+    -&gt; (forall g. g -&gt; c g) -&gt; a -&gt; c a)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c a)
+-&gt; (a -&gt; Constr)
+-&gt; (a -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c a))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c a))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; a -&gt; a)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; Data a
+forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Delta -&gt; u
+forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; Delta -&gt; [u]
+forall r r'.
+(r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Delta -&gt; r
+forall r r'.
+(r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Delta -&gt; r
+forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Delta -&gt; m Delta
+forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Delta -&gt; m Delta
+forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Delta
+forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Delta -&gt; c Delta
+forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Delta)
+forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Delta)
+$cDirected :: Constr
+$cLines :: Constr
+$cTab :: Constr
+$cColumns :: Constr
+$tDelta :: DataType
+gmapMo :: (forall d. Data d =&gt; d -&gt; m d) -&gt; Delta -&gt; m Delta
+$cgmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Delta -&gt; m Delta
+gmapMp :: (forall d. Data d =&gt; d -&gt; m d) -&gt; Delta -&gt; m Delta
+$cgmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Delta -&gt; m Delta
+gmapM :: (forall d. Data d =&gt; d -&gt; m d) -&gt; Delta -&gt; m Delta
+$cgmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Delta -&gt; m Delta
+gmapQi :: Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Delta -&gt; u
+$cgmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Delta -&gt; u
+gmapQ :: (forall d. Data d =&gt; d -&gt; u) -&gt; Delta -&gt; [u]
+$cgmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; Delta -&gt; [u]
+gmapQr :: (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Delta -&gt; r
+$cgmapQr :: forall r r'.
+(r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Delta -&gt; r
+gmapQl :: (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Delta -&gt; r
+$cgmapQl :: forall r r'.
+(r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Delta -&gt; r
+gmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; Delta -&gt; Delta
+$cgmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; Delta -&gt; Delta
+dataCast2 :: (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Delta)
+$cdataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Delta)
+dataCast1 :: (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Delta)
+$cdataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Delta)
+dataTypeOf :: Delta -&gt; DataType
+$cdataTypeOf :: Delta -&gt; DataType
+toConstr :: Delta -&gt; Constr
+$ctoConstr :: Delta -&gt; Constr
+gunfold :: (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Delta
+$cgunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Delta
+gfoldl :: (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Delta -&gt; c Delta
+$cgfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Delta -&gt; c Delta
+$cp1Data :: Typeable Delta
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Data</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Typeable</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. Delta -&gt; Rep Delta x)
+-&gt; (forall x. Rep Delta x -&gt; Delta) -&gt; Generic Delta
+forall x. Rep Delta x -&gt; Delta
+forall x. Delta -&gt; Rep Delta x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep Delta x -&gt; Delta
+$cfrom :: forall x. Delta -&gt; Rep Delta x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">)</span><span>
+</span><span id="line-99"></span><span>
+</span><span id="line-100"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679236266"><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-101"></span><span>  </span><span id="local-6989586621679236264"><span class="annot"><span class="annottext">== :: Delta -&gt; Delta -&gt; Bool
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">(==)</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">(==)</span></span><span> </span><span class="annot"><span class="annottext">(Int64 -&gt; Int64 -&gt; Bool)
+-&gt; (Delta -&gt; Int64) -&gt; Delta -&gt; Delta -&gt; Bool
+forall b c a. (b -&gt; b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">`on`</span></span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Int64
+forall t. HasBytes t =&gt; t -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#bytes"><span class="hs-identifier hs-var">bytes</span></a></span><span>
+</span><span id="line-102"></span><span>
+</span><span id="line-103"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679236250"><span id="local-6989586621679236252"><span id="local-6989586621679236254"><span id="local-6989586621679236256"><span id="local-6989586621679236258"><span id="local-6989586621679236260"><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span></span></span></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-104"></span><span>  </span><span id="local-6989586621679236248"><span class="annot"><span class="annottext">compare :: Delta -&gt; Delta -&gt; Ordering
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">compare</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span><span class="hs-identifier hs-var">compare</span></span><span> </span><span class="annot"><span class="annottext">(Int64 -&gt; Int64 -&gt; Ordering)
+-&gt; (Delta -&gt; Int64) -&gt; Delta -&gt; Delta -&gt; Ordering
+forall b c a. (b -&gt; b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">`on`</span></span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Int64
+forall t. HasBytes t =&gt; t -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#bytes"><span class="hs-identifier hs-var">bytes</span></a></span><span>
+</span><span id="line-105"></span><span>
+</span><span id="line-106"></span><span id="local-6989586621679236245"><span id="local-6989586621679236246"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Delta.html#HasDelta"><span class="hs-identifier hs-type">HasDelta</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679236246"><span class="hs-identifier hs-type">l</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasDelta"><span class="hs-identifier hs-type">HasDelta</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679236245"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasDelta"><span class="hs-identifier hs-type">HasDelta</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679236246"><span class="hs-identifier hs-type">l</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679236245"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-107"></span><span>  </span><span id="local-6989586621679236242"><span class="annot"><span class="annottext">delta :: Either l r -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var hs-var hs-var hs-var">delta</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(l -&gt; Delta) -&gt; (r -&gt; Delta) -&gt; Either l r -&gt; Delta
+forall a c b. (a -&gt; c) -&gt; (b -&gt; c) -&gt; Either a b -&gt; c
+</span><span class="hs-identifier hs-var">either</span></span><span> </span><span class="annot"><span class="annottext">l -&gt; Delta
+forall t. HasDelta t =&gt; t -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span><span> </span><span class="annot"><span class="annottext">r -&gt; Delta
+forall t. HasDelta t =&gt; t -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span></span></span><span>
+</span><span id="line-108"></span><span>
+</span><span id="line-109"></span><span class="hs-comment">-- | Example: @file.txt:12:34@</span><span>
+</span><span id="line-110"></span><span class="annot"><a href="Text.Trifecta.Delta.html#prettyDelta"><span class="hs-identifier hs-type">prettyDelta</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Doc</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">AnsiStyle</span></span><span>
+</span><span id="line-111"></span><span id="prettyDelta"><span class="annot"><span class="annottext">prettyDelta :: Delta -&gt; Doc AnsiStyle
+</span><a href="Text.Trifecta.Delta.html#prettyDelta"><span class="hs-identifier hs-var hs-var">prettyDelta</span></a></span></span><span> </span><span id="local-6989586621679236239"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236239"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236239"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-112"></span><span>    </span><span class="annot"><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-type">Columns</span></a></span><span> </span><span id="local-6989586621679236238"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236238"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span>         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int64 -&gt; Int64 -&gt; Doc AnsiStyle
+</span><a href="#local-6989586621679236237"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679236236"><span class="hs-identifier hs-var">interactive</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236238"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-113"></span><span>    </span><span class="annot"><a href="Text.Trifecta.Delta.html#Tab"><span class="hs-identifier hs-type">Tab</span></a></span><span> </span><span id="local-6989586621679236235"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236235"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679236234"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236234"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int64 -&gt; Int64 -&gt; Doc AnsiStyle
+</span><a href="#local-6989586621679236237"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679236236"><span class="hs-identifier hs-var">interactive</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64 -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#nextTab"><span class="hs-identifier hs-var">nextTab</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236235"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236234"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-114"></span><span>    </span><span class="annot"><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-type">Lines</span></a></span><span> </span><span id="local-6989586621679236232"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236232"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679236231"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236231"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span>       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int64 -&gt; Int64 -&gt; Doc AnsiStyle
+</span><a href="#local-6989586621679236237"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679236236"><span class="hs-identifier hs-var">interactive</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236232"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236231"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-115"></span><span>    </span><span class="annot"><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-type">Directed</span></a></span><span> </span><span id="local-6989586621679236230"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236230"><span class="hs-identifier hs-var">fn</span></a></span></span><span> </span><span id="local-6989586621679236229"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236229"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679236228"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236228"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int64 -&gt; Int64 -&gt; Doc AnsiStyle
+</span><a href="#local-6989586621679236237"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ByteString -&gt; String
+</span><span class="hs-identifier hs-var">UTF8.toString</span></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236230"><span class="hs-identifier hs-var">fn</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236229"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236228"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-116"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-117"></span><span>    </span><span class="annot"><a href="#local-6989586621679236237"><span class="hs-identifier hs-type">go</span></a></span><span>
+</span><span id="line-118"></span><span>        </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-comment">-- Source description</span><span>
+</span><span id="line-119"></span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span>  </span><span class="hs-comment">-- Line</span><span>
+</span><span id="line-120"></span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span>  </span><span class="hs-comment">-- Column</span><span>
+</span><span id="line-121"></span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Doc</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">AnsiStyle</span></span><span>
+</span><span id="line-122"></span><span>    </span><span id="local-6989586621679236237"><span class="annot"><span class="annottext">go :: String -&gt; Int64 -&gt; Int64 -&gt; Doc AnsiStyle
+</span><a href="#local-6989586621679236237"><span class="hs-identifier hs-var hs-var">go</span></a></span></span><span> </span><span id="local-6989586621679236226"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679236226"><span class="hs-identifier hs-var">source</span></a></span></span><span> </span><span id="local-6989586621679236225"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236225"><span class="hs-identifier hs-var">line'</span></a></span></span><span> </span><span id="local-6989586621679236224"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236224"><span class="hs-identifier hs-var">column'</span></a></span></span><span>
+</span><span id="line-123"></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall ann. ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">annotate</span></span><span> </span><span class="annot"><span class="annottext">AnsiStyle
+</span><span class="hs-identifier hs-var">bold</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Doc AnsiStyle
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679236226"><span class="hs-identifier hs-var">source</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-124"></span><span>        </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Doc AnsiStyle
+forall a. Char -&gt; Doc a
+</span><a href="Text.Trifecta.Util.Pretty.html#char"><span class="hs-identifier hs-var">char</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">':'</span></span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall ann. ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">annotate</span></span><span> </span><span class="annot"><span class="annottext">AnsiStyle
+</span><span class="hs-identifier hs-var">bold</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64 -&gt; Doc AnsiStyle
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236225"><span class="hs-identifier hs-var">line'</span></a></span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-125"></span><span>        </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Doc AnsiStyle
+forall a. Char -&gt; Doc a
+</span><a href="Text.Trifecta.Util.Pretty.html#char"><span class="hs-identifier hs-var">char</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">':'</span></span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall ann. ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">annotate</span></span><span> </span><span class="annot"><span class="annottext">AnsiStyle
+</span><span class="hs-identifier hs-var">bold</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64 -&gt; Doc AnsiStyle
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236224"><span class="hs-identifier hs-var">column'</span></a></span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-126"></span><span>    </span><span id="local-6989586621679236236"><span class="annot"><span class="annottext">interactive :: String
+</span><a href="#local-6989586621679236236"><span class="hs-identifier hs-var hs-var">interactive</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;(interactive)&quot;</span></span><span>
+</span><span id="line-127"></span><span>
+</span><span id="line-128"></span><span class="hs-comment">-- | Retrieve the character offset within the current line from this 'Delta'.</span><span>
+</span><span id="line-129"></span><span id="local-6989586621679236219"><span class="annot"><a href="Text.Trifecta.Delta.html#column"><span class="hs-identifier hs-type">column</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasDelta"><span class="hs-identifier hs-type">HasDelta</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679236219"><span class="hs-identifier hs-type">t</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679236219"><span class="hs-identifier hs-type">t</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span></span><span>
+</span><span id="line-130"></span><span id="column"><span class="annot"><span class="annottext">column :: t -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#column"><span class="hs-identifier hs-var hs-var">column</span></a></span></span><span> </span><span id="local-6989586621679236218"><span class="annot"><span class="annottext">t
+</span><a href="#local-6989586621679236218"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">t -&gt; Delta
+forall t. HasDelta t =&gt; t -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span><span> </span><span class="annot"><span class="annottext">t
+</span><a href="#local-6989586621679236218"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-131"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-type">Columns</span></a></span><span> </span><span id="local-6989586621679236217"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236217"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236217"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-132"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Tab"><span class="hs-identifier hs-type">Tab</span></a></span><span> </span><span id="local-6989586621679236216"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236216"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span id="local-6989586621679236215"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236215"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#nextTab"><span class="hs-identifier hs-var">nextTab</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236216"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236215"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-133"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-type">Lines</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236214"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236214"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236214"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-134"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-type">Directed</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236213"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236213"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236213"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-135"></span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#column"><span class="hs-pragma hs-type">column</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-136"></span><span>
+</span><span id="line-137"></span><span class="hs-comment">-- | Retrieve the byte offset within the current line from this 'Delta'.</span><span>
+</span><span id="line-138"></span><span class="annot"><a href="Text.Trifecta.Delta.html#columnByte"><span class="hs-identifier hs-type">columnByte</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span>
+</span><span id="line-139"></span><span id="columnByte"><span class="annot"><span class="annottext">columnByte :: Delta -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#columnByte"><span class="hs-identifier hs-var hs-var">columnByte</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-type">Columns</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236212"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236212"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236212"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-140"></span><span class="annot"><a href="Text.Trifecta.Delta.html#columnByte"><span class="hs-identifier hs-var">columnByte</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Delta.html#Tab"><span class="hs-identifier hs-type">Tab</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236211"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236211"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236211"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-141"></span><span class="annot"><a href="Text.Trifecta.Delta.html#columnByte"><span class="hs-identifier hs-var">columnByte</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-type">Lines</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236210"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236210"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236210"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-142"></span><span class="annot"><a href="Text.Trifecta.Delta.html#columnByte"><span class="hs-identifier hs-var">columnByte</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-type">Directed</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236209"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236209"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236209"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-143"></span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#columnByte"><span class="hs-pragma hs-type">columnByte</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-144"></span><span>
+</span><span id="line-145"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasBytes"><span class="hs-identifier hs-type">HasBytes</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-146"></span><span>  </span><span id="local-6989586621679236207"><span class="annot"><span class="annottext">bytes :: Delta -&gt; Int64
+</span><a href="#local-6989586621679236207"><span class="hs-identifier hs-var hs-var hs-var hs-var">bytes</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-type">Columns</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236206"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236206"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236206"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-147"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#bytes"><span class="hs-identifier hs-var">bytes</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Delta.html#Tab"><span class="hs-identifier hs-type">Tab</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236205"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236205"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236205"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-148"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#bytes"><span class="hs-identifier hs-var">bytes</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-type">Lines</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236204"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236204"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236204"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-149"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#bytes"><span class="hs-identifier hs-var">bytes</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-type">Directed</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236203"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236203"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236203"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-150"></span><span>
+</span><span id="line-151"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679236199"><span id="local-6989586621679236201"><span class="annot"><span class="hs-identifier hs-type">Hashable</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span></span></span><span>
+</span><span id="line-152"></span><span>
+</span><span id="line-153"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679236193"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-154"></span><span>  </span><span id="local-6989586621679236191"><span class="annot"><span class="annottext">mempty :: Delta
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-var">Columns</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-155"></span><span>  </span><span id="local-6989586621679236190"><span class="annot"><span class="annottext">mappend :: Delta -&gt; Delta -&gt; Delta
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mappend</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Delta -&gt; Delta
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(&lt;&gt;)</span></span><span>
+</span><span id="line-156"></span><span>
+</span><span id="line-157"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679236185"><span id="local-6989586621679236187"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-158"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-type">Columns</span></a></span><span> </span><span id="local-6989586621679236183"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236183"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621679236182"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236182"><span class="hs-identifier hs-var">a</span></a></span></span><span>        </span><span id="local-6989586621679236181"><span class="annot"><span class="annottext">&lt;&gt; :: Delta -&gt; Delta -&gt; Delta
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-type">Columns</span></a></span><span> </span><span id="local-6989586621679236180"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236180"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span id="local-6989586621679236179"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236179"><span class="hs-identifier hs-var">b</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-var">Columns</span></a></span><span>            </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236183"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236180"><span class="hs-identifier hs-var">d</span></a></span><span class="hs-special">)</span><span>                            </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236182"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236179"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-159"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-type">Columns</span></a></span><span> </span><span id="local-6989586621679236178"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236178"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621679236177"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236177"><span class="hs-identifier hs-var">a</span></a></span></span><span>        </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Tab"><span class="hs-identifier hs-type">Tab</span></a></span><span> </span><span id="local-6989586621679236176"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236176"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679236175"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236175"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span id="local-6989586621679236174"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236174"><span class="hs-identifier hs-var">b</span></a></span></span><span>           </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Tab"><span class="hs-identifier hs-var">Tab</span></a></span><span>                </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236178"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236176"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236175"><span class="hs-identifier hs-var">y</span></a></span><span>                          </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236177"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236174"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-160"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-type">Columns</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236173"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236173"><span class="hs-identifier hs-var">a</span></a></span></span><span>        </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-type">Lines</span></a></span><span> </span><span id="local-6989586621679236172"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236172"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679236171"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236171"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621679236170"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236170"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span id="local-6989586621679236169"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236169"><span class="hs-identifier hs-var">a'</span></a></span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-var">Lines</span></a></span><span>      </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236172"><span class="hs-identifier hs-var">l</span></a></span><span>       </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236171"><span class="hs-identifier hs-var">c</span></a></span><span>                         </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236170"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236173"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span>  </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236169"><span class="hs-identifier hs-var">a'</span></a></span><span>
+</span><span id="line-161"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-type">Columns</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236168"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236168"><span class="hs-identifier hs-var">a</span></a></span></span><span>        </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-type">Directed</span></a></span><span> </span><span id="local-6989586621679236167"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236167"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679236166"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236166"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679236165"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236165"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621679236164"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236164"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span id="local-6989586621679236163"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236163"><span class="hs-identifier hs-var">a'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-var">Directed</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236167"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236166"><span class="hs-identifier hs-var">l</span></a></span><span>       </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236165"><span class="hs-identifier hs-var">c</span></a></span><span>                         </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236164"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236168"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span>  </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236163"><span class="hs-identifier hs-var">a'</span></a></span><span>
+</span><span id="line-162"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-type">Lines</span></a></span><span> </span><span id="local-6989586621679236162"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236162"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679236161"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236161"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621679236160"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236160"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span id="local-6989586621679236159"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236159"><span class="hs-identifier hs-var">a</span></a></span></span><span>      </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-type">Columns</span></a></span><span> </span><span id="local-6989586621679236158"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236158"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span id="local-6989586621679236157"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236157"><span class="hs-identifier hs-var">b</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-var">Lines</span></a></span><span>      </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236162"><span class="hs-identifier hs-var">l</span></a></span><span>       </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236161"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236158"><span class="hs-identifier hs-var">d</span></a></span><span class="hs-special">)</span><span>                   </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236160"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236157"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236159"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236157"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-163"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-type">Lines</span></a></span><span> </span><span id="local-6989586621679236156"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236156"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679236155"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236155"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621679236154"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236154"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span id="local-6989586621679236153"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236153"><span class="hs-identifier hs-var">a</span></a></span></span><span>      </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Tab"><span class="hs-identifier hs-type">Tab</span></a></span><span> </span><span id="local-6989586621679236152"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236152"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679236151"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236151"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span id="local-6989586621679236150"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236150"><span class="hs-identifier hs-var">b</span></a></span></span><span>           </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-var">Lines</span></a></span><span>      </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236156"><span class="hs-identifier hs-var">l</span></a></span><span>       </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64 -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#nextTab"><span class="hs-identifier hs-var">nextTab</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236155"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236152"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236151"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span>     </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236154"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236150"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236153"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236150"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-164"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-type">Lines</span></a></span><span> </span><span id="local-6989586621679236149"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236149"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236148"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236148"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span>      </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-type">Lines</span></a></span><span> </span><span id="local-6989586621679236147"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236147"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span id="local-6989586621679236146"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236146"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span id="local-6989586621679236145"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236145"><span class="hs-identifier hs-var">t'</span></a></span></span><span> </span><span id="local-6989586621679236144"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236144"><span class="hs-identifier hs-var">b</span></a></span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-var">Lines</span></a></span><span>      </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236149"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236147"><span class="hs-identifier hs-var">m</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236146"><span class="hs-identifier hs-var">d</span></a></span><span>                         </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236148"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236145"><span class="hs-identifier hs-var">t'</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236144"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-165"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-type">Lines</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236143"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236143"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span>      </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-type">Directed</span></a></span><span> </span><span id="local-6989586621679236142"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236142"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679236141"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236141"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679236140"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236140"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621679236139"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236139"><span class="hs-identifier hs-var">t'</span></a></span></span><span> </span><span id="local-6989586621679236138"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236138"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-var">Directed</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236142"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236141"><span class="hs-identifier hs-var">l</span></a></span><span>       </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236140"><span class="hs-identifier hs-var">c</span></a></span><span>                         </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236143"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236139"><span class="hs-identifier hs-var">t'</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236138"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-166"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Tab"><span class="hs-identifier hs-type">Tab</span></a></span><span> </span><span id="local-6989586621679236137"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236137"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679236136"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236136"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span id="local-6989586621679236135"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236135"><span class="hs-identifier hs-var">a</span></a></span></span><span>          </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-type">Columns</span></a></span><span> </span><span id="local-6989586621679236134"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236134"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span id="local-6989586621679236133"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236133"><span class="hs-identifier hs-var">b</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Tab"><span class="hs-identifier hs-var">Tab</span></a></span><span>                </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236137"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236136"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236134"><span class="hs-identifier hs-var">d</span></a></span><span class="hs-special">)</span><span>                          </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236135"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236133"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-167"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Tab"><span class="hs-identifier hs-type">Tab</span></a></span><span> </span><span id="local-6989586621679236132"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236132"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679236131"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236131"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span id="local-6989586621679236130"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236130"><span class="hs-identifier hs-var">a</span></a></span></span><span>          </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Tab"><span class="hs-identifier hs-type">Tab</span></a></span><span> </span><span id="local-6989586621679236129"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236129"><span class="hs-identifier hs-var">x'</span></a></span></span><span> </span><span id="local-6989586621679236128"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236128"><span class="hs-identifier hs-var">y'</span></a></span></span><span> </span><span id="local-6989586621679236127"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236127"><span class="hs-identifier hs-var">b</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Tab"><span class="hs-identifier hs-var">Tab</span></a></span><span>                </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236132"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64 -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#nextTab"><span class="hs-identifier hs-var">nextTab</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236131"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236129"><span class="hs-identifier hs-var">x'</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236128"><span class="hs-identifier hs-var">y'</span></a></span><span class="hs-special">)</span><span>          </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236130"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236127"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-168"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Tab"><span class="hs-identifier hs-type">Tab</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236126"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236126"><span class="hs-identifier hs-var">a</span></a></span></span><span>          </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-type">Lines</span></a></span><span> </span><span id="local-6989586621679236125"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236125"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679236124"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236124"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621679236123"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236123"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span id="local-6989586621679236122"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236122"><span class="hs-identifier hs-var">a'</span></a></span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-var">Lines</span></a></span><span>      </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236125"><span class="hs-identifier hs-var">l</span></a></span><span>       </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236124"><span class="hs-identifier hs-var">c</span></a></span><span>                         </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236123"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236126"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236122"><span class="hs-identifier hs-var">a'</span></a></span><span>
+</span><span id="line-169"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Tab"><span class="hs-identifier hs-type">Tab</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236121"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236121"><span class="hs-identifier hs-var">a</span></a></span></span><span>          </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-type">Directed</span></a></span><span> </span><span id="local-6989586621679236120"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236120"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679236119"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236119"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679236118"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236118"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621679236117"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236117"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span id="local-6989586621679236116"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236116"><span class="hs-identifier hs-var">a'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-var">Directed</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236120"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236119"><span class="hs-identifier hs-var">l</span></a></span><span>       </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236118"><span class="hs-identifier hs-var">c</span></a></span><span>                         </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236117"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236121"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236116"><span class="hs-identifier hs-var">a'</span></a></span><span>
+</span><span id="line-170"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-type">Directed</span></a></span><span> </span><span id="local-6989586621679236115"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236115"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679236114"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236114"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679236113"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236113"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621679236112"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236112"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span id="local-6989586621679236111"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236111"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-type">Columns</span></a></span><span> </span><span id="local-6989586621679236110"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236110"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span id="local-6989586621679236109"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236109"><span class="hs-identifier hs-var">b</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-var">Directed</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236115"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236114"><span class="hs-identifier hs-var">l</span></a></span><span>       </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236113"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236110"><span class="hs-identifier hs-var">d</span></a></span><span class="hs-special">)</span><span>                   </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236112"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236109"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236111"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236109"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-171"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-type">Directed</span></a></span><span> </span><span id="local-6989586621679236108"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236108"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679236107"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236107"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679236106"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236106"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621679236105"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236105"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span id="local-6989586621679236104"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236104"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Tab"><span class="hs-identifier hs-type">Tab</span></a></span><span> </span><span id="local-6989586621679236103"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236103"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679236102"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236102"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span id="local-6989586621679236101"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236101"><span class="hs-identifier hs-var">b</span></a></span></span><span>           </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-var">Directed</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236108"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236107"><span class="hs-identifier hs-var">l</span></a></span><span>       </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64 -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#nextTab"><span class="hs-identifier hs-var">nextTab</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236106"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236103"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236102"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span>     </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236105"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236101"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236104"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236101"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-172"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-type">Directed</span></a></span><span> </span><span id="local-6989586621679236100"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236100"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679236099"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236099"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236098"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236098"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-type">Lines</span></a></span><span> </span><span id="local-6989586621679236097"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236097"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span id="local-6989586621679236096"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236096"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span id="local-6989586621679236095"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236095"><span class="hs-identifier hs-var">t'</span></a></span></span><span> </span><span id="local-6989586621679236094"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236094"><span class="hs-identifier hs-var">b</span></a></span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-var">Directed</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236100"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236099"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236097"><span class="hs-identifier hs-var">m</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236096"><span class="hs-identifier hs-var">d</span></a></span><span>                         </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236098"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236095"><span class="hs-identifier hs-var">t'</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236094"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-173"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-type">Directed</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236093"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236093"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-type">Directed</span></a></span><span> </span><span id="local-6989586621679236092"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236092"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679236091"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236091"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679236090"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236090"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621679236089"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236089"><span class="hs-identifier hs-var">t'</span></a></span></span><span> </span><span id="local-6989586621679236088"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236088"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-var">Directed</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236092"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236091"><span class="hs-identifier hs-var">l</span></a></span><span>       </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236090"><span class="hs-identifier hs-var">c</span></a></span><span>                         </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236093"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236089"><span class="hs-identifier hs-var">t'</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236088"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-174"></span><span>
+</span><span id="line-175"></span><span class="hs-comment">-- | Increment a column number to the next tabstop.</span><span>
+</span><span id="line-176"></span><span class="annot"><a href="Text.Trifecta.Delta.html#nextTab"><span class="hs-identifier hs-type">nextTab</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span>
+</span><span id="line-177"></span><span id="nextTab"><span class="annot"><span class="annottext">nextTab :: Int64 -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#nextTab"><span class="hs-identifier hs-var hs-var">nextTab</span></a></span></span><span> </span><span id="local-6989586621679236087"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236087"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236087"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">8</span></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Integral a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">mod</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236087"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">8</span></span><span class="hs-special">)</span><span>
+</span><span id="line-178"></span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#nextTab"><span class="hs-pragma hs-type">nextTab</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-179"></span><span>
+</span><span id="line-180"></span><span class="hs-comment">-- | Rewind a 'Delta' to the beginning of the line.</span><span>
+</span><span id="line-181"></span><span class="annot"><a href="Text.Trifecta.Delta.html#rewind"><span class="hs-identifier hs-type">rewind</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span>
+</span><span id="line-182"></span><span id="rewind"><span class="annot"><span class="annottext">rewind :: Delta -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#rewind"><span class="hs-identifier hs-var hs-var">rewind</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-type">Lines</span></a></span><span> </span><span id="local-6989586621679236085"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236085"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236084"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236084"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span id="local-6989586621679236083"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236083"><span class="hs-identifier hs-var">d</span></a></span></span><span class="hs-special">)</span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-var">Lines</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236085"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236084"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236083"><span class="hs-identifier hs-var">d</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-183"></span><span class="annot"><a href="Text.Trifecta.Delta.html#rewind"><span class="hs-identifier hs-var">rewind</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-type">Directed</span></a></span><span> </span><span id="local-6989586621679236082"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236082"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679236081"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236081"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236080"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236080"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span id="local-6989586621679236079"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236079"><span class="hs-identifier hs-var">d</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Directed"><span class="hs-identifier hs-var">Directed</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236082"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236081"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236080"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236079"><span class="hs-identifier hs-var">d</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-184"></span><span class="annot"><a href="Text.Trifecta.Delta.html#rewind"><span class="hs-identifier hs-var">rewind</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><span class="hs-identifier">_</span></span><span>                    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-var">Columns</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-185"></span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#rewind"><span class="hs-pragma hs-type">rewind</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-186"></span><span>
+</span><span id="line-187"></span><span class="hs-comment">-- | Should we show two things with a 'Delta' on the same line?</span><span>
+</span><span id="line-188"></span><span class="hs-comment">--</span><span>
+</span><span id="line-189"></span><span class="hs-comment">-- &gt;&gt;&gt; near (Columns 0 0) (Columns 5 5)</span><span>
+</span><span id="line-190"></span><span class="hs-comment">-- True</span><span>
+</span><span id="line-191"></span><span class="hs-comment">--</span><span>
+</span><span id="line-192"></span><span class="hs-comment">-- &gt;&gt;&gt; near (Lines 1 0 1 0) (Lines 2 4 4 2)</span><span>
+</span><span id="line-193"></span><span class="hs-comment">-- False</span><span>
+</span><span id="line-194"></span><span id="local-6989586621679236077"><span id="local-6989586621679236078"><span class="annot"><a href="Text.Trifecta.Delta.html#near"><span class="hs-identifier hs-type">near</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Delta.html#HasDelta"><span class="hs-identifier hs-type">HasDelta</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679236078"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasDelta"><span class="hs-identifier hs-type">HasDelta</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679236077"><span class="hs-identifier hs-type">t</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679236078"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679236077"><span class="hs-identifier hs-type">t</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span></span></span><span>
+</span><span id="line-195"></span><span id="near"><span class="annot"><span class="annottext">near :: s -&gt; t -&gt; Bool
+</span><a href="Text.Trifecta.Delta.html#near"><span class="hs-identifier hs-var hs-var">near</span></a></span></span><span> </span><span id="local-6989586621679236076"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679236076"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679236075"><span class="annot"><span class="annottext">t
+</span><a href="#local-6989586621679236075"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#rewind"><span class="hs-identifier hs-var">rewind</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">s -&gt; Delta
+forall t. HasDelta t =&gt; t -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679236076"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Delta -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#rewind"><span class="hs-identifier hs-var">rewind</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">t -&gt; Delta
+forall t. HasDelta t =&gt; t -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span><span> </span><span class="annot"><span class="annottext">t
+</span><a href="#local-6989586621679236075"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-196"></span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#near"><span class="hs-pragma hs-type">near</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-197"></span><span>
+</span><span id="line-198"></span><span class="hs-keyword">class</span><span> </span><span id="HasDelta"><span class="annot"><a href="Text.Trifecta.Delta.html#HasDelta"><span class="hs-identifier hs-var">HasDelta</span></a></span></span><span> </span><span id="local-6989586621679236371"><span class="annot"><a href="#local-6989586621679236371"><span class="hs-identifier hs-type">t</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-199"></span><span>  </span><span id="delta"><span class="annot"><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-type">delta</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679236371"><span class="hs-identifier hs-type">t</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span>
+</span><span id="line-200"></span><span>
+</span><span id="line-201"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasDelta"><span class="hs-identifier hs-type">HasDelta</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-202"></span><span>  </span><span id="local-6989586621679236073"><span class="annot"><span class="annottext">delta :: Delta -&gt; Delta
+</span><a href="#local-6989586621679236073"><span class="hs-identifier hs-var hs-var hs-var hs-var">delta</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Delta
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span>
+</span><span id="line-203"></span><span>
+</span><span id="line-204"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasDelta"><span class="hs-identifier hs-type">HasDelta</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-205"></span><span>  </span><span id="local-6989586621679236070"><span class="annot"><span class="annottext">delta :: Char -&gt; Delta
+</span><a href="#local-6989586621679236070"><span class="hs-identifier hs-var hs-var hs-var hs-var">delta</span></a></span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\t'</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Tab"><span class="hs-identifier hs-var">Tab</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-206"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\n'</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-var">Lines</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-207"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span><span> </span><span id="local-6989586621679236069"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679236069"><span class="hs-identifier hs-var">c</span></a></span></span><span>
+</span><span id="line-208"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679236068"><span class="hs-identifier hs-var">o</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;=</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0x7f</span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-var">Columns</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-209"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679236068"><span class="hs-identifier hs-var">o</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;=</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0x7ff</span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-var">Columns</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">2</span></span><span>
+</span><span id="line-210"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679236068"><span class="hs-identifier hs-var">o</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;=</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0xffff</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-var">Columns</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">3</span></span><span>
+</span><span id="line-211"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-var">Columns</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">4</span></span><span>
+</span><span id="line-212"></span><span>    </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679236068"><span class="annot"><span class="annottext">o :: Int
+</span><a href="#local-6989586621679236068"><span class="hs-identifier hs-var hs-var">o</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Int
+forall a. Enum a =&gt; a -&gt; Int
+</span><span class="hs-identifier hs-var">fromEnum</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679236069"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-213"></span><span>
+</span><span id="line-214"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasDelta"><span class="hs-identifier hs-type">HasDelta</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Word8</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-215"></span><span>  </span><span id="local-6989586621679236064"><span class="annot"><span class="annottext">delta :: Word8 -&gt; Delta
+</span><a href="#local-6989586621679236064"><span class="hs-identifier hs-var hs-var hs-var hs-var">delta</span></a></span></span><span> </span><span class="annot"><span class="annottext">Word8
+</span><span class="hs-number">9</span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Tab"><span class="hs-identifier hs-var">Tab</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-216"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span><span> </span><span class="annot"><span class="annottext">Word8
+</span><span class="hs-number">10</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Lines"><span class="hs-identifier hs-var">Lines</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-217"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span><span> </span><span id="local-6989586621679236063"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679236063"><span class="hs-identifier hs-var">n</span></a></span></span><span>
+</span><span id="line-218"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679236063"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Word8 -&gt; Word8 -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;=</span></span><span> </span><span class="annot"><span class="annottext">Word8
+</span><span class="hs-number">0x7f</span></span><span>              </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-var">Columns</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-219"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679236063"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Word8 -&gt; Word8 -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Word8
+</span><span class="hs-number">0xc0</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679236063"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Word8 -&gt; Word8 -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;=</span></span><span> </span><span class="annot"><span class="annottext">Word8
+</span><span class="hs-number">0xf4</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-var">Columns</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-220"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span>              </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#Columns"><span class="hs-identifier hs-var">Columns</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-221"></span><span>
+</span><span id="line-222"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasDelta"><span class="hs-identifier hs-type">HasDelta</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-223"></span><span>  </span><span id="local-6989586621679236060"><span class="annot"><span class="annottext">delta :: ByteString -&gt; Delta
+</span><a href="#local-6989586621679236060"><span class="hs-identifier hs-var hs-var hs-var hs-var">delta</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Word8 -&gt; Delta) -&gt; [Word8] -&gt; Delta
+forall (t :: * -&gt; *) m a.
+(Foldable t, Monoid m) =&gt;
+(a -&gt; m) -&gt; t a -&gt; m
+</span><span class="hs-identifier hs-var">foldMap</span></span><span> </span><span class="annot"><span class="annottext">Word8 -&gt; Delta
+forall t. HasDelta t =&gt; t -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span><span> </span><span class="annot"><span class="annottext">([Word8] -&gt; Delta)
+-&gt; (ByteString -&gt; [Word8]) -&gt; ByteString -&gt; Delta
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; [Word8]
+</span><span class="hs-identifier hs-var">unpack</span></span><span>
+</span><span id="line-224"></span><span>
+</span><span id="line-225"></span><span id="local-6989586621679236056"><span id="local-6989586621679236057"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Measured</span></span><span> </span><span class="annot"><a href="#local-6989586621679236057"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679236056"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasDelta"><span class="hs-identifier hs-type">HasDelta</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679236057"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasDelta"><span class="hs-identifier hs-type">HasDelta</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">FingerTree</span></span><span> </span><span class="annot"><a href="#local-6989586621679236057"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679236056"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-226"></span><span>  </span><span id="local-6989586621679236054"><span class="annot"><span class="annottext">delta :: FingerTree v a -&gt; Delta
+</span><a href="#local-6989586621679236054"><span class="hs-identifier hs-var hs-var hs-var hs-var">delta</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">v -&gt; Delta
+forall t. HasDelta t =&gt; t -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span><span> </span><span class="annot"><span class="annottext">(v -&gt; Delta) -&gt; (FingerTree v a -&gt; v) -&gt; FingerTree v a -&gt; Delta
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">FingerTree v a -&gt; v
+forall v a. Measured v a =&gt; a -&gt; v
+</span><span class="hs-identifier hs-var">measure</span></span></span></span><span>
+</span><span id="line-227"></span></pre></body></html>

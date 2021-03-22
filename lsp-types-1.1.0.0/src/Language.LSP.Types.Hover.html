@@ -1,0 +1,451 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell  #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields      #-}</span><span>
+</span><span id="line-3"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.Hover</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Applicative</span></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Aeson</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span>                      </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">Text</span></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Common.html"><span class="hs-identifier">Language.LSP.Types.Common</span></a></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Location.html"><span class="hs-identifier">Language.LSP.Types.Location</span></a></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html"><span class="hs-identifier">Language.LSP.Types.MarkupContent</span></a></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Progress.html"><span class="hs-identifier">Language.LSP.Types.Progress</span></a></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.TextDocument.html"><span class="hs-identifier">Language.LSP.Types.TextDocument</span></a></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">data</span><span> </span><span id="HoverClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverClientCapabilities"><span class="hs-identifier hs-var">HoverClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-21"></span><span>  </span><span id="HoverClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverClientCapabilities"><span class="hs-identifier hs-var">HoverClientCapabilities</span></a></span></span><span>
+</span><span id="line-22"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_dynamicRegistration%3AHoverClientCapabilities"><span class="annot"><span class="annottext">HoverClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Hover.html#%24sel%3A_dynamicRegistration%3AHoverClientCapabilities"><span class="hs-identifier hs-var hs-var">_dynamicRegistration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-23"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_contentFormat%3AHoverClientCapabilities"><span class="annot"><span class="annottext">HoverClientCapabilities -&gt; Maybe (List MarkupKind)
+</span><a href="Language.LSP.Types.Hover.html#%24sel%3A_contentFormat%3AHoverClientCapabilities"><span class="hs-identifier hs-var hs-var">_contentFormat</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupKind"><span class="hs-identifier hs-type">MarkupKind</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680439297"><span id="local-6989586621680439299"><span id="local-6989586621680439301"><span class="annot"><span class="annottext">Int -&gt; HoverClientCapabilities -&gt; ShowS
+[HoverClientCapabilities] -&gt; ShowS
+HoverClientCapabilities -&gt; String
+(Int -&gt; HoverClientCapabilities -&gt; ShowS)
+-&gt; (HoverClientCapabilities -&gt; String)
+-&gt; ([HoverClientCapabilities] -&gt; ShowS)
+-&gt; Show HoverClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [HoverClientCapabilities] -&gt; ShowS
+$cshowList :: [HoverClientCapabilities] -&gt; ShowS
+show :: HoverClientCapabilities -&gt; String
+$cshow :: HoverClientCapabilities -&gt; String
+showsPrec :: Int -&gt; HoverClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; HoverClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680439288"><span id="local-6989586621680439290"><span id="local-6989586621680439292"><span id="local-6989586621680439294"><span class="annot"><span class="annottext">ReadPrec [HoverClientCapabilities]
+ReadPrec HoverClientCapabilities
+Int -&gt; ReadS HoverClientCapabilities
+ReadS [HoverClientCapabilities]
+(Int -&gt; ReadS HoverClientCapabilities)
+-&gt; ReadS [HoverClientCapabilities]
+-&gt; ReadPrec HoverClientCapabilities
+-&gt; ReadPrec [HoverClientCapabilities]
+-&gt; Read HoverClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [HoverClientCapabilities]
+$creadListPrec :: ReadPrec [HoverClientCapabilities]
+readPrec :: ReadPrec HoverClientCapabilities
+$creadPrec :: ReadPrec HoverClientCapabilities
+readList :: ReadS [HoverClientCapabilities]
+$creadList :: ReadS [HoverClientCapabilities]
+readsPrec :: Int -&gt; ReadS HoverClientCapabilities
+$creadsPrec :: Int -&gt; ReadS HoverClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680439283"><span id="local-6989586621680439285"><span class="annot"><span class="annottext">HoverClientCapabilities -&gt; HoverClientCapabilities -&gt; Bool
+(HoverClientCapabilities -&gt; HoverClientCapabilities -&gt; Bool)
+-&gt; (HoverClientCapabilities -&gt; HoverClientCapabilities -&gt; Bool)
+-&gt; Eq HoverClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: HoverClientCapabilities -&gt; HoverClientCapabilities -&gt; Bool
+$c/= :: HoverClientCapabilities -&gt; HoverClientCapabilities -&gt; Bool
+== :: HoverClientCapabilities -&gt; HoverClientCapabilities -&gt; Bool
+$c== :: HoverClientCapabilities -&gt; HoverClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span id="local-6989586621680439270"><span id="local-6989586621680439272"><span id="local-6989586621680439274"><span id="local-6989586621680439276"><span id="local-6989586621680439278"><span id="local-6989586621680439280"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">HoverClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span id="%24sel%3A_workDoneProgress%3AHoverOptions"><span id="HoverOptions"><span id="local-6989586621680439247"><span id="local-6989586621680439249"><span id="local-6989586621680439251"><span id="local-6989586621680439253"><span id="local-6989586621680439255"><span id="local-6989586621680439257"><span id="local-6989586621680439259"><span id="local-6989586621680439261"><span id="local-6989586621680439263"><span id="HoverOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;HoverOptions&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressOptions</span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-28"></span><span id="local-6989586621680439233"><span id="local-6989586621680439235"><span id="local-6989586621680439237"><span id="local-6989586621680439239"><span id="local-6989586621680439241"><span id="local-6989586621680439243"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">HoverOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span id="%24sel%3A_workDoneProgress%3AHoverRegistrationOptions"><span id="%24sel%3A_documentSelector%3AHoverRegistrationOptions"><span id="HoverRegistrationOptions"><span id="local-6989586621680439215"><span id="local-6989586621680439217"><span id="local-6989586621680439219"><span id="local-6989586621680439221"><span id="local-6989586621680439223"><span id="local-6989586621680439225"><span id="local-6989586621680439227"><span id="local-6989586621680439229"><span id="local-6989586621680439231"><span id="HoverRegistrationOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;HoverRegistrationOptions&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentRegistrationOptions</span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">HoverOptions</span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-31"></span><span id="local-6989586621680439200"><span id="local-6989586621680439202"><span id="local-6989586621680439204"><span id="local-6989586621680439206"><span id="local-6989586621680439208"><span id="local-6989586621680439210"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">HoverRegistrationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span id="%24sel%3A_workDoneToken%3AHoverParams"><span id="%24sel%3A_position%3AHoverParams"><span id="%24sel%3A_textDocument%3AHoverParams"><span id="HoverParams"><span id="local-6989586621680439182"><span id="local-6989586621680439184"><span id="local-6989586621680439186"><span id="local-6989586621680439188"><span id="local-6989586621680439190"><span id="local-6989586621680439192"><span id="local-6989586621680439194"><span id="local-6989586621680439196"><span id="local-6989586621680439198"><span id="HoverParams"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;HoverParams&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentPositionParams</span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressParams</span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-34"></span><span id="local-6989586621680439166"><span id="local-6989586621680439168"><span id="local-6989586621680439170"><span id="local-6989586621680439172"><span id="local-6989586621680439174"><span id="local-6989586621680439176"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">HoverParams</span></span></span></span></span></span></span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">data</span><span> </span><span id="LanguageString"><span class="annot"><a href="Language.LSP.Types.Hover.html#LanguageString"><span class="hs-identifier hs-var">LanguageString</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-39"></span><span>  </span><span id="LanguageString"><span class="annot"><a href="Language.LSP.Types.Hover.html#LanguageString"><span class="hs-identifier hs-var">LanguageString</span></a></span></span><span>
+</span><span id="line-40"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_language%3ALanguageString"><span class="annot"><span class="annottext">LanguageString -&gt; Text
+</span><a href="Language.LSP.Types.Hover.html#%24sel%3A_language%3ALanguageString"><span class="hs-identifier hs-var hs-var">_language</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-41"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_value%3ALanguageString"><span class="annot"><span class="annottext">LanguageString -&gt; Text
+</span><a href="Language.LSP.Types.Hover.html#%24sel%3A_value%3ALanguageString"><span class="hs-identifier hs-var hs-var">_value</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-42"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680439155"><span id="local-6989586621680439157"><span id="local-6989586621680439159"><span id="local-6989586621680439161"><span class="annot"><span class="annottext">ReadPrec [LanguageString]
+ReadPrec LanguageString
+Int -&gt; ReadS LanguageString
+ReadS [LanguageString]
+(Int -&gt; ReadS LanguageString)
+-&gt; ReadS [LanguageString]
+-&gt; ReadPrec LanguageString
+-&gt; ReadPrec [LanguageString]
+-&gt; Read LanguageString
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [LanguageString]
+$creadListPrec :: ReadPrec [LanguageString]
+readPrec :: ReadPrec LanguageString
+$creadPrec :: ReadPrec LanguageString
+readList :: ReadS [LanguageString]
+$creadList :: ReadS [LanguageString]
+readsPrec :: Int -&gt; ReadS LanguageString
+$creadsPrec :: Int -&gt; ReadS LanguageString
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680439149"><span id="local-6989586621680439151"><span id="local-6989586621680439153"><span class="annot"><span class="annottext">Int -&gt; LanguageString -&gt; ShowS
+[LanguageString] -&gt; ShowS
+LanguageString -&gt; String
+(Int -&gt; LanguageString -&gt; ShowS)
+-&gt; (LanguageString -&gt; String)
+-&gt; ([LanguageString] -&gt; ShowS)
+-&gt; Show LanguageString
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [LanguageString] -&gt; ShowS
+$cshowList :: [LanguageString] -&gt; ShowS
+show :: LanguageString -&gt; String
+$cshow :: LanguageString -&gt; String
+showsPrec :: Int -&gt; LanguageString -&gt; ShowS
+$cshowsPrec :: Int -&gt; LanguageString -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680439145"><span id="local-6989586621680439147"><span class="annot"><span class="annottext">LanguageString -&gt; LanguageString -&gt; Bool
+(LanguageString -&gt; LanguageString -&gt; Bool)
+-&gt; (LanguageString -&gt; LanguageString -&gt; Bool) -&gt; Eq LanguageString
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: LanguageString -&gt; LanguageString -&gt; Bool
+$c/= :: LanguageString -&gt; LanguageString -&gt; Bool
+== :: LanguageString -&gt; LanguageString -&gt; Bool
+$c== :: LanguageString -&gt; LanguageString -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span id="local-6989586621680439133"><span id="local-6989586621680439135"><span id="local-6989586621680439137"><span id="local-6989586621680439139"><span id="local-6989586621680439141"><span id="local-6989586621680439143"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">LanguageString</span></span></span></span></span></span></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="hs-pragma">{-# DEPRECATED</span><span> </span><span class="hs-pragma">MarkedString</span><span class="hs-pragma">,</span><span> </span><span class="hs-pragma">PlainString</span><span class="hs-pragma">,</span><span> </span><span class="hs-pragma">CodeString</span><span> </span><span class="hs-pragma">&quot;Use MarkupContent instead, since 3.3.0 (11/24/2017)&quot;</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-47"></span><span class="hs-keyword">data</span><span> </span><span id="MarkedString"><span class="annot"><a href="Language.LSP.Types.Hover.html#MarkedString"><span class="hs-identifier hs-var">MarkedString</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-48"></span><span>    </span><span id="PlainString"><span class="annot"><a href="Language.LSP.Types.Hover.html#PlainString"><span class="hs-identifier hs-var">PlainString</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="CodeString"><span class="annot"><a href="Language.LSP.Types.Hover.html#CodeString"><span class="hs-identifier hs-var">CodeString</span></a></span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Hover.html#LanguageString"><span class="hs-identifier hs-type">LanguageString</span></a></span><span>
+</span><span id="line-50"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680439127"><span id="local-6989586621680439129"><span class="annot"><span class="annottext">MarkedString -&gt; MarkedString -&gt; Bool
+(MarkedString -&gt; MarkedString -&gt; Bool)
+-&gt; (MarkedString -&gt; MarkedString -&gt; Bool) -&gt; Eq MarkedString
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: MarkedString -&gt; MarkedString -&gt; Bool
+$c/= :: MarkedString -&gt; MarkedString -&gt; Bool
+== :: MarkedString -&gt; MarkedString -&gt; Bool
+$c== :: MarkedString -&gt; MarkedString -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680439119"><span id="local-6989586621680439121"><span id="local-6989586621680439123"><span id="local-6989586621680439125"><span class="annot"><span class="annottext">ReadPrec [MarkedString]
+ReadPrec MarkedString
+Int -&gt; ReadS MarkedString
+ReadS [MarkedString]
+(Int -&gt; ReadS MarkedString)
+-&gt; ReadS [MarkedString]
+-&gt; ReadPrec MarkedString
+-&gt; ReadPrec [MarkedString]
+-&gt; Read MarkedString
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [MarkedString]
+$creadListPrec :: ReadPrec [MarkedString]
+readPrec :: ReadPrec MarkedString
+$creadPrec :: ReadPrec MarkedString
+readList :: ReadS [MarkedString]
+$creadList :: ReadS [MarkedString]
+readsPrec :: Int -&gt; ReadS MarkedString
+$creadsPrec :: Int -&gt; ReadS MarkedString
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680439113"><span id="local-6989586621680439115"><span id="local-6989586621680439117"><span class="annot"><span class="annottext">Int -&gt; MarkedString -&gt; ShowS
+[MarkedString] -&gt; ShowS
+MarkedString -&gt; String
+(Int -&gt; MarkedString -&gt; ShowS)
+-&gt; (MarkedString -&gt; String)
+-&gt; ([MarkedString] -&gt; ShowS)
+-&gt; Show MarkedString
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [MarkedString] -&gt; ShowS
+$cshowList :: [MarkedString] -&gt; ShowS
+show :: MarkedString -&gt; String
+$cshow :: MarkedString -&gt; String
+showsPrec :: Int -&gt; MarkedString -&gt; ShowS
+$cshowsPrec :: Int -&gt; MarkedString -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-51"></span><span>
+</span><span id="line-52"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680439106"><span id="local-6989586621680439108"><span id="local-6989586621680439110"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Hover.html#MarkedString"><span class="hs-identifier hs-type">MarkedString</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-53"></span><span>  </span><span id="local-6989586621680439105"><span class="annot"><span class="annottext">toJSON :: MarkedString -&gt; Value
+</span><a href="#local-6989586621680439105"><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Hover.html#PlainString"><span class="hs-identifier hs-type">PlainString</span></a></span><span> </span><span id="local-6989586621680439104"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680439104"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+forall a. ToJSON a =&gt; a -&gt; Value
+</span><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680439104"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-54"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Hover.html#CodeString"><span class="hs-identifier hs-type">CodeString</span></a></span><span>  </span><span id="local-6989586621680439103"><span class="annot"><span class="annottext">LanguageString
+</span><a href="#local-6989586621680439103"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LanguageString -&gt; Value
+forall a. ToJSON a =&gt; a -&gt; Value
+</span><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">LanguageString
+</span><a href="#local-6989586621680439103"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-55"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680439100"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Hover.html#MarkedString"><span class="hs-identifier hs-type">MarkedString</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-56"></span><span>  </span><span id="local-6989586621680439099"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser MarkedString
+</span><a href="#local-6989586621680439099"><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span id="local-6989586621680439097"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680439097"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MarkedString -&gt; Parser MarkedString
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">(MarkedString -&gt; Parser MarkedString)
+-&gt; MarkedString -&gt; Parser MarkedString
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; MarkedString
+</span><a href="Language.LSP.Types.Hover.html#PlainString"><span class="hs-identifier hs-var">PlainString</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680439097"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-57"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span id="local-6989586621680439096"><span class="annot"><span class="annottext">Value
+</span><a href="#local-6989586621680439096"><span class="hs-identifier hs-var">o</span></a></span></span><span>            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LanguageString -&gt; MarkedString
+</span><a href="Language.LSP.Types.Hover.html#CodeString"><span class="hs-identifier hs-var">CodeString</span></a></span><span> </span><span class="annot"><span class="annottext">(LanguageString -&gt; MarkedString)
+-&gt; Parser LanguageString -&gt; Parser MarkedString
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Value -&gt; Parser LanguageString
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><a href="#local-6989586621680439096"><span class="hs-identifier hs-var">o</span></a></span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span class="hs-keyword">data</span><span> </span><span id="HoverContents"><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverContents"><span class="hs-identifier hs-var">HoverContents</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-62"></span><span>    </span><span id="HoverContentsMS"><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverContentsMS"><span class="hs-identifier hs-var">HoverContentsMS</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Hover.html#MarkedString"><span class="hs-identifier hs-type">MarkedString</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="HoverContents"><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverContents"><span class="hs-identifier hs-var">HoverContents</span></a></span></span><span>   </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-type">MarkupContent</span></a></span><span>
+</span><span id="line-64"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680439085"><span id="local-6989586621680439087"><span id="local-6989586621680439089"><span id="local-6989586621680439091"><span class="annot"><span class="annottext">ReadPrec [HoverContents]
+ReadPrec HoverContents
+Int -&gt; ReadS HoverContents
+ReadS [HoverContents]
+(Int -&gt; ReadS HoverContents)
+-&gt; ReadS [HoverContents]
+-&gt; ReadPrec HoverContents
+-&gt; ReadPrec [HoverContents]
+-&gt; Read HoverContents
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [HoverContents]
+$creadListPrec :: ReadPrec [HoverContents]
+readPrec :: ReadPrec HoverContents
+$creadPrec :: ReadPrec HoverContents
+readList :: ReadS [HoverContents]
+$creadList :: ReadS [HoverContents]
+readsPrec :: Int -&gt; ReadS HoverContents
+$creadsPrec :: Int -&gt; ReadS HoverContents
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680439079"><span id="local-6989586621680439081"><span id="local-6989586621680439083"><span class="annot"><span class="annottext">Int -&gt; HoverContents -&gt; ShowS
+[HoverContents] -&gt; ShowS
+HoverContents -&gt; String
+(Int -&gt; HoverContents -&gt; ShowS)
+-&gt; (HoverContents -&gt; String)
+-&gt; ([HoverContents] -&gt; ShowS)
+-&gt; Show HoverContents
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [HoverContents] -&gt; ShowS
+$cshowList :: [HoverContents] -&gt; ShowS
+show :: HoverContents -&gt; String
+$cshow :: HoverContents -&gt; String
+showsPrec :: Int -&gt; HoverContents -&gt; ShowS
+$cshowsPrec :: Int -&gt; HoverContents -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680439075"><span id="local-6989586621680439077"><span class="annot"><span class="annottext">HoverContents -&gt; HoverContents -&gt; Bool
+(HoverContents -&gt; HoverContents -&gt; Bool)
+-&gt; (HoverContents -&gt; HoverContents -&gt; Bool) -&gt; Eq HoverContents
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: HoverContents -&gt; HoverContents -&gt; Bool
+$c/= :: HoverContents -&gt; HoverContents -&gt; Bool
+== :: HoverContents -&gt; HoverContents -&gt; Bool
+$c== :: HoverContents -&gt; HoverContents -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span>
+</span><span id="line-66"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680439068"><span id="local-6989586621680439070"><span id="local-6989586621680439072"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverContents"><span class="hs-identifier hs-type">HoverContents</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-67"></span><span>  </span><span id="local-6989586621680439067"><span class="annot"><span class="annottext">toJSON :: HoverContents -&gt; Value
+</span><a href="#local-6989586621680439067"><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverContentsMS"><span class="hs-identifier hs-type">HoverContentsMS</span></a></span><span>  </span><span id="local-6989586621680439066"><span class="annot"><span class="annottext">List MarkedString
+</span><a href="#local-6989586621680439066"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">List MarkedString -&gt; Value
+forall a. ToJSON a =&gt; a -&gt; Value
+</span><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">List MarkedString
+</span><a href="#local-6989586621680439066"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-68"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverContents"><span class="hs-identifier hs-type">HoverContents</span></a></span><span>    </span><span id="local-6989586621680439065"><span class="annot"><span class="annottext">MarkupContent
+</span><a href="#local-6989586621680439065"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MarkupContent -&gt; Value
+forall a. ToJSON a =&gt; a -&gt; Value
+</span><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">MarkupContent
+</span><a href="#local-6989586621680439065"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-69"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680439062"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverContents"><span class="hs-identifier hs-type">HoverContents</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-70"></span><span>  </span><span id="local-6989586621680439061"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser HoverContents
+</span><a href="#local-6989586621680439061"><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></a></span></span><span> </span><span id="local-6989586621680439060"><span class="annot"><span class="annottext">v :: Value
+</span><a href="#local-6989586621680439060"><span class="hs-identifier hs-var">v</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">List MarkedString -&gt; HoverContents
+</span><a href="Language.LSP.Types.Hover.html#HoverContentsMS"><span class="hs-identifier hs-var">HoverContentsMS</span></a></span><span> </span><span class="annot"><span class="annottext">(List MarkedString -&gt; HoverContents)
+-&gt; Parser (List MarkedString) -&gt; Parser HoverContents
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Value -&gt; Parser (List MarkedString)
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><a href="#local-6989586621680439060"><span class="hs-identifier hs-var">v</span></a></span><span>
+</span><span id="line-71"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span id="local-6989586621680439059"><span class="annot"><span class="annottext">v :: Value
+</span><a href="#local-6989586621680439059"><span class="hs-identifier hs-var">v</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Array</span></span><span> </span><span class="annot"><span class="annottext">Array
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">List MarkedString -&gt; HoverContents
+</span><a href="Language.LSP.Types.Hover.html#HoverContentsMS"><span class="hs-identifier hs-var">HoverContentsMS</span></a></span><span> </span><span class="annot"><span class="annottext">(List MarkedString -&gt; HoverContents)
+-&gt; Parser (List MarkedString) -&gt; Parser HoverContents
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Value -&gt; Parser (List MarkedString)
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><a href="#local-6989586621680439059"><span class="hs-identifier hs-var">v</span></a></span><span>
+</span><span id="line-72"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span id="local-6989586621680439057"><span class="annot"><span class="annottext">v :: Value
+</span><a href="#local-6989586621680439057"><span class="hs-identifier hs-var">v</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Object</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MarkupContent -&gt; HoverContents
+</span><a href="Language.LSP.Types.Hover.html#HoverContents"><span class="hs-identifier hs-var">HoverContents</span></a></span><span>   </span><span class="annot"><span class="annottext">(MarkupContent -&gt; HoverContents)
+-&gt; Parser MarkupContent -&gt; Parser HoverContents
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Value -&gt; Parser MarkupContent
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><a href="#local-6989586621680439057"><span class="hs-identifier hs-var">v</span></a></span><span>
+</span><span id="line-73"></span><span>                         </span><span class="annot"><span class="annottext">Parser HoverContents
+-&gt; Parser HoverContents -&gt; Parser HoverContents
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">List MarkedString -&gt; HoverContents
+</span><a href="Language.LSP.Types.Hover.html#HoverContentsMS"><span class="hs-identifier hs-var">HoverContentsMS</span></a></span><span> </span><span class="annot"><span class="annottext">(List MarkedString -&gt; HoverContents)
+-&gt; Parser (List MarkedString) -&gt; Parser HoverContents
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Value -&gt; Parser (List MarkedString)
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><a href="#local-6989586621680439057"><span class="hs-identifier hs-var">v</span></a></span><span>
+</span><span id="line-74"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser HoverContents
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-75"></span><span>
+</span><span id="line-76"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-77"></span><span>
+</span><span id="line-78"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680439050"><span id="local-6989586621680439052"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverContents"><span class="hs-identifier hs-type">HoverContents</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-79"></span><span>  </span><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverContents"><span class="hs-identifier hs-type">HoverContents</span></a></span><span> </span><span id="local-6989586621680439048"><span class="annot"><span class="annottext">MarkupContent
+</span><a href="#local-6989586621680439048"><span class="hs-identifier hs-var">h1</span></a></span></span><span>   </span><span id="local-6989586621680439047"><span class="annot"><span class="annottext">&lt;&gt; :: HoverContents -&gt; HoverContents -&gt; HoverContents
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverContents"><span class="hs-identifier hs-type">HoverContents</span></a></span><span>         </span><span id="local-6989586621680439046"><span class="annot"><span class="annottext">MarkupContent
+</span><a href="#local-6989586621680439046"><span class="hs-identifier hs-var">h2</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MarkupContent -&gt; HoverContents
+</span><a href="Language.LSP.Types.Hover.html#HoverContents"><span class="hs-identifier hs-var">HoverContents</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">MarkupContent
+</span><a href="#local-6989586621680439048"><span class="hs-identifier hs-var">h1</span></a></span><span> </span><span class="annot"><span class="annottext">MarkupContent -&gt; MarkupContent -&gt; MarkupContent
+forall a. Monoid a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">`mappend`</span></span><span> </span><span class="annot"><span class="annottext">MarkupContent
+</span><a href="#local-6989586621680439046"><span class="hs-identifier hs-var">h2</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-80"></span><span>  </span><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverContents"><span class="hs-identifier hs-type">HoverContents</span></a></span><span> </span><span id="local-6989586621680439045"><span class="annot"><span class="annottext">MarkupContent
+</span><a href="#local-6989586621680439045"><span class="hs-identifier hs-var">h1</span></a></span></span><span>   </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverContentsMS"><span class="hs-identifier hs-type">HoverContentsMS</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span id="local-6989586621680439043"><span class="annot"><span class="annottext">[MarkedString]
+</span><a href="#local-6989586621680439043"><span class="hs-identifier hs-var">h2s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MarkupContent -&gt; HoverContents
+</span><a href="Language.LSP.Types.Hover.html#HoverContents"><span class="hs-identifier hs-var">HoverContents</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[MarkupContent] -&gt; MarkupContent
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">MarkupContent
+</span><a href="#local-6989586621680439045"><span class="hs-identifier hs-var">h1</span></a></span><span class="annot"><span class="annottext">MarkupContent -&gt; [MarkupContent] -&gt; [MarkupContent]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(MarkedString -&gt; MarkupContent)
+-&gt; [MarkedString] -&gt; [MarkupContent]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">MarkedString -&gt; MarkupContent
+</span><a href="Language.LSP.Types.Hover.html#toMarkupContent"><span class="hs-identifier hs-var">toMarkupContent</span></a></span><span> </span><span class="annot"><span class="annottext">[MarkedString]
+</span><a href="#local-6989586621680439043"><span class="hs-identifier hs-var">h2s</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-81"></span><span>  </span><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverContentsMS"><span class="hs-identifier hs-type">HoverContentsMS</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span id="local-6989586621680439041"><span class="annot"><span class="annottext">[MarkedString]
+</span><a href="#local-6989586621680439041"><span class="hs-identifier hs-var">h1s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverContents"><span class="hs-identifier hs-type">HoverContents</span></a></span><span>         </span><span id="local-6989586621680439040"><span class="annot"><span class="annottext">MarkupContent
+</span><a href="#local-6989586621680439040"><span class="hs-identifier hs-var">h2</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MarkupContent -&gt; HoverContents
+</span><a href="Language.LSP.Types.Hover.html#HoverContents"><span class="hs-identifier hs-var">HoverContents</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[MarkupContent] -&gt; MarkupContent
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">(MarkedString -&gt; MarkupContent)
+-&gt; [MarkedString] -&gt; [MarkupContent]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">MarkedString -&gt; MarkupContent
+</span><a href="Language.LSP.Types.Hover.html#toMarkupContent"><span class="hs-identifier hs-var">toMarkupContent</span></a></span><span> </span><span class="annot"><span class="annottext">[MarkedString]
+</span><a href="#local-6989586621680439041"><span class="hs-identifier hs-var">h1s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[MarkupContent] -&gt; [MarkupContent] -&gt; [MarkupContent]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">MarkupContent
+</span><a href="#local-6989586621680439040"><span class="hs-identifier hs-var">h2</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-82"></span><span>  </span><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverContentsMS"><span class="hs-identifier hs-type">HoverContentsMS</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span id="local-6989586621680439039"><span class="annot"><span class="annottext">[MarkedString]
+</span><a href="#local-6989586621680439039"><span class="hs-identifier hs-var">h1s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverContentsMS"><span class="hs-identifier hs-type">HoverContentsMS</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span id="local-6989586621680439038"><span class="annot"><span class="annottext">[MarkedString]
+</span><a href="#local-6989586621680439038"><span class="hs-identifier hs-var">h2s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">List MarkedString -&gt; HoverContents
+</span><a href="Language.LSP.Types.Hover.html#HoverContentsMS"><span class="hs-identifier hs-var">HoverContentsMS</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[MarkedString] -&gt; List MarkedString
+forall a. [a] -&gt; List a
+</span><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-var">List</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[MarkedString]
+</span><a href="#local-6989586621680439039"><span class="hs-identifier hs-var">h1s</span></a></span><span> </span><span class="annot"><span class="annottext">[MarkedString] -&gt; [MarkedString] -&gt; [MarkedString]
+forall a. Monoid a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">`mappend`</span></span><span> </span><span class="annot"><span class="annottext">[MarkedString]
+</span><a href="#local-6989586621680439038"><span class="hs-identifier hs-var">h2s</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-83"></span><span>
+</span><span id="line-84"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680439032"><span id="local-6989586621680439034"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverContents"><span class="hs-identifier hs-type">HoverContents</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-85"></span><span>  </span><span id="local-6989586621680439030"><span class="annot"><span class="annottext">mempty :: HoverContents
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">List MarkedString -&gt; HoverContents
+</span><a href="Language.LSP.Types.Hover.html#HoverContentsMS"><span class="hs-identifier hs-var">HoverContentsMS</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[MarkedString] -&gt; List MarkedString
+forall a. [a] -&gt; List a
+</span><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-var">List</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-86"></span><span>
+</span><span id="line-87"></span><span class="annot"><a href="Language.LSP.Types.Hover.html#toMarkupContent"><span class="hs-identifier hs-type">toMarkupContent</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Hover.html#MarkedString"><span class="hs-identifier hs-type">MarkedString</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-type">MarkupContent</span></a></span><span>
+</span><span id="line-88"></span><span id="toMarkupContent"><span class="annot"><span class="annottext">toMarkupContent :: MarkedString -&gt; MarkupContent
+</span><a href="Language.LSP.Types.Hover.html#toMarkupContent"><span class="hs-identifier hs-var hs-var">toMarkupContent</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Hover.html#PlainString"><span class="hs-identifier hs-type">PlainString</span></a></span><span> </span><span id="local-6989586621680439029"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680439029"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; MarkupContent
+</span><a href="Language.LSP.Types.MarkupContent.html#unmarkedUpContent"><span class="hs-identifier hs-var">unmarkedUpContent</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680439029"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-89"></span><span class="annot"><a href="Language.LSP.Types.Hover.html#toMarkupContent"><span class="hs-identifier hs-var">toMarkupContent</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Hover.html#CodeString"><span class="hs-identifier hs-type">CodeString</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Hover.html#LanguageString"><span class="hs-identifier hs-type">LanguageString</span></a></span><span> </span><span id="local-6989586621680439027"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680439027"><span class="hs-identifier hs-var">lang</span></a></span></span><span> </span><span id="local-6989586621680439026"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680439026"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; MarkupContent
+</span><a href="Language.LSP.Types.MarkupContent.html#markedUpContent"><span class="hs-identifier hs-var">markedUpContent</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680439027"><span class="hs-identifier hs-var">lang</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680439026"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-90"></span><span>
+</span><span id="line-91"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-92"></span><span>
+</span><span id="line-93"></span><span class="hs-keyword">data</span><span> </span><span id="Hover"><span class="annot"><a href="Language.LSP.Types.Hover.html#Hover"><span class="hs-identifier hs-var">Hover</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-94"></span><span>  </span><span id="Hover"><span class="annot"><a href="Language.LSP.Types.Hover.html#Hover"><span class="hs-identifier hs-var">Hover</span></a></span></span><span>
+</span><span id="line-95"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_contents%3AHover"><span class="annot"><span class="annottext">Hover -&gt; HoverContents
+</span><a href="Language.LSP.Types.Hover.html#%24sel%3A_contents%3AHover"><span class="hs-identifier hs-var hs-var">_contents</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverContents"><span class="hs-identifier hs-type">HoverContents</span></a></span><span>
+</span><span id="line-96"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_range%3AHover"><span class="annot"><span class="annottext">Hover -&gt; Maybe Range
+</span><a href="Language.LSP.Types.Hover.html#%24sel%3A_range%3AHover"><span class="hs-identifier hs-var hs-var">_range</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html#Range"><span class="hs-identifier hs-type">Range</span></a></span><span>
+</span><span id="line-97"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680439014"><span id="local-6989586621680439016"><span id="local-6989586621680439018"><span id="local-6989586621680439020"><span class="annot"><span class="annottext">ReadPrec [Hover]
+ReadPrec Hover
+Int -&gt; ReadS Hover
+ReadS [Hover]
+(Int -&gt; ReadS Hover)
+-&gt; ReadS [Hover]
+-&gt; ReadPrec Hover
+-&gt; ReadPrec [Hover]
+-&gt; Read Hover
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [Hover]
+$creadListPrec :: ReadPrec [Hover]
+readPrec :: ReadPrec Hover
+$creadPrec :: ReadPrec Hover
+readList :: ReadS [Hover]
+$creadList :: ReadS [Hover]
+readsPrec :: Int -&gt; ReadS Hover
+$creadsPrec :: Int -&gt; ReadS Hover
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680439008"><span id="local-6989586621680439010"><span id="local-6989586621680439012"><span class="annot"><span class="annottext">Int -&gt; Hover -&gt; ShowS
+[Hover] -&gt; ShowS
+Hover -&gt; String
+(Int -&gt; Hover -&gt; ShowS)
+-&gt; (Hover -&gt; String) -&gt; ([Hover] -&gt; ShowS) -&gt; Show Hover
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Hover] -&gt; ShowS
+$cshowList :: [Hover] -&gt; ShowS
+show :: Hover -&gt; String
+$cshow :: Hover -&gt; String
+showsPrec :: Int -&gt; Hover -&gt; ShowS
+$cshowsPrec :: Int -&gt; Hover -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680439004"><span id="local-6989586621680439006"><span class="annot"><span class="annottext">Hover -&gt; Hover -&gt; Bool
+(Hover -&gt; Hover -&gt; Bool) -&gt; (Hover -&gt; Hover -&gt; Bool) -&gt; Eq Hover
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Hover -&gt; Hover -&gt; Bool
+$c/= :: Hover -&gt; Hover -&gt; Bool
+== :: Hover -&gt; Hover -&gt; Bool
+$c== :: Hover -&gt; Hover -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-98"></span><span>
+</span><span id="line-99"></span><span id="local-6989586621680438992"><span id="local-6989586621680438994"><span id="local-6989586621680438996"><span id="local-6989586621680438998"><span id="local-6989586621680439000"><span id="local-6989586621680439002"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">Hover</span></span></span></span></span></span></span><span>
+</span><span id="line-100"></span></pre></body></html>

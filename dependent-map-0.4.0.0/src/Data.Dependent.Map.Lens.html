@@ -1,0 +1,126 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE PolyKinds #-}</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- Some functions for using lenses with 'DMap'.</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.Dependent.Map.Lens</span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * At</span></span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Data.Dependent.Map.Lens.html#dmat"><span class="hs-identifier">dmat</span></a></span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Ix</span></span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Dependent.Map.Lens.html#dmix"><span class="hs-identifier">dmix</span></a></span><span>
+</span><span id="line-9"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-10"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Prelude</span></span><span>             </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">lookup</span></span><span class="hs-special">)</span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Data.Dependent.Map.html"><span class="hs-identifier">Data.Dependent.Map</span></a></span><span>  </span><span class="hs-special">(</span><span class="annot"><a href="Data.Dependent.Map.Internal.html#DMap"><span class="hs-identifier">DMap</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Dependent.Map.html#alterF"><span class="hs-identifier">alterF</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Dependent.Map.html#insert"><span class="hs-identifier">insert</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Dependent.Map.Internal.html#lookup"><span class="hs-identifier">lookup</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.GADT.Compare</span></span><span>   </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">GCompare</span></span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- These functions have been specialised for use with 'DMap' but without any of the</span><span>
+</span><span id="line-20"></span><span class="hs-comment">-- specific 'lens' types used so that we have compatibility without needing the</span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- dependency just for these functions.</span><span>
+</span><span id="line-22"></span><span class="hs-comment">--</span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-25"></span><span class="hs-comment">-- This is equivalent to the &lt;https://hackage.haskell.org/package/lens-4.16.1/docs/Control-Lens-At.html#v:at at&gt; &lt;https://hackage.haskell.org/package/lens-4.16.1/docs/Control-Lens-Type.html#t:Lens-39- Lens'&gt; from &lt;https://hackage.haskell.org/package/lens-4.16.1/docs/Control-Lens-At.html Control.Lens.At&gt;:</span><span>
+</span><span id="line-26"></span><span class="hs-comment">--</span><span>
+</span><span id="line-27"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- type Lens s t a b = forall f. Functor f =&gt; (a -&gt; f b) -&gt; s -&gt; f t</span><span>
+</span><span id="line-29"></span><span class="hs-comment">--</span><span>
+</span><span id="line-30"></span><span class="hs-comment">-- at :: Index m -&gt; Lens' m (Maybe (IxValue m))</span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-32"></span><span class="hs-comment">--</span><span>
+</span><span id="line-33"></span><span class="hs-comment">-- So the type of 'dmat' is equivalent to:</span><span>
+</span><span id="line-34"></span><span class="hs-comment">--</span><span>
+</span><span id="line-35"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- dmat :: GCompare k =&gt; Lens' (DMap k f) (Maybe (f v))</span><span>
+</span><span id="line-37"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-38"></span><span class="hs-comment">--</span><span>
+</span><span id="line-39"></span><span class="hs-comment">-- &gt;&gt;&gt; DMap.fromList [AInt :=&gt; Identity 33, AFloat :=&gt; Identity 3.5] &amp; dmat AString ?~ &quot;Hat&quot;</span><span>
+</span><span id="line-40"></span><span class="hs-comment">-- DMap.fromList [AString :=&gt; Identity &quot;Hat&quot;, AInt :=&gt; Identity 33, AFloat :=&gt; Identity 3.5]</span><span>
+</span><span id="line-41"></span><span class="hs-comment">--</span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- &gt;&gt;&gt; DMap.fromList [AString :=&gt; Identity &quot;Shoe&quot;, AInt :=&gt; Identity 33, AFloat :=&gt; Identity 3.5] ^? dmat AFloat</span><span>
+</span><span id="line-43"></span><span class="hs-comment">-- Just (AFloat :=&gt; 3.5)</span><span>
+</span><span id="line-44"></span><span class="hs-comment">--</span><span>
+</span><span id="line-45"></span><span id="local-6989586621679052810"><span id="local-6989586621679052811"><span id="local-6989586621679052812"><span id="local-6989586621679052813"><span class="annot"><a href="Data.Dependent.Map.Lens.html#dmat"><span class="hs-identifier hs-type">dmat</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">GCompare</span></span><span> </span><span class="annot"><a href="#local-6989586621679052813"><span class="hs-identifier hs-type">k</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Functor</span></span><span> </span><span class="annot"><a href="#local-6989586621679052812"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679052813"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679052811"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679052810"><span class="hs-identifier hs-type">g</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679052811"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679052812"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679052810"><span class="hs-identifier hs-type">g</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679052811"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Data.Dependent.Map.Internal.html#DMap"><span class="hs-identifier hs-type">DMap</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679052813"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679052810"><span class="hs-identifier hs-type">g</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679052812"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Dependent.Map.Internal.html#DMap"><span class="hs-identifier hs-type">DMap</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679052813"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679052810"><span class="hs-identifier hs-type">g</span></a></span><span class="hs-special">)</span></span></span></span></span><span>
+</span><span id="line-46"></span><span id="dmat"><span class="annot"><span class="annottext">dmat :: k v -&gt; (Maybe (g v) -&gt; f (Maybe (g v))) -&gt; DMap k g -&gt; f (DMap k g)
+</span><a href="Data.Dependent.Map.Lens.html#dmat"><span class="hs-identifier hs-var hs-var">dmat</span></a></span></span><span> </span><span id="local-6989586621679052809"><span class="annot"><span class="annottext">k v
+</span><a href="#local-6989586621679052809"><span class="hs-identifier hs-var">k</span></a></span></span><span> </span><span id="local-6989586621679052808"><span class="annot"><span class="annottext">Maybe (g v) -&gt; f (Maybe (g v))
+</span><a href="#local-6989586621679052808"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">k v -&gt; (Maybe (g v) -&gt; f (Maybe (g v))) -&gt; DMap k g -&gt; f (DMap k g)
+forall k1 (k2 :: k1 -&gt; *) (f :: * -&gt; *) (v :: k1) (g :: k1 -&gt; *).
+(GCompare k2, Functor f) =&gt;
+k2 v
+-&gt; (Maybe (g v) -&gt; f (Maybe (g v))) -&gt; DMap k2 g -&gt; f (DMap k2 g)
+</span><a href="Data.Dependent.Map.html#alterF"><span class="hs-identifier hs-var">alterF</span></a></span><span> </span><span class="annot"><span class="annottext">k v
+</span><a href="#local-6989586621679052809"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe (g v) -&gt; f (Maybe (g v))
+</span><a href="#local-6989586621679052808"><span class="hs-identifier hs-var">f</span></a></span><span>
+</span><span id="line-47"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Data.Dependent.Map.Lens.html#dmat"><span class="hs-pragma hs-type">dmat</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- This is equivalent to the &lt;https://hackage.haskell.org/package/lens-4.16.1/docs/Control-Lens-At.html#v:ix ix&gt; &lt;https://hackage.haskell.org/package/lens-4.16.1/docs/Control-Lens-Type.html#t:Traversal-39- Traversal'&gt; from &lt;https://hackage.haskell.org/package/lens-4.16.1/docs/Control-Lens-At.html Control.Lens.At&gt;:</span><span>
+</span><span id="line-51"></span><span class="hs-comment">--</span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- type Traversal s t a b = forall f. Applicative f =&gt; (a -&gt; f b) -&gt; s -&gt; f t</span><span>
+</span><span id="line-54"></span><span class="hs-comment">--</span><span>
+</span><span id="line-55"></span><span class="hs-comment">-- ix :: Index m -&gt; Traversal' m (IxValue m)</span><span>
+</span><span id="line-56"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-57"></span><span class="hs-comment">--</span><span>
+</span><span id="line-58"></span><span class="hs-comment">-- So the type of 'dmix' is equivalent to:</span><span>
+</span><span id="line-59"></span><span class="hs-comment">--</span><span>
+</span><span id="line-60"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-61"></span><span class="hs-comment">-- dmix :: GCompare k =&gt; k v -&gt; Traversal' (DMap k f) (f v)</span><span>
+</span><span id="line-62"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-63"></span><span class="hs-comment">--</span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- /NB:/ Setting the value of this</span><span>
+</span><span id="line-65"></span><span class="hs-comment">-- &lt;https://hackage.haskell.org/package/lens-4.16.1/docs/Control-Lens-Type.html#t:Traversal Traversal&gt;</span><span>
+</span><span id="line-66"></span><span class="hs-comment">-- will only set the value in 'dmix' if it is already present.</span><span>
+</span><span id="line-67"></span><span class="hs-comment">--</span><span>
+</span><span id="line-68"></span><span class="hs-comment">-- If you want to be able to insert /missing/ values, you want 'dmat'.</span><span>
+</span><span id="line-69"></span><span class="hs-comment">--</span><span>
+</span><span id="line-70"></span><span class="hs-comment">-- &gt;&gt;&gt; DMap.fromList [AString :=&gt; Identity &quot;Shoe&quot;, AInt :=&gt; Identity 33, AFloat :=&gt; Identity 3.5] &amp; dmix AInt %~ f</span><span>
+</span><span id="line-71"></span><span class="hs-comment">-- DMap.fromList [AString :=&gt; Identity &quot;Shoe&quot;, AInt :=&gt; Identity (f 33), AFloat :=&gt; Identity 3.5]</span><span>
+</span><span id="line-72"></span><span class="hs-comment">--</span><span>
+</span><span id="line-73"></span><span class="hs-comment">-- &gt;&gt;&gt; DMap.fromList [AString :=&gt; Identity &quot;Shoe&quot;, AInt :=&gt; Identity 33, AFloat :=&gt; Identity 3.5] &amp; dmix AString .~ &quot;Hat&quot;</span><span>
+</span><span id="line-74"></span><span class="hs-comment">-- DMap.fromList [AString :=&gt; Identity &quot;Hat&quot;, AInt :=&gt; Identity 33, AFloat :=&gt; Identity 3.5]</span><span>
+</span><span id="line-75"></span><span class="hs-comment">--</span><span>
+</span><span id="line-76"></span><span class="hs-comment">-- &gt;&gt;&gt; DMap.fromList [AString :=&gt; Identity &quot;Shoe&quot;, AInt :=&gt; Identity 33, AFloat :=&gt; Identity 3.5] ^? dmix AFloat</span><span>
+</span><span id="line-77"></span><span class="hs-comment">-- Just (AFloat :=&gt; 3.5)</span><span>
+</span><span id="line-78"></span><span class="hs-comment">--</span><span>
+</span><span id="line-79"></span><span class="hs-comment">-- &gt;&gt;&gt; DMap.fromList [AString :=&gt; Identity &quot;Shoe&quot;, AFloat :=&gt; Identity 3.5] ^? dmix AInt</span><span>
+</span><span id="line-80"></span><span class="hs-comment">-- Nothing</span><span>
+</span><span id="line-81"></span><span id="local-6989586621679052804"><span id="local-6989586621679052805"><span id="local-6989586621679052806"><span id="local-6989586621679052807"><span class="annot"><a href="Data.Dependent.Map.Lens.html#dmix"><span class="hs-identifier hs-type">dmix</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">GCompare</span></span><span> </span><span class="annot"><a href="#local-6989586621679052807"><span class="hs-identifier hs-type">k</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Applicative</span></span><span> </span><span class="annot"><a href="#local-6989586621679052806"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679052807"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679052805"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679052804"><span class="hs-identifier hs-type">g</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679052805"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679052806"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679052804"><span class="hs-identifier hs-type">g</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679052805"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Data.Dependent.Map.Internal.html#DMap"><span class="hs-identifier hs-type">DMap</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679052807"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679052804"><span class="hs-identifier hs-type">g</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679052806"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Dependent.Map.Internal.html#DMap"><span class="hs-identifier hs-type">DMap</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679052807"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679052804"><span class="hs-identifier hs-type">g</span></a></span><span class="hs-special">)</span></span></span></span></span><span>
+</span><span id="line-82"></span><span id="dmix"><span class="annot"><span class="annottext">dmix :: k v -&gt; (g v -&gt; f (g v)) -&gt; DMap k g -&gt; f (DMap k g)
+</span><a href="Data.Dependent.Map.Lens.html#dmix"><span class="hs-identifier hs-var hs-var">dmix</span></a></span></span><span> </span><span id="local-6989586621679052803"><span class="annot"><span class="annottext">k v
+</span><a href="#local-6989586621679052803"><span class="hs-identifier hs-var">k</span></a></span></span><span> </span><span id="local-6989586621679052802"><span class="annot"><span class="annottext">g v -&gt; f (g v)
+</span><a href="#local-6989586621679052802"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679052801"><span class="annot"><span class="annottext">DMap k g
+</span><a href="#local-6989586621679052801"><span class="hs-identifier hs-var">dmap</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">f (DMap k g)
+-&gt; (g v -&gt; f (DMap k g)) -&gt; Maybe (g v) -&gt; f (DMap k g)
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span><span class="hs-identifier hs-var">maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DMap k g -&gt; f (DMap k g)
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">DMap k g
+</span><a href="#local-6989586621679052801"><span class="hs-identifier hs-var">dmap</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(g v -&gt; DMap k g) -&gt; f (g v) -&gt; f (DMap k g)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(g v -&gt; DMap k g -&gt; DMap k g) -&gt; DMap k g -&gt; g v -&gt; DMap k g
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span><span class="hs-identifier hs-var">flip</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">k v -&gt; g v -&gt; DMap k g -&gt; DMap k g
+forall k1 (k2 :: k1 -&gt; *) (f :: k1 -&gt; *) (v :: k1).
+GCompare k2 =&gt;
+k2 v -&gt; f v -&gt; DMap k2 f -&gt; DMap k2 f
+</span><a href="Data.Dependent.Map.html#insert"><span class="hs-identifier hs-var">insert</span></a></span><span> </span><span class="annot"><span class="annottext">k v
+</span><a href="#local-6989586621679052803"><span class="hs-identifier hs-var">k</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">DMap k g
+</span><a href="#local-6989586621679052801"><span class="hs-identifier hs-var">dmap</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(f (g v) -&gt; f (DMap k g))
+-&gt; (g v -&gt; f (g v)) -&gt; g v -&gt; f (DMap k g)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">g v -&gt; f (g v)
+</span><a href="#local-6989586621679052802"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Maybe (g v) -&gt; f (DMap k g)) -&gt; Maybe (g v) -&gt; f (DMap k g)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">k v -&gt; DMap k g -&gt; Maybe (g v)
+forall k1 (k2 :: k1 -&gt; *) (f :: k1 -&gt; *) (v :: k1).
+GCompare k2 =&gt;
+k2 v -&gt; DMap k2 f -&gt; Maybe (f v)
+</span><a href="Data.Dependent.Map.Internal.html#lookup"><span class="hs-identifier hs-var">lookup</span></a></span><span> </span><span class="annot"><span class="annottext">k v
+</span><a href="#local-6989586621679052803"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">DMap k g
+</span><a href="#local-6989586621679052801"><span class="hs-identifier hs-var">dmap</span></a></span><span>
+</span><span id="line-83"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Data.Dependent.Map.Lens.html#dmix"><span class="hs-pragma hs-type">dmix</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-84"></span></pre></body></html>

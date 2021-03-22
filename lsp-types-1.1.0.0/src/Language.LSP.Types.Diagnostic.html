@@ -1,0 +1,753 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="%24con2tag_AUceaYAhJGlJIQUHjsOk4U"><span id="%24con2tag_FxujAvWq5VPCNlt3j3Dr0r"></span></span><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields      #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell            #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric              #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE TypeOperators              #-}</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.Diagnostic</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.DeepSeq</span></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson</span></span><span>                                 </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">A</span></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">GHC.Generics</span></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Common.html"><span class="hs-identifier">Language.LSP.Types.Common</span></a></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Location.html"><span class="hs-identifier">Language.LSP.Types.Location</span></a></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Uri.html"><span class="hs-identifier">Language.LSP.Types.Uri</span></a></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span id="local-6989586621680441187"><span id="local-6989586621680441188"></span></span><span class="hs-keyword">data</span><span> </span><span id="DiagnosticSeverity"><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DiagnosticSeverity"><span class="hs-identifier hs-var">DiagnosticSeverity</span></a></span></span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="DsError"><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DsError"><span class="hs-identifier hs-var">DsError</span></a></span></span><span>   </span><span class="hs-comment">-- ^ Error = 1,</span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="DsWarning"><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DsWarning"><span class="hs-identifier hs-var">DsWarning</span></a></span></span><span> </span><span class="hs-comment">-- ^ Warning = 2,</span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="DsInfo"><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DsInfo"><span class="hs-identifier hs-var">DsInfo</span></a></span></span><span>    </span><span class="hs-comment">-- ^ Info = 3,</span><span>
+</span><span id="line-24"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="DsHint"><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DsHint"><span class="hs-identifier hs-var">DsHint</span></a></span></span><span>    </span><span class="hs-comment">-- ^ Hint = 4</span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680441179"><span id="local-6989586621680441181"><span class="annot"><span class="annottext">DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool
+(DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool)
+-&gt; (DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool)
+-&gt; Eq DiagnosticSeverity
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool
+$c/= :: DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool
+== :: DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool
+$c== :: DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680441163"><span id="local-6989586621680441165"><span id="local-6989586621680441167"><span id="local-6989586621680441169"><span id="local-6989586621680441171"><span id="local-6989586621680441173"><span id="local-6989586621680441175"><span class="annot"><span class="annottext">Eq DiagnosticSeverity
+Eq DiagnosticSeverity
+-&gt; (DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Ordering)
+-&gt; (DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool)
+-&gt; (DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool)
+-&gt; (DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool)
+-&gt; (DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool)
+-&gt; (DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; DiagnosticSeverity)
+-&gt; (DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; DiagnosticSeverity)
+-&gt; Ord DiagnosticSeverity
+DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool
+DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Ordering
+DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; DiagnosticSeverity
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; DiagnosticSeverity
+$cmin :: DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; DiagnosticSeverity
+max :: DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; DiagnosticSeverity
+$cmax :: DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; DiagnosticSeverity
+&gt;= :: DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool
+$c&gt;= :: DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool
+&gt; :: DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool
+$c&gt; :: DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool
+&lt;= :: DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool
+$c&lt;= :: DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool
+&lt; :: DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool
+$c&lt; :: DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Bool
+compare :: DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Ordering
+$ccompare :: DiagnosticSeverity -&gt; DiagnosticSeverity -&gt; Ordering
+$cp1Ord :: Eq DiagnosticSeverity
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680441156"><span id="local-6989586621680441158"><span id="local-6989586621680441160"><span class="annot"><span class="annottext">Int -&gt; DiagnosticSeverity -&gt; ShowS
+[DiagnosticSeverity] -&gt; ShowS
+DiagnosticSeverity -&gt; String
+(Int -&gt; DiagnosticSeverity -&gt; ShowS)
+-&gt; (DiagnosticSeverity -&gt; String)
+-&gt; ([DiagnosticSeverity] -&gt; ShowS)
+-&gt; Show DiagnosticSeverity
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [DiagnosticSeverity] -&gt; ShowS
+$cshowList :: [DiagnosticSeverity] -&gt; ShowS
+show :: DiagnosticSeverity -&gt; String
+$cshow :: DiagnosticSeverity -&gt; String
+showsPrec :: Int -&gt; DiagnosticSeverity -&gt; ShowS
+$cshowsPrec :: Int -&gt; DiagnosticSeverity -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680441147"><span id="local-6989586621680441149"><span id="local-6989586621680441151"><span id="local-6989586621680441153"><span class="annot"><span class="annottext">ReadPrec [DiagnosticSeverity]
+ReadPrec DiagnosticSeverity
+Int -&gt; ReadS DiagnosticSeverity
+ReadS [DiagnosticSeverity]
+(Int -&gt; ReadS DiagnosticSeverity)
+-&gt; ReadS [DiagnosticSeverity]
+-&gt; ReadPrec DiagnosticSeverity
+-&gt; ReadPrec [DiagnosticSeverity]
+-&gt; Read DiagnosticSeverity
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [DiagnosticSeverity]
+$creadListPrec :: ReadPrec [DiagnosticSeverity]
+readPrec :: ReadPrec DiagnosticSeverity
+$creadPrec :: ReadPrec DiagnosticSeverity
+readList :: ReadS [DiagnosticSeverity]
+$creadList :: ReadS [DiagnosticSeverity]
+readsPrec :: Int -&gt; ReadS DiagnosticSeverity
+$creadsPrec :: Int -&gt; ReadS DiagnosticSeverity
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. DiagnosticSeverity -&gt; Rep DiagnosticSeverity x)
+-&gt; (forall x. Rep DiagnosticSeverity x -&gt; DiagnosticSeverity)
+-&gt; Generic DiagnosticSeverity
+forall x. Rep DiagnosticSeverity x -&gt; DiagnosticSeverity
+forall x. DiagnosticSeverity -&gt; Rep DiagnosticSeverity x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep DiagnosticSeverity x -&gt; DiagnosticSeverity
+$cfrom :: forall x. DiagnosticSeverity -&gt; Rep DiagnosticSeverity x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680441141"><span class="annot"><span class="hs-identifier hs-type">NFData</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DiagnosticSeverity"><span class="hs-identifier hs-type">DiagnosticSeverity</span></a></span></span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680441133"><span id="local-6989586621680441135"><span id="local-6989586621680441137"><span class="annot"><span class="hs-identifier hs-type">A.ToJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DiagnosticSeverity"><span class="hs-identifier hs-type">DiagnosticSeverity</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-30"></span><span>  </span><span id="local-6989586621680441131"><span class="annot"><span class="annottext">toJSON :: DiagnosticSeverity -&gt; Value
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></span></span><span> </span><span class="annot"><span class="annottext">DiagnosticSeverity
+</span><a href="Language.LSP.Types.Diagnostic.html#DsError"><span class="hs-identifier hs-var">DsError</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-31"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">DiagnosticSeverity
+</span><a href="Language.LSP.Types.Diagnostic.html#DsWarning"><span class="hs-identifier hs-var">DsWarning</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">2</span></span><span>
+</span><span id="line-32"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">DiagnosticSeverity
+</span><a href="Language.LSP.Types.Diagnostic.html#DsInfo"><span class="hs-identifier hs-var">DsInfo</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">3</span></span><span>
+</span><span id="line-33"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">DiagnosticSeverity
+</span><a href="Language.LSP.Types.Diagnostic.html#DsHint"><span class="hs-identifier hs-var">DsHint</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">4</span></span><span>
+</span><span id="line-34"></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680441126"><span class="annot"><span class="hs-identifier hs-type">A.FromJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DiagnosticSeverity"><span class="hs-identifier hs-type">DiagnosticSeverity</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-36"></span><span>  </span><span id="local-6989586621680441124"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser DiagnosticSeverity
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">DiagnosticSeverity -&gt; Parser DiagnosticSeverity
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">DiagnosticSeverity
+</span><a href="Language.LSP.Types.Diagnostic.html#DsError"><span class="hs-identifier hs-var">DsError</span></a></span><span>
+</span><span id="line-37"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">2</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">DiagnosticSeverity -&gt; Parser DiagnosticSeverity
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">DiagnosticSeverity
+</span><a href="Language.LSP.Types.Diagnostic.html#DsWarning"><span class="hs-identifier hs-var">DsWarning</span></a></span><span>
+</span><span id="line-38"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">3</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">DiagnosticSeverity -&gt; Parser DiagnosticSeverity
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">DiagnosticSeverity
+</span><a href="Language.LSP.Types.Diagnostic.html#DsInfo"><span class="hs-identifier hs-var">DsInfo</span></a></span><span>
+</span><span id="line-39"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">4</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">DiagnosticSeverity -&gt; Parser DiagnosticSeverity
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">DiagnosticSeverity
+</span><a href="Language.LSP.Types.Diagnostic.html#DsHint"><span class="hs-identifier hs-var">DsHint</span></a></span><span>
+</span><span id="line-40"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><span class="hs-identifier">_</span></span><span>            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser DiagnosticSeverity
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span id="local-6989586621680441121"><span id="local-6989586621680441122"></span></span><span class="hs-keyword">data</span><span> </span><span id="DiagnosticTag"><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DiagnosticTag"><span class="hs-identifier hs-var">DiagnosticTag</span></a></span></span><span>
+</span><span id="line-43"></span><span>  </span><span class="hs-comment">-- | Unused or unnecessary code.</span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-45"></span><span>  </span><span class="hs-comment">-- Clients are allowed to render diagnostics with this tag faded out</span><span>
+</span><span id="line-46"></span><span>  </span><span class="hs-comment">-- instead of having an error squiggle.</span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="DtUnnecessary"><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DtUnnecessary"><span class="hs-identifier hs-var">DtUnnecessary</span></a></span></span><span>
+</span><span id="line-48"></span><span>  </span><span class="hs-comment">-- | Deprecated or obsolete code.</span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-50"></span><span>  </span><span class="hs-comment">-- Clients are allowed to rendered diagnostics with this tag strike</span><span>
+</span><span id="line-51"></span><span>  </span><span class="hs-comment">-- through.</span><span>
+</span><span id="line-52"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="DtDeprecated"><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DtDeprecated"><span class="hs-identifier hs-var">DtDeprecated</span></a></span></span><span>
+</span><span id="line-53"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680441115"><span id="local-6989586621680441117"><span class="annot"><span class="annottext">DiagnosticTag -&gt; DiagnosticTag -&gt; Bool
+(DiagnosticTag -&gt; DiagnosticTag -&gt; Bool)
+-&gt; (DiagnosticTag -&gt; DiagnosticTag -&gt; Bool) -&gt; Eq DiagnosticTag
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: DiagnosticTag -&gt; DiagnosticTag -&gt; Bool
+$c/= :: DiagnosticTag -&gt; DiagnosticTag -&gt; Bool
+== :: DiagnosticTag -&gt; DiagnosticTag -&gt; Bool
+$c== :: DiagnosticTag -&gt; DiagnosticTag -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680441100"><span id="local-6989586621680441102"><span id="local-6989586621680441104"><span id="local-6989586621680441106"><span id="local-6989586621680441108"><span id="local-6989586621680441110"><span id="local-6989586621680441112"><span class="annot"><span class="annottext">Eq DiagnosticTag
+Eq DiagnosticTag
+-&gt; (DiagnosticTag -&gt; DiagnosticTag -&gt; Ordering)
+-&gt; (DiagnosticTag -&gt; DiagnosticTag -&gt; Bool)
+-&gt; (DiagnosticTag -&gt; DiagnosticTag -&gt; Bool)
+-&gt; (DiagnosticTag -&gt; DiagnosticTag -&gt; Bool)
+-&gt; (DiagnosticTag -&gt; DiagnosticTag -&gt; Bool)
+-&gt; (DiagnosticTag -&gt; DiagnosticTag -&gt; DiagnosticTag)
+-&gt; (DiagnosticTag -&gt; DiagnosticTag -&gt; DiagnosticTag)
+-&gt; Ord DiagnosticTag
+DiagnosticTag -&gt; DiagnosticTag -&gt; Bool
+DiagnosticTag -&gt; DiagnosticTag -&gt; Ordering
+DiagnosticTag -&gt; DiagnosticTag -&gt; DiagnosticTag
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: DiagnosticTag -&gt; DiagnosticTag -&gt; DiagnosticTag
+$cmin :: DiagnosticTag -&gt; DiagnosticTag -&gt; DiagnosticTag
+max :: DiagnosticTag -&gt; DiagnosticTag -&gt; DiagnosticTag
+$cmax :: DiagnosticTag -&gt; DiagnosticTag -&gt; DiagnosticTag
+&gt;= :: DiagnosticTag -&gt; DiagnosticTag -&gt; Bool
+$c&gt;= :: DiagnosticTag -&gt; DiagnosticTag -&gt; Bool
+&gt; :: DiagnosticTag -&gt; DiagnosticTag -&gt; Bool
+$c&gt; :: DiagnosticTag -&gt; DiagnosticTag -&gt; Bool
+&lt;= :: DiagnosticTag -&gt; DiagnosticTag -&gt; Bool
+$c&lt;= :: DiagnosticTag -&gt; DiagnosticTag -&gt; Bool
+&lt; :: DiagnosticTag -&gt; DiagnosticTag -&gt; Bool
+$c&lt; :: DiagnosticTag -&gt; DiagnosticTag -&gt; Bool
+compare :: DiagnosticTag -&gt; DiagnosticTag -&gt; Ordering
+$ccompare :: DiagnosticTag -&gt; DiagnosticTag -&gt; Ordering
+$cp1Ord :: Eq DiagnosticTag
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680441094"><span id="local-6989586621680441096"><span id="local-6989586621680441098"><span class="annot"><span class="annottext">Int -&gt; DiagnosticTag -&gt; ShowS
+[DiagnosticTag] -&gt; ShowS
+DiagnosticTag -&gt; String
+(Int -&gt; DiagnosticTag -&gt; ShowS)
+-&gt; (DiagnosticTag -&gt; String)
+-&gt; ([DiagnosticTag] -&gt; ShowS)
+-&gt; Show DiagnosticTag
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [DiagnosticTag] -&gt; ShowS
+$cshowList :: [DiagnosticTag] -&gt; ShowS
+show :: DiagnosticTag -&gt; String
+$cshow :: DiagnosticTag -&gt; String
+showsPrec :: Int -&gt; DiagnosticTag -&gt; ShowS
+$cshowsPrec :: Int -&gt; DiagnosticTag -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680441086"><span id="local-6989586621680441088"><span id="local-6989586621680441090"><span id="local-6989586621680441092"><span class="annot"><span class="annottext">ReadPrec [DiagnosticTag]
+ReadPrec DiagnosticTag
+Int -&gt; ReadS DiagnosticTag
+ReadS [DiagnosticTag]
+(Int -&gt; ReadS DiagnosticTag)
+-&gt; ReadS [DiagnosticTag]
+-&gt; ReadPrec DiagnosticTag
+-&gt; ReadPrec [DiagnosticTag]
+-&gt; Read DiagnosticTag
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [DiagnosticTag]
+$creadListPrec :: ReadPrec [DiagnosticTag]
+readPrec :: ReadPrec DiagnosticTag
+$creadPrec :: ReadPrec DiagnosticTag
+readList :: ReadS [DiagnosticTag]
+$creadList :: ReadS [DiagnosticTag]
+readsPrec :: Int -&gt; ReadS DiagnosticTag
+$creadsPrec :: Int -&gt; ReadS DiagnosticTag
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. DiagnosticTag -&gt; Rep DiagnosticTag x)
+-&gt; (forall x. Rep DiagnosticTag x -&gt; DiagnosticTag)
+-&gt; Generic DiagnosticTag
+forall x. Rep DiagnosticTag x -&gt; DiagnosticTag
+forall x. DiagnosticTag -&gt; Rep DiagnosticTag x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep DiagnosticTag x -&gt; DiagnosticTag
+$cfrom :: forall x. DiagnosticTag -&gt; Rep DiagnosticTag x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">)</span><span>
+</span><span id="line-54"></span><span>
+</span><span id="line-55"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680441082"><span class="annot"><span class="hs-identifier hs-type">NFData</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DiagnosticTag"><span class="hs-identifier hs-type">DiagnosticTag</span></a></span></span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680441075"><span id="local-6989586621680441077"><span id="local-6989586621680441079"><span class="annot"><span class="hs-identifier hs-type">A.ToJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DiagnosticTag"><span class="hs-identifier hs-type">DiagnosticTag</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-58"></span><span>  </span><span id="local-6989586621680441074"><span class="annot"><span class="annottext">toJSON :: DiagnosticTag -&gt; Value
+</span><a href="#local-6989586621680441074"><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></a></span></span><span> </span><span class="annot"><span class="annottext">DiagnosticTag
+</span><a href="Language.LSP.Types.Diagnostic.html#DtUnnecessary"><span class="hs-identifier hs-var">DtUnnecessary</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-59"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">DiagnosticTag
+</span><a href="Language.LSP.Types.Diagnostic.html#DtDeprecated"><span class="hs-identifier hs-var">DtDeprecated</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">2</span></span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680441071"><span class="annot"><span class="hs-identifier hs-type">A.FromJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DiagnosticTag"><span class="hs-identifier hs-type">DiagnosticTag</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-62"></span><span>  </span><span id="local-6989586621680441070"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser DiagnosticTag
+</span><a href="#local-6989586621680441070"><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">DiagnosticTag -&gt; Parser DiagnosticTag
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">DiagnosticTag
+</span><a href="Language.LSP.Types.Diagnostic.html#DtUnnecessary"><span class="hs-identifier hs-var">DtUnnecessary</span></a></span><span>
+</span><span id="line-63"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">2</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">DiagnosticTag -&gt; Parser DiagnosticTag
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">DiagnosticTag
+</span><a href="Language.LSP.Types.Diagnostic.html#DtDeprecated"><span class="hs-identifier hs-var">DtDeprecated</span></a></span><span>
+</span><span id="line-64"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><span class="hs-identifier">_</span></span><span>            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser DiagnosticTag
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-65"></span><span>
+</span><span id="line-66"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-67"></span><span>
+</span><span id="line-68"></span><span id="local-6989586621680441068"><span id="local-6989586621680441069"></span></span><span class="hs-keyword">data</span><span> </span><span id="DiagnosticRelatedInformation"><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DiagnosticRelatedInformation"><span class="hs-identifier hs-var">DiagnosticRelatedInformation</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-69"></span><span>  </span><span id="DiagnosticRelatedInformation"><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DiagnosticRelatedInformation"><span class="hs-identifier hs-var">DiagnosticRelatedInformation</span></a></span></span><span>
+</span><span id="line-70"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_location%3ADiagnosticRelatedInformation"><span class="annot"><span class="annottext">DiagnosticRelatedInformation -&gt; Location
+</span><a href="Language.LSP.Types.Diagnostic.html#%24sel%3A_location%3ADiagnosticRelatedInformation"><span class="hs-identifier hs-var hs-var">_location</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html#Location"><span class="hs-identifier hs-type">Location</span></a></span><span>
+</span><span id="line-71"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_message%3ADiagnosticRelatedInformation"><span class="annot"><span class="annottext">DiagnosticRelatedInformation -&gt; Text
+</span><a href="Language.LSP.Types.Diagnostic.html#%24sel%3A_message%3ADiagnosticRelatedInformation"><span class="hs-identifier hs-var hs-var">_message</span></a></span></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-72"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680441059"><span id="local-6989586621680441061"><span id="local-6989586621680441063"><span class="annot"><span class="annottext">Int -&gt; DiagnosticRelatedInformation -&gt; ShowS
+[DiagnosticRelatedInformation] -&gt; ShowS
+DiagnosticRelatedInformation -&gt; String
+(Int -&gt; DiagnosticRelatedInformation -&gt; ShowS)
+-&gt; (DiagnosticRelatedInformation -&gt; String)
+-&gt; ([DiagnosticRelatedInformation] -&gt; ShowS)
+-&gt; Show DiagnosticRelatedInformation
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [DiagnosticRelatedInformation] -&gt; ShowS
+$cshowList :: [DiagnosticRelatedInformation] -&gt; ShowS
+show :: DiagnosticRelatedInformation -&gt; String
+$cshow :: DiagnosticRelatedInformation -&gt; String
+showsPrec :: Int -&gt; DiagnosticRelatedInformation -&gt; ShowS
+$cshowsPrec :: Int -&gt; DiagnosticRelatedInformation -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680441051"><span id="local-6989586621680441053"><span id="local-6989586621680441055"><span id="local-6989586621680441057"><span class="annot"><span class="annottext">ReadPrec [DiagnosticRelatedInformation]
+ReadPrec DiagnosticRelatedInformation
+Int -&gt; ReadS DiagnosticRelatedInformation
+ReadS [DiagnosticRelatedInformation]
+(Int -&gt; ReadS DiagnosticRelatedInformation)
+-&gt; ReadS [DiagnosticRelatedInformation]
+-&gt; ReadPrec DiagnosticRelatedInformation
+-&gt; ReadPrec [DiagnosticRelatedInformation]
+-&gt; Read DiagnosticRelatedInformation
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [DiagnosticRelatedInformation]
+$creadListPrec :: ReadPrec [DiagnosticRelatedInformation]
+readPrec :: ReadPrec DiagnosticRelatedInformation
+$creadPrec :: ReadPrec DiagnosticRelatedInformation
+readList :: ReadS [DiagnosticRelatedInformation]
+$creadList :: ReadS [DiagnosticRelatedInformation]
+readsPrec :: Int -&gt; ReadS DiagnosticRelatedInformation
+$creadsPrec :: Int -&gt; ReadS DiagnosticRelatedInformation
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680441047"><span id="local-6989586621680441049"><span class="annot"><span class="annottext">DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; Bool
+(DiagnosticRelatedInformation
+ -&gt; DiagnosticRelatedInformation -&gt; Bool)
+-&gt; (DiagnosticRelatedInformation
+    -&gt; DiagnosticRelatedInformation -&gt; Bool)
+-&gt; Eq DiagnosticRelatedInformation
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; Bool
+$c/= :: DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; Bool
+== :: DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; Bool
+$c== :: DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680441032"><span id="local-6989586621680441034"><span id="local-6989586621680441036"><span id="local-6989586621680441038"><span id="local-6989586621680441040"><span id="local-6989586621680441042"><span id="local-6989586621680441044"><span class="annot"><span class="annottext">Eq DiagnosticRelatedInformation
+Eq DiagnosticRelatedInformation
+-&gt; (DiagnosticRelatedInformation
+    -&gt; DiagnosticRelatedInformation -&gt; Ordering)
+-&gt; (DiagnosticRelatedInformation
+    -&gt; DiagnosticRelatedInformation -&gt; Bool)
+-&gt; (DiagnosticRelatedInformation
+    -&gt; DiagnosticRelatedInformation -&gt; Bool)
+-&gt; (DiagnosticRelatedInformation
+    -&gt; DiagnosticRelatedInformation -&gt; Bool)
+-&gt; (DiagnosticRelatedInformation
+    -&gt; DiagnosticRelatedInformation -&gt; Bool)
+-&gt; (DiagnosticRelatedInformation
+    -&gt; DiagnosticRelatedInformation -&gt; DiagnosticRelatedInformation)
+-&gt; (DiagnosticRelatedInformation
+    -&gt; DiagnosticRelatedInformation -&gt; DiagnosticRelatedInformation)
+-&gt; Ord DiagnosticRelatedInformation
+DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; Bool
+DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; Ordering
+DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; DiagnosticRelatedInformation
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; DiagnosticRelatedInformation
+$cmin :: DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; DiagnosticRelatedInformation
+max :: DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; DiagnosticRelatedInformation
+$cmax :: DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; DiagnosticRelatedInformation
+&gt;= :: DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; Bool
+$c&gt;= :: DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; Bool
+&gt; :: DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; Bool
+$c&gt; :: DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; Bool
+&lt;= :: DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; Bool
+$c&lt;= :: DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; Bool
+&lt; :: DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; Bool
+$c&lt; :: DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; Bool
+compare :: DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; Ordering
+$ccompare :: DiagnosticRelatedInformation
+-&gt; DiagnosticRelatedInformation -&gt; Ordering
+$cp1Ord :: Eq DiagnosticRelatedInformation
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x.
+ DiagnosticRelatedInformation -&gt; Rep DiagnosticRelatedInformation x)
+-&gt; (forall x.
+    Rep DiagnosticRelatedInformation x -&gt; DiagnosticRelatedInformation)
+-&gt; Generic DiagnosticRelatedInformation
+forall x.
+Rep DiagnosticRelatedInformation x -&gt; DiagnosticRelatedInformation
+forall x.
+DiagnosticRelatedInformation -&gt; Rep DiagnosticRelatedInformation x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x.
+Rep DiagnosticRelatedInformation x -&gt; DiagnosticRelatedInformation
+$cfrom :: forall x.
+DiagnosticRelatedInformation -&gt; Rep DiagnosticRelatedInformation x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">)</span><span>
+</span><span id="line-73"></span><span>
+</span><span id="line-74"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680441028"><span class="annot"><span class="hs-identifier hs-type">NFData</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DiagnosticRelatedInformation"><span class="hs-identifier hs-type">DiagnosticRelatedInformation</span></a></span></span><span>
+</span><span id="line-75"></span><span>
+</span><span id="line-76"></span><span id="local-6989586621680441016"><span id="local-6989586621680441018"><span id="local-6989586621680441020"><span id="local-6989586621680441022"><span id="local-6989586621680441024"><span id="local-6989586621680441026"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DiagnosticRelatedInformation</span></span></span></span></span></span></span><span>
+</span><span id="line-77"></span><span>
+</span><span id="line-78"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span class="hs-keyword">type</span><span> </span><span id="DiagnosticSource"><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DiagnosticSource"><span class="hs-identifier hs-var">DiagnosticSource</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-81"></span><span id="local-6989586621680441012"><span id="local-6989586621680441013"></span></span><span class="hs-keyword">data</span><span> </span><span id="Diagnostic"><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#Diagnostic"><span class="hs-identifier hs-var">Diagnostic</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-82"></span><span>  </span><span id="Diagnostic"><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#Diagnostic"><span class="hs-identifier hs-var">Diagnostic</span></a></span></span><span>
+</span><span id="line-83"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_range%3ADiagnostic"><span class="annot"><span class="annottext">Diagnostic -&gt; Range
+</span><a href="Language.LSP.Types.Diagnostic.html#%24sel%3A_range%3ADiagnostic"><span class="hs-identifier hs-var hs-var">_range</span></a></span></span><span>              </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html#Range"><span class="hs-identifier hs-type">Range</span></a></span><span>
+</span><span id="line-84"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_severity%3ADiagnostic"><span class="annot"><span class="annottext">Diagnostic -&gt; Maybe DiagnosticSeverity
+</span><a href="Language.LSP.Types.Diagnostic.html#%24sel%3A_severity%3ADiagnostic"><span class="hs-identifier hs-var hs-var">_severity</span></a></span></span><span>           </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DiagnosticSeverity"><span class="hs-identifier hs-type">DiagnosticSeverity</span></a></span><span>
+</span><span id="line-85"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_code%3ADiagnostic"><span class="annot"><span class="annottext">Diagnostic -&gt; Maybe (Int |? Text)
+</span><a href="Language.LSP.Types.Diagnostic.html#%24sel%3A_code%3ADiagnostic"><span class="hs-identifier hs-var hs-var">_code</span></a></span></span><span>               </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-86"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_source%3ADiagnostic"><span class="annot"><span class="annottext">Diagnostic -&gt; Maybe Text
+</span><a href="Language.LSP.Types.Diagnostic.html#%24sel%3A_source%3ADiagnostic"><span class="hs-identifier hs-var hs-var">_source</span></a></span></span><span>             </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DiagnosticSource"><span class="hs-identifier hs-type">DiagnosticSource</span></a></span><span>
+</span><span id="line-87"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_message%3ADiagnostic"><span class="annot"><span class="annottext">Diagnostic -&gt; Text
+</span><a href="Language.LSP.Types.Diagnostic.html#%24sel%3A_message%3ADiagnostic"><span class="hs-identifier hs-var hs-var">_message</span></a></span></span><span>            </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-88"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_tags%3ADiagnostic"><span class="annot"><span class="annottext">Diagnostic -&gt; Maybe (List DiagnosticTag)
+</span><a href="Language.LSP.Types.Diagnostic.html#%24sel%3A_tags%3ADiagnostic"><span class="hs-identifier hs-var hs-var">_tags</span></a></span></span><span>               </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DiagnosticTag"><span class="hs-identifier hs-type">DiagnosticTag</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-89"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_relatedInformation%3ADiagnostic"><span class="annot"><span class="annottext">Diagnostic -&gt; Maybe (List DiagnosticRelatedInformation)
+</span><a href="Language.LSP.Types.Diagnostic.html#%24sel%3A_relatedInformation%3ADiagnostic"><span class="hs-identifier hs-var hs-var">_relatedInformation</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DiagnosticRelatedInformation"><span class="hs-identifier hs-type">DiagnosticRelatedInformation</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-90"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680440998"><span id="local-6989586621680441000"><span id="local-6989586621680441002"><span class="annot"><span class="annottext">Int -&gt; Diagnostic -&gt; ShowS
+[Diagnostic] -&gt; ShowS
+Diagnostic -&gt; String
+(Int -&gt; Diagnostic -&gt; ShowS)
+-&gt; (Diagnostic -&gt; String)
+-&gt; ([Diagnostic] -&gt; ShowS)
+-&gt; Show Diagnostic
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Diagnostic] -&gt; ShowS
+$cshowList :: [Diagnostic] -&gt; ShowS
+show :: Diagnostic -&gt; String
+$cshow :: Diagnostic -&gt; String
+showsPrec :: Int -&gt; Diagnostic -&gt; ShowS
+$cshowsPrec :: Int -&gt; Diagnostic -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680440990"><span id="local-6989586621680440992"><span id="local-6989586621680440994"><span id="local-6989586621680440996"><span class="annot"><span class="annottext">ReadPrec [Diagnostic]
+ReadPrec Diagnostic
+Int -&gt; ReadS Diagnostic
+ReadS [Diagnostic]
+(Int -&gt; ReadS Diagnostic)
+-&gt; ReadS [Diagnostic]
+-&gt; ReadPrec Diagnostic
+-&gt; ReadPrec [Diagnostic]
+-&gt; Read Diagnostic
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [Diagnostic]
+$creadListPrec :: ReadPrec [Diagnostic]
+readPrec :: ReadPrec Diagnostic
+$creadPrec :: ReadPrec Diagnostic
+readList :: ReadS [Diagnostic]
+$creadList :: ReadS [Diagnostic]
+readsPrec :: Int -&gt; ReadS Diagnostic
+$creadsPrec :: Int -&gt; ReadS Diagnostic
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680440986"><span id="local-6989586621680440988"><span class="annot"><span class="annottext">Diagnostic -&gt; Diagnostic -&gt; Bool
+(Diagnostic -&gt; Diagnostic -&gt; Bool)
+-&gt; (Diagnostic -&gt; Diagnostic -&gt; Bool) -&gt; Eq Diagnostic
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Diagnostic -&gt; Diagnostic -&gt; Bool
+$c/= :: Diagnostic -&gt; Diagnostic -&gt; Bool
+== :: Diagnostic -&gt; Diagnostic -&gt; Bool
+$c== :: Diagnostic -&gt; Diagnostic -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680440971"><span id="local-6989586621680440973"><span id="local-6989586621680440975"><span id="local-6989586621680440977"><span id="local-6989586621680440979"><span id="local-6989586621680440981"><span id="local-6989586621680440983"><span class="annot"><span class="annottext">Eq Diagnostic
+Eq Diagnostic
+-&gt; (Diagnostic -&gt; Diagnostic -&gt; Ordering)
+-&gt; (Diagnostic -&gt; Diagnostic -&gt; Bool)
+-&gt; (Diagnostic -&gt; Diagnostic -&gt; Bool)
+-&gt; (Diagnostic -&gt; Diagnostic -&gt; Bool)
+-&gt; (Diagnostic -&gt; Diagnostic -&gt; Bool)
+-&gt; (Diagnostic -&gt; Diagnostic -&gt; Diagnostic)
+-&gt; (Diagnostic -&gt; Diagnostic -&gt; Diagnostic)
+-&gt; Ord Diagnostic
+Diagnostic -&gt; Diagnostic -&gt; Bool
+Diagnostic -&gt; Diagnostic -&gt; Ordering
+Diagnostic -&gt; Diagnostic -&gt; Diagnostic
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: Diagnostic -&gt; Diagnostic -&gt; Diagnostic
+$cmin :: Diagnostic -&gt; Diagnostic -&gt; Diagnostic
+max :: Diagnostic -&gt; Diagnostic -&gt; Diagnostic
+$cmax :: Diagnostic -&gt; Diagnostic -&gt; Diagnostic
+&gt;= :: Diagnostic -&gt; Diagnostic -&gt; Bool
+$c&gt;= :: Diagnostic -&gt; Diagnostic -&gt; Bool
+&gt; :: Diagnostic -&gt; Diagnostic -&gt; Bool
+$c&gt; :: Diagnostic -&gt; Diagnostic -&gt; Bool
+&lt;= :: Diagnostic -&gt; Diagnostic -&gt; Bool
+$c&lt;= :: Diagnostic -&gt; Diagnostic -&gt; Bool
+&lt; :: Diagnostic -&gt; Diagnostic -&gt; Bool
+$c&lt; :: Diagnostic -&gt; Diagnostic -&gt; Bool
+compare :: Diagnostic -&gt; Diagnostic -&gt; Ordering
+$ccompare :: Diagnostic -&gt; Diagnostic -&gt; Ordering
+$cp1Ord :: Eq Diagnostic
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. Diagnostic -&gt; Rep Diagnostic x)
+-&gt; (forall x. Rep Diagnostic x -&gt; Diagnostic) -&gt; Generic Diagnostic
+forall x. Rep Diagnostic x -&gt; Diagnostic
+forall x. Diagnostic -&gt; Rep Diagnostic x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep Diagnostic x -&gt; Diagnostic
+$cfrom :: forall x. Diagnostic -&gt; Rep Diagnostic x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">)</span><span>
+</span><span id="line-91"></span><span>
+</span><span id="line-92"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680440967"><span class="annot"><span class="hs-identifier hs-type">NFData</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#Diagnostic"><span class="hs-identifier hs-type">Diagnostic</span></a></span></span><span>
+</span><span id="line-93"></span><span>
+</span><span id="line-94"></span><span id="local-6989586621680440955"><span id="local-6989586621680440957"><span id="local-6989586621680440959"><span id="local-6989586621680440961"><span id="local-6989586621680440963"><span id="local-6989586621680440965"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">Diagnostic</span></span></span></span></span></span></span><span>
+</span><span id="line-95"></span><span>
+</span><span id="line-96"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-97"></span><span>
+</span><span id="line-98"></span><span class="hs-keyword">data</span><span> </span><span id="PublishDiagnosticsTagsClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#PublishDiagnosticsTagsClientCapabilities"><span class="hs-identifier hs-var">PublishDiagnosticsTagsClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-99"></span><span>  </span><span id="PublishDiagnosticsTagsClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#PublishDiagnosticsTagsClientCapabilities"><span class="hs-identifier hs-var">PublishDiagnosticsTagsClientCapabilities</span></a></span></span><span>
+</span><span id="line-100"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The tags supported by the client.</span><span>
+</span><span id="line-101"></span><span>      </span><span id="%24sel%3A_valueSet%3APublishDiagnosticsTagsClientCapabilities"><span class="annot"><span class="annottext">PublishDiagnosticsTagsClientCapabilities -&gt; List DiagnosticTag
+</span><a href="Language.LSP.Types.Diagnostic.html#%24sel%3A_valueSet%3APublishDiagnosticsTagsClientCapabilities"><span class="hs-identifier hs-var hs-var">_valueSet</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#DiagnosticTag"><span class="hs-identifier hs-type">DiagnosticTag</span></a></span><span>
+</span><span id="line-102"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680440947"><span id="local-6989586621680440949"><span id="local-6989586621680440951"><span class="annot"><span class="annottext">Int -&gt; PublishDiagnosticsTagsClientCapabilities -&gt; ShowS
+[PublishDiagnosticsTagsClientCapabilities] -&gt; ShowS
+PublishDiagnosticsTagsClientCapabilities -&gt; String
+(Int -&gt; PublishDiagnosticsTagsClientCapabilities -&gt; ShowS)
+-&gt; (PublishDiagnosticsTagsClientCapabilities -&gt; String)
+-&gt; ([PublishDiagnosticsTagsClientCapabilities] -&gt; ShowS)
+-&gt; Show PublishDiagnosticsTagsClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [PublishDiagnosticsTagsClientCapabilities] -&gt; ShowS
+$cshowList :: [PublishDiagnosticsTagsClientCapabilities] -&gt; ShowS
+show :: PublishDiagnosticsTagsClientCapabilities -&gt; String
+$cshow :: PublishDiagnosticsTagsClientCapabilities -&gt; String
+showsPrec :: Int -&gt; PublishDiagnosticsTagsClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; PublishDiagnosticsTagsClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680440939"><span id="local-6989586621680440941"><span id="local-6989586621680440943"><span id="local-6989586621680440945"><span class="annot"><span class="annottext">ReadPrec [PublishDiagnosticsTagsClientCapabilities]
+ReadPrec PublishDiagnosticsTagsClientCapabilities
+Int -&gt; ReadS PublishDiagnosticsTagsClientCapabilities
+ReadS [PublishDiagnosticsTagsClientCapabilities]
+(Int -&gt; ReadS PublishDiagnosticsTagsClientCapabilities)
+-&gt; ReadS [PublishDiagnosticsTagsClientCapabilities]
+-&gt; ReadPrec PublishDiagnosticsTagsClientCapabilities
+-&gt; ReadPrec [PublishDiagnosticsTagsClientCapabilities]
+-&gt; Read PublishDiagnosticsTagsClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [PublishDiagnosticsTagsClientCapabilities]
+$creadListPrec :: ReadPrec [PublishDiagnosticsTagsClientCapabilities]
+readPrec :: ReadPrec PublishDiagnosticsTagsClientCapabilities
+$creadPrec :: ReadPrec PublishDiagnosticsTagsClientCapabilities
+readList :: ReadS [PublishDiagnosticsTagsClientCapabilities]
+$creadList :: ReadS [PublishDiagnosticsTagsClientCapabilities]
+readsPrec :: Int -&gt; ReadS PublishDiagnosticsTagsClientCapabilities
+$creadsPrec :: Int -&gt; ReadS PublishDiagnosticsTagsClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680440935"><span id="local-6989586621680440937"><span class="annot"><span class="annottext">PublishDiagnosticsTagsClientCapabilities
+-&gt; PublishDiagnosticsTagsClientCapabilities -&gt; Bool
+(PublishDiagnosticsTagsClientCapabilities
+ -&gt; PublishDiagnosticsTagsClientCapabilities -&gt; Bool)
+-&gt; (PublishDiagnosticsTagsClientCapabilities
+    -&gt; PublishDiagnosticsTagsClientCapabilities -&gt; Bool)
+-&gt; Eq PublishDiagnosticsTagsClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: PublishDiagnosticsTagsClientCapabilities
+-&gt; PublishDiagnosticsTagsClientCapabilities -&gt; Bool
+$c/= :: PublishDiagnosticsTagsClientCapabilities
+-&gt; PublishDiagnosticsTagsClientCapabilities -&gt; Bool
+== :: PublishDiagnosticsTagsClientCapabilities
+-&gt; PublishDiagnosticsTagsClientCapabilities -&gt; Bool
+$c== :: PublishDiagnosticsTagsClientCapabilities
+-&gt; PublishDiagnosticsTagsClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-103"></span><span>
+</span><span id="line-104"></span><span id="local-6989586621680440923"><span id="local-6989586621680440925"><span id="local-6989586621680440927"><span id="local-6989586621680440929"><span id="local-6989586621680440931"><span id="local-6989586621680440933"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">PublishDiagnosticsTagsClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-105"></span><span>
+</span><span id="line-106"></span><span class="hs-keyword">data</span><span> </span><span id="PublishDiagnosticsClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#PublishDiagnosticsClientCapabilities"><span class="hs-identifier hs-var">PublishDiagnosticsClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-107"></span><span>  </span><span id="PublishDiagnosticsClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#PublishDiagnosticsClientCapabilities"><span class="hs-identifier hs-var">PublishDiagnosticsClientCapabilities</span></a></span></span><span>
+</span><span id="line-108"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Whether the clients accepts diagnostics with related information.</span><span>
+</span><span id="line-109"></span><span>      </span><span id="%24sel%3A_relatedInformation%3APublishDiagnosticsClientCapabilities"><span class="annot"><span class="annottext">PublishDiagnosticsClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Diagnostic.html#%24sel%3A_relatedInformation%3APublishDiagnosticsClientCapabilities"><span class="hs-identifier hs-var hs-var">_relatedInformation</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-110"></span><span>      </span><span class="hs-comment">-- | Client supports the tag property to provide metadata about a</span><span>
+</span><span id="line-111"></span><span>      </span><span class="hs-comment">-- diagnostic.</span><span>
+</span><span id="line-112"></span><span>      </span><span class="hs-comment">--</span><span>
+</span><span id="line-113"></span><span>      </span><span class="hs-comment">-- Clients supporting tags have to handle unknown tags gracefully.</span><span>
+</span><span id="line-114"></span><span>      </span><span class="hs-comment">-- </span><span>
+</span><span id="line-115"></span><span>      </span><span class="hs-comment">-- Since LSP 3.15.0</span><span>
+</span><span id="line-116"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_tagSupport%3APublishDiagnosticsClientCapabilities"><span class="annot"><span class="annottext">PublishDiagnosticsClientCapabilities
+-&gt; Maybe PublishDiagnosticsTagsClientCapabilities
+</span><a href="Language.LSP.Types.Diagnostic.html#%24sel%3A_tagSupport%3APublishDiagnosticsClientCapabilities"><span class="hs-identifier hs-var hs-var">_tagSupport</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#PublishDiagnosticsTagsClientCapabilities"><span class="hs-identifier hs-type">PublishDiagnosticsTagsClientCapabilities</span></a></span><span>
+</span><span id="line-117"></span><span>      </span><span class="hs-comment">-- | Whether the client interprets the version property of the</span><span>
+</span><span id="line-118"></span><span>      </span><span class="hs-comment">-- @textDocument/publishDiagnostics@ notification's parameter.</span><span>
+</span><span id="line-119"></span><span>      </span><span class="hs-comment">-- </span><span>
+</span><span id="line-120"></span><span>      </span><span class="hs-comment">-- Since LSP 3.15.0</span><span>
+</span><span id="line-121"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_versionSupport%3APublishDiagnosticsClientCapabilities"><span class="annot"><span class="annottext">PublishDiagnosticsClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Diagnostic.html#%24sel%3A_versionSupport%3APublishDiagnosticsClientCapabilities"><span class="hs-identifier hs-var hs-var">_versionSupport</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-122"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680440913"><span id="local-6989586621680440915"><span id="local-6989586621680440917"><span class="annot"><span class="annottext">Int -&gt; PublishDiagnosticsClientCapabilities -&gt; ShowS
+[PublishDiagnosticsClientCapabilities] -&gt; ShowS
+PublishDiagnosticsClientCapabilities -&gt; String
+(Int -&gt; PublishDiagnosticsClientCapabilities -&gt; ShowS)
+-&gt; (PublishDiagnosticsClientCapabilities -&gt; String)
+-&gt; ([PublishDiagnosticsClientCapabilities] -&gt; ShowS)
+-&gt; Show PublishDiagnosticsClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [PublishDiagnosticsClientCapabilities] -&gt; ShowS
+$cshowList :: [PublishDiagnosticsClientCapabilities] -&gt; ShowS
+show :: PublishDiagnosticsClientCapabilities -&gt; String
+$cshow :: PublishDiagnosticsClientCapabilities -&gt; String
+showsPrec :: Int -&gt; PublishDiagnosticsClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; PublishDiagnosticsClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680440905"><span id="local-6989586621680440907"><span id="local-6989586621680440909"><span id="local-6989586621680440911"><span class="annot"><span class="annottext">ReadPrec [PublishDiagnosticsClientCapabilities]
+ReadPrec PublishDiagnosticsClientCapabilities
+Int -&gt; ReadS PublishDiagnosticsClientCapabilities
+ReadS [PublishDiagnosticsClientCapabilities]
+(Int -&gt; ReadS PublishDiagnosticsClientCapabilities)
+-&gt; ReadS [PublishDiagnosticsClientCapabilities]
+-&gt; ReadPrec PublishDiagnosticsClientCapabilities
+-&gt; ReadPrec [PublishDiagnosticsClientCapabilities]
+-&gt; Read PublishDiagnosticsClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [PublishDiagnosticsClientCapabilities]
+$creadListPrec :: ReadPrec [PublishDiagnosticsClientCapabilities]
+readPrec :: ReadPrec PublishDiagnosticsClientCapabilities
+$creadPrec :: ReadPrec PublishDiagnosticsClientCapabilities
+readList :: ReadS [PublishDiagnosticsClientCapabilities]
+$creadList :: ReadS [PublishDiagnosticsClientCapabilities]
+readsPrec :: Int -&gt; ReadS PublishDiagnosticsClientCapabilities
+$creadsPrec :: Int -&gt; ReadS PublishDiagnosticsClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680440901"><span id="local-6989586621680440903"><span class="annot"><span class="annottext">PublishDiagnosticsClientCapabilities
+-&gt; PublishDiagnosticsClientCapabilities -&gt; Bool
+(PublishDiagnosticsClientCapabilities
+ -&gt; PublishDiagnosticsClientCapabilities -&gt; Bool)
+-&gt; (PublishDiagnosticsClientCapabilities
+    -&gt; PublishDiagnosticsClientCapabilities -&gt; Bool)
+-&gt; Eq PublishDiagnosticsClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: PublishDiagnosticsClientCapabilities
+-&gt; PublishDiagnosticsClientCapabilities -&gt; Bool
+$c/= :: PublishDiagnosticsClientCapabilities
+-&gt; PublishDiagnosticsClientCapabilities -&gt; Bool
+== :: PublishDiagnosticsClientCapabilities
+-&gt; PublishDiagnosticsClientCapabilities -&gt; Bool
+$c== :: PublishDiagnosticsClientCapabilities
+-&gt; PublishDiagnosticsClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-123"></span><span>
+</span><span id="line-124"></span><span id="local-6989586621680440889"><span id="local-6989586621680440891"><span id="local-6989586621680440893"><span id="local-6989586621680440895"><span id="local-6989586621680440897"><span id="local-6989586621680440899"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">PublishDiagnosticsClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-125"></span><span>
+</span><span id="line-126"></span><span class="hs-keyword">data</span><span> </span><span id="PublishDiagnosticsParams"><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#PublishDiagnosticsParams"><span class="hs-identifier hs-var">PublishDiagnosticsParams</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-127"></span><span>  </span><span id="PublishDiagnosticsParams"><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#PublishDiagnosticsParams"><span class="hs-identifier hs-var">PublishDiagnosticsParams</span></a></span></span><span>
+</span><span id="line-128"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The URI for which diagnostic information is reported.</span><span>
+</span><span id="line-129"></span><span>      </span><span id="%24sel%3A_uri%3APublishDiagnosticsParams"><span class="annot"><span class="annottext">PublishDiagnosticsParams -&gt; Uri
+</span><a href="Language.LSP.Types.Diagnostic.html#%24sel%3A_uri%3APublishDiagnosticsParams"><span class="hs-identifier hs-var hs-var">_uri</span></a></span></span><span>         </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Uri.html#Uri"><span class="hs-identifier hs-type">Uri</span></a></span><span>
+</span><span id="line-130"></span><span>      </span><span class="hs-comment">-- | Optional the version number of the document the diagnostics are</span><span>
+</span><span id="line-131"></span><span>      </span><span class="hs-comment">-- published for.</span><span>
+</span><span id="line-132"></span><span>      </span><span class="hs-comment">-- </span><span>
+</span><span id="line-133"></span><span>      </span><span class="hs-comment">-- Since LSP 3.15.0</span><span>
+</span><span id="line-134"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_version%3APublishDiagnosticsParams"><span class="annot"><span class="annottext">PublishDiagnosticsParams -&gt; Maybe Int
+</span><a href="Language.LSP.Types.Diagnostic.html#%24sel%3A_version%3APublishDiagnosticsParams"><span class="hs-identifier hs-var hs-var">_version</span></a></span></span><span>     </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-135"></span><span>      </span><span class="hs-comment">-- | An array of diagnostic information items.</span><span>
+</span><span id="line-136"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_diagnostics%3APublishDiagnosticsParams"><span class="annot"><span class="annottext">PublishDiagnosticsParams -&gt; List Diagnostic
+</span><a href="Language.LSP.Types.Diagnostic.html#%24sel%3A_diagnostics%3APublishDiagnosticsParams"><span class="hs-identifier hs-var hs-var">_diagnostics</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#Diagnostic"><span class="hs-identifier hs-type">Diagnostic</span></a></span><span>
+</span><span id="line-137"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680440877"><span id="local-6989586621680440879"><span id="local-6989586621680440881"><span id="local-6989586621680440883"><span class="annot"><span class="annottext">ReadPrec [PublishDiagnosticsParams]
+ReadPrec PublishDiagnosticsParams
+Int -&gt; ReadS PublishDiagnosticsParams
+ReadS [PublishDiagnosticsParams]
+(Int -&gt; ReadS PublishDiagnosticsParams)
+-&gt; ReadS [PublishDiagnosticsParams]
+-&gt; ReadPrec PublishDiagnosticsParams
+-&gt; ReadPrec [PublishDiagnosticsParams]
+-&gt; Read PublishDiagnosticsParams
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [PublishDiagnosticsParams]
+$creadListPrec :: ReadPrec [PublishDiagnosticsParams]
+readPrec :: ReadPrec PublishDiagnosticsParams
+$creadPrec :: ReadPrec PublishDiagnosticsParams
+readList :: ReadS [PublishDiagnosticsParams]
+$creadList :: ReadS [PublishDiagnosticsParams]
+readsPrec :: Int -&gt; ReadS PublishDiagnosticsParams
+$creadsPrec :: Int -&gt; ReadS PublishDiagnosticsParams
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680440871"><span id="local-6989586621680440873"><span id="local-6989586621680440875"><span class="annot"><span class="annottext">Int -&gt; PublishDiagnosticsParams -&gt; ShowS
+[PublishDiagnosticsParams] -&gt; ShowS
+PublishDiagnosticsParams -&gt; String
+(Int -&gt; PublishDiagnosticsParams -&gt; ShowS)
+-&gt; (PublishDiagnosticsParams -&gt; String)
+-&gt; ([PublishDiagnosticsParams] -&gt; ShowS)
+-&gt; Show PublishDiagnosticsParams
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [PublishDiagnosticsParams] -&gt; ShowS
+$cshowList :: [PublishDiagnosticsParams] -&gt; ShowS
+show :: PublishDiagnosticsParams -&gt; String
+$cshow :: PublishDiagnosticsParams -&gt; String
+showsPrec :: Int -&gt; PublishDiagnosticsParams -&gt; ShowS
+$cshowsPrec :: Int -&gt; PublishDiagnosticsParams -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680440867"><span id="local-6989586621680440869"><span class="annot"><span class="annottext">PublishDiagnosticsParams -&gt; PublishDiagnosticsParams -&gt; Bool
+(PublishDiagnosticsParams -&gt; PublishDiagnosticsParams -&gt; Bool)
+-&gt; (PublishDiagnosticsParams -&gt; PublishDiagnosticsParams -&gt; Bool)
+-&gt; Eq PublishDiagnosticsParams
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: PublishDiagnosticsParams -&gt; PublishDiagnosticsParams -&gt; Bool
+$c/= :: PublishDiagnosticsParams -&gt; PublishDiagnosticsParams -&gt; Bool
+== :: PublishDiagnosticsParams -&gt; PublishDiagnosticsParams -&gt; Bool
+$c== :: PublishDiagnosticsParams -&gt; PublishDiagnosticsParams -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-138"></span><span>
+</span><span id="line-139"></span><span id="local-6989586621680440855"><span id="local-6989586621680440857"><span id="local-6989586621680440859"><span id="local-6989586621680440861"><span id="local-6989586621680440863"><span id="local-6989586621680440865"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">PublishDiagnosticsParams</span></span></span></span></span></span></span><span>
+</span><span id="line-140"></span></pre></body></html>

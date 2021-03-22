@@ -1,0 +1,59 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- Cyclic dependencies mean we have to put poor StaticRegistrationOptions on its own</span><span>
+</span><span id="line-3"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.StaticRegistrationOptions</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">data</span><span> </span><span id="StaticRegistrationOptions"><span class="annot"><a href="Language.LSP.Types.StaticRegistrationOptions.html#StaticRegistrationOptions"><span class="hs-identifier hs-var">StaticRegistrationOptions</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-10"></span><span>  </span><span id="StaticRegistrationOptions"><span class="annot"><a href="Language.LSP.Types.StaticRegistrationOptions.html#StaticRegistrationOptions"><span class="hs-identifier hs-var">StaticRegistrationOptions</span></a></span></span><span>
+</span><span id="line-11"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="_id"><span class="annot"><span class="annottext">StaticRegistrationOptions -&gt; Maybe Text
+</span><a href="Language.LSP.Types.StaticRegistrationOptions.html#_id"><span class="hs-identifier hs-var hs-var">_id</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-12"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680435228"><span id="local-6989586621680435230"><span id="local-6989586621680435232"><span id="local-6989586621680435234"><span class="annot"><span class="annottext">ReadPrec [StaticRegistrationOptions]
+ReadPrec StaticRegistrationOptions
+Int -&gt; ReadS StaticRegistrationOptions
+ReadS [StaticRegistrationOptions]
+(Int -&gt; ReadS StaticRegistrationOptions)
+-&gt; ReadS [StaticRegistrationOptions]
+-&gt; ReadPrec StaticRegistrationOptions
+-&gt; ReadPrec [StaticRegistrationOptions]
+-&gt; Read StaticRegistrationOptions
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [StaticRegistrationOptions]
+$creadListPrec :: ReadPrec [StaticRegistrationOptions]
+readPrec :: ReadPrec StaticRegistrationOptions
+$creadPrec :: ReadPrec StaticRegistrationOptions
+readList :: ReadS [StaticRegistrationOptions]
+$creadList :: ReadS [StaticRegistrationOptions]
+readsPrec :: Int -&gt; ReadS StaticRegistrationOptions
+$creadsPrec :: Int -&gt; ReadS StaticRegistrationOptions
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680435221"><span id="local-6989586621680435223"><span id="local-6989586621680435225"><span class="annot"><span class="annottext">Int -&gt; StaticRegistrationOptions -&gt; ShowS
+[StaticRegistrationOptions] -&gt; ShowS
+StaticRegistrationOptions -&gt; String
+(Int -&gt; StaticRegistrationOptions -&gt; ShowS)
+-&gt; (StaticRegistrationOptions -&gt; String)
+-&gt; ([StaticRegistrationOptions] -&gt; ShowS)
+-&gt; Show StaticRegistrationOptions
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [StaticRegistrationOptions] -&gt; ShowS
+$cshowList :: [StaticRegistrationOptions] -&gt; ShowS
+show :: StaticRegistrationOptions -&gt; String
+$cshow :: StaticRegistrationOptions -&gt; String
+showsPrec :: Int -&gt; StaticRegistrationOptions -&gt; ShowS
+$cshowsPrec :: Int -&gt; StaticRegistrationOptions -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680435216"><span id="local-6989586621680435218"><span class="annot"><span class="annottext">StaticRegistrationOptions -&gt; StaticRegistrationOptions -&gt; Bool
+(StaticRegistrationOptions -&gt; StaticRegistrationOptions -&gt; Bool)
+-&gt; (StaticRegistrationOptions -&gt; StaticRegistrationOptions -&gt; Bool)
+-&gt; Eq StaticRegistrationOptions
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: StaticRegistrationOptions -&gt; StaticRegistrationOptions -&gt; Bool
+$c/= :: StaticRegistrationOptions -&gt; StaticRegistrationOptions -&gt; Bool
+== :: StaticRegistrationOptions -&gt; StaticRegistrationOptions -&gt; Bool
+$c== :: StaticRegistrationOptions -&gt; StaticRegistrationOptions -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-13"></span><span id="local-6989586621680435203"><span id="local-6989586621680435205"><span id="local-6989586621680435207"><span id="local-6989586621680435209"><span id="local-6989586621680435211"><span id="local-6989586621680435213"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">StaticRegistrationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-14"></span></pre></body></html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.TypeDefinition</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Progress.html"><span class="hs-identifier">Language.LSP.Types.Progress</span></a></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.StaticRegistrationOptions.html"><span class="hs-identifier">Language.LSP.Types.StaticRegistrationOptions</span></a></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.TextDocument.html"><span class="hs-identifier">Language.LSP.Types.TextDocument</span></a></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">data</span><span> </span><span id="TypeDefinitionClientCapabilities"><span class="annot"><a href="Language.LSP.Types.TypeDefinition.html#TypeDefinitionClientCapabilities"><span class="hs-identifier hs-var">TypeDefinitionClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="TypeDefinitionClientCapabilities"><span class="annot"><a href="Language.LSP.Types.TypeDefinition.html#TypeDefinitionClientCapabilities"><span class="hs-identifier hs-var">TypeDefinitionClientCapabilities</span></a></span></span><span>
+</span><span id="line-13"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Whether implementation supports dynamic registration. If this is set</span><span>
+</span><span id="line-14"></span><span>    </span><span class="hs-comment">-- to 'True'</span><span>
+</span><span id="line-15"></span><span>    </span><span class="hs-comment">-- the client supports the new 'TypeDefinitionRegistrationOptions' return</span><span>
+</span><span id="line-16"></span><span>    </span><span class="hs-comment">-- value for the corresponding server capability as well.</span><span>
+</span><span id="line-17"></span><span>    </span><span id="%24sel%3A_dynamicRegistration%3ATypeDefinitionClientCapabilities"><span class="annot"><span class="annottext">TypeDefinitionClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.TypeDefinition.html#%24sel%3A_dynamicRegistration%3ATypeDefinitionClientCapabilities"><span class="hs-identifier hs-var hs-var">_dynamicRegistration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>    </span><span class="hs-comment">-- | The client supports additional metadata in the form of definition links.</span><span>
+</span><span id="line-19"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-20"></span><span>    </span><span class="hs-comment">-- Since LSP 3.14.0</span><span>
+</span><span id="line-21"></span><span>    </span><span id="%24sel%3A_linkSupport%3ATypeDefinitionClientCapabilities"><span class="annot"><span class="annottext">TypeDefinitionClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.TypeDefinition.html#%24sel%3A_linkSupport%3ATypeDefinitionClientCapabilities"><span class="hs-identifier hs-var hs-var">_linkSupport</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680437759"><span id="local-6989586621680437761"><span id="local-6989586621680437763"><span id="local-6989586621680437765"><span class="annot"><span class="annottext">ReadPrec [TypeDefinitionClientCapabilities]
+ReadPrec TypeDefinitionClientCapabilities
+Int -&gt; ReadS TypeDefinitionClientCapabilities
+ReadS [TypeDefinitionClientCapabilities]
+(Int -&gt; ReadS TypeDefinitionClientCapabilities)
+-&gt; ReadS [TypeDefinitionClientCapabilities]
+-&gt; ReadPrec TypeDefinitionClientCapabilities
+-&gt; ReadPrec [TypeDefinitionClientCapabilities]
+-&gt; Read TypeDefinitionClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [TypeDefinitionClientCapabilities]
+$creadListPrec :: ReadPrec [TypeDefinitionClientCapabilities]
+readPrec :: ReadPrec TypeDefinitionClientCapabilities
+$creadPrec :: ReadPrec TypeDefinitionClientCapabilities
+readList :: ReadS [TypeDefinitionClientCapabilities]
+$creadList :: ReadS [TypeDefinitionClientCapabilities]
+readsPrec :: Int -&gt; ReadS TypeDefinitionClientCapabilities
+$creadsPrec :: Int -&gt; ReadS TypeDefinitionClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680437752"><span id="local-6989586621680437754"><span id="local-6989586621680437756"><span class="annot"><span class="annottext">Int -&gt; TypeDefinitionClientCapabilities -&gt; ShowS
+[TypeDefinitionClientCapabilities] -&gt; ShowS
+TypeDefinitionClientCapabilities -&gt; String
+(Int -&gt; TypeDefinitionClientCapabilities -&gt; ShowS)
+-&gt; (TypeDefinitionClientCapabilities -&gt; String)
+-&gt; ([TypeDefinitionClientCapabilities] -&gt; ShowS)
+-&gt; Show TypeDefinitionClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [TypeDefinitionClientCapabilities] -&gt; ShowS
+$cshowList :: [TypeDefinitionClientCapabilities] -&gt; ShowS
+show :: TypeDefinitionClientCapabilities -&gt; String
+$cshow :: TypeDefinitionClientCapabilities -&gt; String
+showsPrec :: Int -&gt; TypeDefinitionClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; TypeDefinitionClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680437747"><span id="local-6989586621680437749"><span class="annot"><span class="annottext">TypeDefinitionClientCapabilities
+-&gt; TypeDefinitionClientCapabilities -&gt; Bool
+(TypeDefinitionClientCapabilities
+ -&gt; TypeDefinitionClientCapabilities -&gt; Bool)
+-&gt; (TypeDefinitionClientCapabilities
+    -&gt; TypeDefinitionClientCapabilities -&gt; Bool)
+-&gt; Eq TypeDefinitionClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: TypeDefinitionClientCapabilities
+-&gt; TypeDefinitionClientCapabilities -&gt; Bool
+$c/= :: TypeDefinitionClientCapabilities
+-&gt; TypeDefinitionClientCapabilities -&gt; Bool
+== :: TypeDefinitionClientCapabilities
+-&gt; TypeDefinitionClientCapabilities -&gt; Bool
+$c== :: TypeDefinitionClientCapabilities
+-&gt; TypeDefinitionClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span id="local-6989586621680437734"><span id="local-6989586621680437736"><span id="local-6989586621680437738"><span id="local-6989586621680437740"><span id="local-6989586621680437742"><span id="local-6989586621680437744"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TypeDefinitionClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span id="%24sel%3A_workDoneProgress%3ATypeDefinitionOptions"><span id="TypeDefinitionOptions"><span id="local-6989586621680437711"><span id="local-6989586621680437713"><span id="local-6989586621680437715"><span id="local-6989586621680437717"><span id="local-6989586621680437719"><span id="local-6989586621680437721"><span id="local-6989586621680437723"><span id="local-6989586621680437725"><span id="local-6989586621680437727"><span id="TypeDefinitionOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;TypeDefinitionOptions&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressOptions</span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-28"></span><span id="local-6989586621680437697"><span id="local-6989586621680437699"><span id="local-6989586621680437701"><span id="local-6989586621680437703"><span id="local-6989586621680437705"><span id="local-6989586621680437707"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TypeDefinitionOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span id="%24sel%3A_id%3ATypeDefinitionRegistrationOptions"><span id="%24sel%3A_workDoneProgress%3ATypeDefinitionRegistrationOptions"><span id="%24sel%3A_documentSelector%3ATypeDefinitionRegistrationOptions"><span id="TypeDefinitionRegistrationOptions"><span id="local-6989586621680437679"><span id="local-6989586621680437681"><span id="local-6989586621680437683"><span id="local-6989586621680437685"><span id="local-6989586621680437687"><span id="local-6989586621680437689"><span id="local-6989586621680437691"><span id="local-6989586621680437693"><span id="local-6989586621680437695"><span id="TypeDefinitionRegistrationOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;TypeDefinitionRegistrationOptions&quot;</span><span>
+</span><span id="line-31"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentRegistrationOptions</span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TypeDefinitionOptions</span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">StaticRegistrationOptions</span><span>
+</span><span id="line-34"></span><span>  </span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-35"></span><span id="local-6989586621680437663"><span id="local-6989586621680437665"><span id="local-6989586621680437667"><span id="local-6989586621680437669"><span id="local-6989586621680437671"><span id="local-6989586621680437673"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TypeDefinitionRegistrationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span id="%24sel%3A_partialResultToken%3ATypeDefinitionParams"><span id="%24sel%3A_workDoneToken%3ATypeDefinitionParams"><span id="%24sel%3A_position%3ATypeDefinitionParams"><span id="%24sel%3A_textDocument%3ATypeDefinitionParams"><span id="TypeDefinitionParams"><span id="local-6989586621680437645"><span id="local-6989586621680437647"><span id="local-6989586621680437649"><span id="local-6989586621680437651"><span id="local-6989586621680437653"><span id="local-6989586621680437655"><span id="local-6989586621680437657"><span id="local-6989586621680437659"><span id="local-6989586621680437661"><span id="TypeDefinitionParams"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;TypeDefinitionParams&quot;</span><span>
+</span><span id="line-38"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentPositionParams</span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressParams</span><span>
+</span><span id="line-40"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">PartialResultParams</span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-42"></span><span id="local-6989586621680437628"><span id="local-6989586621680437630"><span id="local-6989586621680437632"><span id="local-6989586621680437634"><span id="local-6989586621680437636"><span id="local-6989586621680437638"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TypeDefinitionParams</span></span></span></span></span></span></span><span>
+</span><span id="line-43"></span></pre></body></html>

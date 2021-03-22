@@ -1,0 +1,62 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE MagicHash #-}</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# OPTIONS_HADDOCK hide #-}</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- | Really unsafe pointer equality</span><span>
+</span><span id="line-6"></span><span class="hs-comment">--</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- = WARNING</span><span>
+</span><span id="line-8"></span><span class="hs-comment">--</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- This module is considered __internal__.</span><span>
+</span><span id="line-10"></span><span class="hs-comment">--</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- The Package Versioning Policy __does not apply__.</span><span>
+</span><span id="line-12"></span><span class="hs-comment">--</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- The contents of this module may change __in any way whatsoever__</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- and __without any warning__ between minor versions of this package.</span><span>
+</span><span id="line-15"></span><span class="hs-comment">--</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- Authors importing this module are expected to track development</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- closely.</span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.Dependent.Map.PtrEquality</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Dependent.Map.PtrEquality.html#ptrEq"><span class="hs-identifier">ptrEq</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Dependent.Map.PtrEquality.html#hetPtrEq"><span class="hs-identifier">hetPtrEq</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Unsafe.Coerce</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">unsafeCoerce</span></span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Exts</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">isTrue#</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">reallyUnsafePtrEquality#</span></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-comment">-- | Checks if two pointers are equal. Yes means yes;</span><span>
+</span><span id="line-26"></span><span class="hs-comment">-- no means maybe. The values should be forced to at least</span><span>
+</span><span id="line-27"></span><span class="hs-comment">-- WHNF before comparison to get moderately reliable results.</span><span>
+</span><span id="line-28"></span><span id="local-6989586621679050866"><span class="annot"><a href="Data.Dependent.Map.PtrEquality.html#ptrEq"><span class="hs-identifier hs-type">ptrEq</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679050866"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050866"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span></span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="hs-comment">-- | Checks if two pointers are equal, without requiring</span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- them to have the same type. The values should be forced</span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- to at least WHNF before comparison to get moderately</span><span>
+</span><span id="line-33"></span><span class="hs-comment">-- reliable results.</span><span>
+</span><span id="line-34"></span><span id="local-6989586621679050864"><span id="local-6989586621679050865"><span class="annot"><a href="Data.Dependent.Map.PtrEquality.html#hetPtrEq"><span class="hs-identifier hs-type">hetPtrEq</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679050865"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050864"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span></span></span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span id="ptrEq"><span class="annot"><span class="annottext">ptrEq :: a -&gt; a -&gt; Bool
+</span><a href="Data.Dependent.Map.PtrEquality.html#ptrEq"><span class="hs-identifier hs-var hs-var">ptrEq</span></a></span></span><span> </span><span id="local-6989586621679050863"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050863"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679050862"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050862"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int# -&gt; Bool
+</span><span class="hs-identifier hs-var">isTrue#</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; a -&gt; Int#
+forall a. a -&gt; a -&gt; Int#
+</span><span class="hs-identifier hs-var">reallyUnsafePtrEquality#</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050863"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050862"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-37"></span><span id="hetPtrEq"><span class="annot"><span class="annottext">hetPtrEq :: a -&gt; b -&gt; Bool
+</span><a href="Data.Dependent.Map.PtrEquality.html#hetPtrEq"><span class="hs-identifier hs-var hs-var">hetPtrEq</span></a></span></span><span> </span><span id="local-6989586621679050861"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050861"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679050860"><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679050860"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int# -&gt; Bool
+</span><span class="hs-identifier hs-var">isTrue#</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Any -&gt; Any -&gt; Int#) -&gt; a -&gt; b -&gt; Int#
+forall a b. a -&gt; b
+</span><span class="hs-identifier hs-var">unsafeCoerce</span></span><span> </span><span class="annot"><span class="annottext">Any -&gt; Any -&gt; Int#
+forall a. a -&gt; a -&gt; Int#
+</span><span class="hs-identifier hs-var">reallyUnsafePtrEquality#</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050861"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679050860"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Data.Dependent.Map.PtrEquality.html#ptrEq"><span class="hs-pragma hs-type">ptrEq</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-40"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Data.Dependent.Map.PtrEquality.html#hetPtrEq"><span class="hs-pragma hs-type">hetPtrEq</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span class="hs-keyword">infix</span><span> </span><span class="hs-number">4</span><span> </span><span class="annot"><a href="Data.Dependent.Map.PtrEquality.html#ptrEq"><span class="hs-operator hs-type">`ptrEq`</span></a></span><span>
+</span><span id="line-43"></span><span class="hs-keyword">infix</span><span> </span><span class="hs-number">4</span><span> </span><span class="annot"><a href="Data.Dependent.Map.PtrEquality.html#hetPtrEq"><span class="hs-operator hs-type">`hetPtrEq`</span></a></span><span>
+</span><span id="line-44"></span></pre></body></html>

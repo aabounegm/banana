@@ -1,0 +1,370 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="%24maxtag_4Q3vzWJGGClESLpKW16eQb"><span id="%24tag2con_4Q3vzWJGGClESLpKW16eQb"><span id="%24con2tag_4Q3vzWJGGClESLpKW16eQb"></span></span></span><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveDataTypeable #-}</span><span class="hs-cpp">
+
+#if __GLASGOW_HASKELL__ &gt;= 702
+</span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric #-}</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-8"></span><span class="hs-comment">{- |
+   Module     : System.Log
+   Copyright  : Copyright (C) 2004-2011 John Goerzen
+   License    : BSD3
+
+   Portability: portable
+
+Haskell Logging Framework
+
+Written by John Goerzen, jgoerzen\@complete.org
+
+This module defines basic types used for logging.
+
+Extensive documentation is available in
+&quot;System.Log.Logger&quot;.
+
+-}</span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">System.Log</span><span class="hs-special">(</span><span class="annot"><span class="hs-comment">-- * Types</span></span><span>
+</span><span id="line-29"></span><span>                        </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier">Priority</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-30"></span><span>                        </span><span class="annot"><a href="System.Log.html#LogRecord"><span class="hs-identifier">LogRecord</span></a></span><span>
+</span><span id="line-31"></span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span>    </span><span class="hs-keyword">where</span><span>
+</span><span id="line-34"></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.DeepSeq</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">NFData</span></span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">rnf</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Data</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Data</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">Typeable</span></span><span class="hs-special">)</span><span class="hs-cpp">
+#if __GLASGOW_HASKELL__ &gt;= 702
+</span><span class="hs-keyword">import</span><span>  </span><span class="annot"><span class="hs-identifier">GHC.Generics</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Generic</span></span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-41"></span><span class="hs-comment">{- | Priorities are used to define how important a log message is.
+Users can filter log messages based on priorities.
+
+These have their roots on the traditional syslog system.  The standard
+definitions are given below, but you are free to interpret them however you
+like.  They are listed here in ascending importance order.
+-}</span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span id="local-6989586621679050120"><span id="local-6989586621679050121"></span></span><span class="hs-keyword">data</span><span> </span><span id="Priority"><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-var">Priority</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-50"></span><span>            </span><span id="DEBUG"><span class="annot"><a href="System.Log.html#DEBUG"><span class="hs-identifier hs-var">DEBUG</span></a></span></span><span>                   </span><span class="hs-comment">-- ^ Debug messages</span><span>
+</span><span id="line-51"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="INFO"><span class="annot"><a href="System.Log.html#INFO"><span class="hs-identifier hs-var">INFO</span></a></span></span><span>                    </span><span class="hs-comment">-- ^ Information</span><span>
+</span><span id="line-52"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="NOTICE"><span class="annot"><a href="System.Log.html#NOTICE"><span class="hs-identifier hs-var">NOTICE</span></a></span></span><span>                  </span><span class="hs-comment">-- ^ Normal runtime conditions</span><span>
+</span><span id="line-53"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="WARNING"><span class="annot"><a href="System.Log.html#WARNING"><span class="hs-identifier hs-var">WARNING</span></a></span></span><span>                 </span><span class="hs-comment">-- ^ General Warnings</span><span>
+</span><span id="line-54"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="ERROR"><span class="annot"><a href="System.Log.html#ERROR"><span class="hs-identifier hs-var">ERROR</span></a></span></span><span>                   </span><span class="hs-comment">-- ^ General Errors</span><span>
+</span><span id="line-55"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="CRITICAL"><span class="annot"><a href="System.Log.html#CRITICAL"><span class="hs-identifier hs-var">CRITICAL</span></a></span></span><span>                </span><span class="hs-comment">-- ^ Severe situations</span><span>
+</span><span id="line-56"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="ALERT"><span class="annot"><a href="System.Log.html#ALERT"><span class="hs-identifier hs-var">ALERT</span></a></span></span><span>                   </span><span class="hs-comment">-- ^ Take immediate action</span><span>
+</span><span id="line-57"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="EMERGENCY"><span class="annot"><a href="System.Log.html#EMERGENCY"><span class="hs-identifier hs-var">EMERGENCY</span></a></span></span><span>               </span><span class="hs-comment">-- ^ System is unusable</span><span class="hs-cpp">
+#if __GLASGOW_HASKELL__ &gt;= 702
+</span><span>          </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679050108"><span id="local-6989586621679050110"><span class="annot"><span class="annottext">Priority -&gt; Priority -&gt; Bool
+(Priority -&gt; Priority -&gt; Bool)
+-&gt; (Priority -&gt; Priority -&gt; Bool) -&gt; Eq Priority
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Priority -&gt; Priority -&gt; Bool
+$c/= :: Priority -&gt; Priority -&gt; Bool
+== :: Priority -&gt; Priority -&gt; Bool
+$c== :: Priority -&gt; Priority -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679050092"><span id="local-6989586621679050094"><span id="local-6989586621679050096"><span id="local-6989586621679050098"><span id="local-6989586621679050100"><span id="local-6989586621679050102"><span id="local-6989586621679050104"><span class="annot"><span class="annottext">Eq Priority
+Eq Priority
+-&gt; (Priority -&gt; Priority -&gt; Ordering)
+-&gt; (Priority -&gt; Priority -&gt; Bool)
+-&gt; (Priority -&gt; Priority -&gt; Bool)
+-&gt; (Priority -&gt; Priority -&gt; Bool)
+-&gt; (Priority -&gt; Priority -&gt; Bool)
+-&gt; (Priority -&gt; Priority -&gt; Priority)
+-&gt; (Priority -&gt; Priority -&gt; Priority)
+-&gt; Ord Priority
+Priority -&gt; Priority -&gt; Bool
+Priority -&gt; Priority -&gt; Ordering
+Priority -&gt; Priority -&gt; Priority
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: Priority -&gt; Priority -&gt; Priority
+$cmin :: Priority -&gt; Priority -&gt; Priority
+max :: Priority -&gt; Priority -&gt; Priority
+$cmax :: Priority -&gt; Priority -&gt; Priority
+&gt;= :: Priority -&gt; Priority -&gt; Bool
+$c&gt;= :: Priority -&gt; Priority -&gt; Bool
+&gt; :: Priority -&gt; Priority -&gt; Bool
+$c&gt; :: Priority -&gt; Priority -&gt; Bool
+&lt;= :: Priority -&gt; Priority -&gt; Bool
+$c&lt;= :: Priority -&gt; Priority -&gt; Bool
+&lt; :: Priority -&gt; Priority -&gt; Bool
+$c&lt; :: Priority -&gt; Priority -&gt; Bool
+compare :: Priority -&gt; Priority -&gt; Ordering
+$ccompare :: Priority -&gt; Priority -&gt; Ordering
+$cp1Ord :: Eq Priority
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679050075"><span id="local-6989586621679050077"><span id="local-6989586621679050079"><span id="local-6989586621679050081"><span id="local-6989586621679050083"><span id="local-6989586621679050085"><span id="local-6989586621679050087"><span id="local-6989586621679050089"><span class="annot"><span class="annottext">Int -&gt; Priority
+Priority -&gt; Int
+Priority -&gt; [Priority]
+Priority -&gt; Priority
+Priority -&gt; Priority -&gt; [Priority]
+Priority -&gt; Priority -&gt; Priority -&gt; [Priority]
+(Priority -&gt; Priority)
+-&gt; (Priority -&gt; Priority)
+-&gt; (Int -&gt; Priority)
+-&gt; (Priority -&gt; Int)
+-&gt; (Priority -&gt; [Priority])
+-&gt; (Priority -&gt; Priority -&gt; [Priority])
+-&gt; (Priority -&gt; Priority -&gt; [Priority])
+-&gt; (Priority -&gt; Priority -&gt; Priority -&gt; [Priority])
+-&gt; Enum Priority
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+enumFromThenTo :: Priority -&gt; Priority -&gt; Priority -&gt; [Priority]
+$cenumFromThenTo :: Priority -&gt; Priority -&gt; Priority -&gt; [Priority]
+enumFromTo :: Priority -&gt; Priority -&gt; [Priority]
+$cenumFromTo :: Priority -&gt; Priority -&gt; [Priority]
+enumFromThen :: Priority -&gt; Priority -&gt; [Priority]
+$cenumFromThen :: Priority -&gt; Priority -&gt; [Priority]
+enumFrom :: Priority -&gt; [Priority]
+$cenumFrom :: Priority -&gt; [Priority]
+fromEnum :: Priority -&gt; Int
+$cfromEnum :: Priority -&gt; Int
+toEnum :: Int -&gt; Priority
+$ctoEnum :: Int -&gt; Priority
+pred :: Priority -&gt; Priority
+$cpred :: Priority -&gt; Priority
+succ :: Priority -&gt; Priority
+$csucc :: Priority -&gt; Priority
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Enum</span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679050070"><span id="local-6989586621679050072"><span class="annot"><span class="annottext">Priority
+Priority -&gt; Priority -&gt; Bounded Priority
+forall a. a -&gt; a -&gt; Bounded a
+maxBound :: Priority
+$cmaxBound :: Priority
+minBound :: Priority
+$cminBound :: Priority
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Bounded</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679050063"><span id="local-6989586621679050065"><span id="local-6989586621679050067"><span class="annot"><span class="annottext">Int -&gt; Priority -&gt; ShowS
+[Priority] -&gt; ShowS
+Priority -&gt; String
+(Int -&gt; Priority -&gt; ShowS)
+-&gt; (Priority -&gt; String) -&gt; ([Priority] -&gt; ShowS) -&gt; Show Priority
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Priority] -&gt; ShowS
+$cshowList :: [Priority] -&gt; ShowS
+show :: Priority -&gt; String
+$cshow :: Priority -&gt; String
+showsPrec :: Int -&gt; Priority -&gt; ShowS
+$cshowsPrec :: Int -&gt; Priority -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679050054"><span id="local-6989586621679050056"><span id="local-6989586621679050058"><span id="local-6989586621679050060"><span class="annot"><span class="annottext">ReadPrec [Priority]
+ReadPrec Priority
+Int -&gt; ReadS Priority
+ReadS [Priority]
+(Int -&gt; ReadS Priority)
+-&gt; ReadS [Priority]
+-&gt; ReadPrec Priority
+-&gt; ReadPrec [Priority]
+-&gt; Read Priority
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [Priority]
+$creadListPrec :: ReadPrec [Priority]
+readPrec :: ReadPrec Priority
+$creadPrec :: ReadPrec Priority
+readList :: ReadS [Priority]
+$creadList :: ReadS [Priority]
+readsPrec :: Int -&gt; ReadS Priority
+$creadsPrec :: Int -&gt; ReadS Priority
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="%24cEMERGENCY"><span id="%24cALERT"><span id="%24cCRITICAL"><span id="%24cERROR"><span id="%24cWARNING"><span id="%24cNOTICE"><span id="%24cINFO"><span id="%24cDEBUG"><span id="%24tPriority"><span id="local-6989586621679050024"><span id="local-6989586621679050026"><span id="local-6989586621679050028"><span id="local-6989586621679050030"><span id="local-6989586621679050032"><span id="local-6989586621679050034"><span id="local-6989586621679050036"><span id="local-6989586621679050038"><span id="local-6989586621679050040"><span id="local-6989586621679050042"><span id="local-6989586621679050044"><span id="local-6989586621679050046"><span id="local-6989586621679050048"><span id="local-6989586621679050050"><span class="annot"><span class="annottext">Typeable Priority
+DataType
+Constr
+Typeable Priority
+-&gt; (forall (c :: * -&gt; *).
+    (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+    -&gt; (forall g. g -&gt; c g) -&gt; Priority -&gt; c Priority)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Priority)
+-&gt; (Priority -&gt; Constr)
+-&gt; (Priority -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Priority))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Priority))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; Priority -&gt; Priority)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Priority -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Priority -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; Priority -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Priority -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; Priority -&gt; m Priority)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; Priority -&gt; m Priority)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; Priority -&gt; m Priority)
+-&gt; Data Priority
+Priority -&gt; DataType
+Priority -&gt; Constr
+(forall b. Data b =&gt; b -&gt; b) -&gt; Priority -&gt; Priority
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Priority -&gt; c Priority
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Priority
+forall a.
+Typeable a
+-&gt; (forall (c :: * -&gt; *).
+    (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+    -&gt; (forall g. g -&gt; c g) -&gt; a -&gt; c a)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c a)
+-&gt; (a -&gt; Constr)
+-&gt; (a -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c a))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c a))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; a -&gt; a)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; Data a
+forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Priority -&gt; u
+forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; Priority -&gt; [u]
+forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Priority -&gt; r
+forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Priority -&gt; r
+forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Priority -&gt; m Priority
+forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Priority -&gt; m Priority
+forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Priority
+forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Priority -&gt; c Priority
+forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Priority)
+forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Priority)
+$cEMERGENCY :: Constr
+$cALERT :: Constr
+$cCRITICAL :: Constr
+$cERROR :: Constr
+$cWARNING :: Constr
+$cNOTICE :: Constr
+$cINFO :: Constr
+$cDEBUG :: Constr
+$tPriority :: DataType
+gmapMo :: (forall d. Data d =&gt; d -&gt; m d) -&gt; Priority -&gt; m Priority
+$cgmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Priority -&gt; m Priority
+gmapMp :: (forall d. Data d =&gt; d -&gt; m d) -&gt; Priority -&gt; m Priority
+$cgmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Priority -&gt; m Priority
+gmapM :: (forall d. Data d =&gt; d -&gt; m d) -&gt; Priority -&gt; m Priority
+$cgmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Priority -&gt; m Priority
+gmapQi :: Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Priority -&gt; u
+$cgmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Priority -&gt; u
+gmapQ :: (forall d. Data d =&gt; d -&gt; u) -&gt; Priority -&gt; [u]
+$cgmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; Priority -&gt; [u]
+gmapQr :: (r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Priority -&gt; r
+$cgmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Priority -&gt; r
+gmapQl :: (r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Priority -&gt; r
+$cgmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Priority -&gt; r
+gmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; Priority -&gt; Priority
+$cgmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; Priority -&gt; Priority
+dataCast2 :: (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Priority)
+$cdataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Priority)
+dataCast1 :: (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Priority)
+$cdataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Priority)
+dataTypeOf :: Priority -&gt; DataType
+$cdataTypeOf :: Priority -&gt; DataType
+toConstr :: Priority -&gt; Constr
+$ctoConstr :: Priority -&gt; Constr
+gunfold :: (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Priority
+$cgunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Priority
+gfoldl :: (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Priority -&gt; c Priority
+$cgfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Priority -&gt; c Priority
+$cp1Data :: Typeable Priority
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Data</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Typeable</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. Priority -&gt; Rep Priority x)
+-&gt; (forall x. Rep Priority x -&gt; Priority) -&gt; Generic Priority
+forall x. Rep Priority x -&gt; Priority
+forall x. Priority -&gt; Rep Priority x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep Priority x -&gt; Priority
+$cfrom :: forall x. Priority -&gt; Rep Priority x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span>          </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Eq</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">Ord</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">Enum</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">Bounded</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">Show</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">Read</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">Data</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">Typeable</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- | @since 1.3.1.0</span><span>
+</span><span id="line-65"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">NFData</span></span><span> </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span> </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679050008"><span class="annot"><span class="annottext">rnf :: Priority -&gt; ()
+</span><a href="#local-6989586621679050008"><span class="hs-identifier hs-var hs-var hs-var hs-var">rnf</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Priority -&gt; () -&gt; ()
+</span><span class="hs-operator hs-var">`seq`</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span class="hs-comment">{- | Internal type of log records -}</span><span>
+</span><span id="line-68"></span><span>
+</span><span id="line-69"></span><span class="hs-keyword">type</span><span> </span><span id="LogRecord"><span class="annot"><a href="System.Log.html#LogRecord"><span class="hs-identifier hs-var">LogRecord</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span>
+</span><span id="line-70"></span></pre></body></html>

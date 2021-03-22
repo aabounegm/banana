@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell       #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.DocumentLink</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html"><span class="hs-identifier">Language.LSP.Types.Location</span></a></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Progress.html"><span class="hs-identifier">Language.LSP.Types.Progress</span></a></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.TextDocument.html"><span class="hs-identifier">Language.LSP.Types.TextDocument</span></a></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Uri.html"><span class="hs-identifier">Language.LSP.Types.Uri</span></a></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">data</span><span> </span><span id="DocumentLinkClientCapabilities"><span class="annot"><a href="Language.LSP.Types.DocumentLink.html#DocumentLinkClientCapabilities"><span class="hs-identifier hs-var">DocumentLinkClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-16"></span><span>  </span><span id="DocumentLinkClientCapabilities"><span class="annot"><a href="Language.LSP.Types.DocumentLink.html#DocumentLinkClientCapabilities"><span class="hs-identifier hs-var">DocumentLinkClientCapabilities</span></a></span></span><span>
+</span><span id="line-17"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Whether document link supports dynamic registration.</span><span>
+</span><span id="line-18"></span><span>    </span><span id="%24sel%3A_dynamicRegistration%3ADocumentLinkClientCapabilities"><span class="annot"><span class="annottext">DocumentLinkClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.DocumentLink.html#%24sel%3A_dynamicRegistration%3ADocumentLinkClientCapabilities"><span class="hs-identifier hs-var hs-var">_dynamicRegistration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-19"></span><span>    </span><span class="hs-comment">-- | Whether the client supports the `tooltip` property on `DocumentLink`.</span><span>
+</span><span id="line-20"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-21"></span><span>    </span><span class="hs-comment">-- Since LSP 3.15.0</span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_tooltipSupport%3ADocumentLinkClientCapabilities"><span class="annot"><span class="annottext">DocumentLinkClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.DocumentLink.html#%24sel%3A_tooltipSupport%3ADocumentLinkClientCapabilities"><span class="hs-identifier hs-var hs-var">_tooltipSupport</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680440583"><span id="local-6989586621680440585"><span id="local-6989586621680440587"><span id="local-6989586621680440589"><span class="annot"><span class="annottext">ReadPrec [DocumentLinkClientCapabilities]
+ReadPrec DocumentLinkClientCapabilities
+Int -&gt; ReadS DocumentLinkClientCapabilities
+ReadS [DocumentLinkClientCapabilities]
+(Int -&gt; ReadS DocumentLinkClientCapabilities)
+-&gt; ReadS [DocumentLinkClientCapabilities]
+-&gt; ReadPrec DocumentLinkClientCapabilities
+-&gt; ReadPrec [DocumentLinkClientCapabilities]
+-&gt; Read DocumentLinkClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [DocumentLinkClientCapabilities]
+$creadListPrec :: ReadPrec [DocumentLinkClientCapabilities]
+readPrec :: ReadPrec DocumentLinkClientCapabilities
+$creadPrec :: ReadPrec DocumentLinkClientCapabilities
+readList :: ReadS [DocumentLinkClientCapabilities]
+$creadList :: ReadS [DocumentLinkClientCapabilities]
+readsPrec :: Int -&gt; ReadS DocumentLinkClientCapabilities
+$creadsPrec :: Int -&gt; ReadS DocumentLinkClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680440576"><span id="local-6989586621680440578"><span id="local-6989586621680440580"><span class="annot"><span class="annottext">Int -&gt; DocumentLinkClientCapabilities -&gt; ShowS
+[DocumentLinkClientCapabilities] -&gt; ShowS
+DocumentLinkClientCapabilities -&gt; String
+(Int -&gt; DocumentLinkClientCapabilities -&gt; ShowS)
+-&gt; (DocumentLinkClientCapabilities -&gt; String)
+-&gt; ([DocumentLinkClientCapabilities] -&gt; ShowS)
+-&gt; Show DocumentLinkClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [DocumentLinkClientCapabilities] -&gt; ShowS
+$cshowList :: [DocumentLinkClientCapabilities] -&gt; ShowS
+show :: DocumentLinkClientCapabilities -&gt; String
+$cshow :: DocumentLinkClientCapabilities -&gt; String
+showsPrec :: Int -&gt; DocumentLinkClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; DocumentLinkClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680440571"><span id="local-6989586621680440573"><span class="annot"><span class="annottext">DocumentLinkClientCapabilities
+-&gt; DocumentLinkClientCapabilities -&gt; Bool
+(DocumentLinkClientCapabilities
+ -&gt; DocumentLinkClientCapabilities -&gt; Bool)
+-&gt; (DocumentLinkClientCapabilities
+    -&gt; DocumentLinkClientCapabilities -&gt; Bool)
+-&gt; Eq DocumentLinkClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: DocumentLinkClientCapabilities
+-&gt; DocumentLinkClientCapabilities -&gt; Bool
+$c/= :: DocumentLinkClientCapabilities
+-&gt; DocumentLinkClientCapabilities -&gt; Bool
+== :: DocumentLinkClientCapabilities
+-&gt; DocumentLinkClientCapabilities -&gt; Bool
+$c== :: DocumentLinkClientCapabilities
+-&gt; DocumentLinkClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span id="local-6989586621680440558"><span id="local-6989586621680440560"><span id="local-6989586621680440562"><span id="local-6989586621680440564"><span id="local-6989586621680440566"><span id="local-6989586621680440568"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentLinkClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span id="%24sel%3A_resolveProvider%3ADocumentLinkOptions"><span id="%24sel%3A_workDoneProgress%3ADocumentLinkOptions"><span id="DocumentLinkOptions"><span id="local-6989586621680440535"><span id="local-6989586621680440537"><span id="local-6989586621680440539"><span id="local-6989586621680440541"><span id="local-6989586621680440543"><span id="local-6989586621680440545"><span id="local-6989586621680440547"><span id="local-6989586621680440549"><span id="local-6989586621680440551"><span id="DocumentLinkOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;DocumentLinkOptions&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressOptions</span><span class="hs-special">]</span><span>
+</span><span id="line-29"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="hs-string">&quot;_resolveProvider&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">Maybe</span><span> </span><span class="hs-identifier">Bool</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-30"></span><span id="local-6989586621680440520"><span id="local-6989586621680440522"><span id="local-6989586621680440524"><span id="local-6989586621680440526"><span id="local-6989586621680440528"><span id="local-6989586621680440530"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentLinkOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span id="%24sel%3A_resolveProvider%3ADocumentLinkRegistrationOptions"><span id="%24sel%3A_workDoneProgress%3ADocumentLinkRegistrationOptions"><span id="%24sel%3A_documentSelector%3ADocumentLinkRegistrationOptions"><span id="DocumentLinkRegistrationOptions"><span id="local-6989586621680440502"><span id="local-6989586621680440504"><span id="local-6989586621680440506"><span id="local-6989586621680440508"><span id="local-6989586621680440510"><span id="local-6989586621680440512"><span id="local-6989586621680440514"><span id="local-6989586621680440516"><span id="local-6989586621680440518"><span id="DocumentLinkRegistrationOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;DocumentLinkRegistrationOptions&quot;</span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentRegistrationOptions</span><span>
+</span><span id="line-34"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentLinkOptions</span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-36"></span><span id="local-6989586621680440486"><span id="local-6989586621680440488"><span id="local-6989586621680440490"><span id="local-6989586621680440492"><span id="local-6989586621680440494"><span id="local-6989586621680440496"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentLinkRegistrationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span id="%24sel%3A_textDocument%3ADocumentLinkParams"><span id="%24sel%3A_partialResultToken%3ADocumentLinkParams"><span id="%24sel%3A_workDoneToken%3ADocumentLinkParams"><span id="DocumentLinkParams"><span id="local-6989586621680440468"><span id="local-6989586621680440470"><span id="local-6989586621680440472"><span id="local-6989586621680440474"><span id="local-6989586621680440476"><span id="local-6989586621680440478"><span id="local-6989586621680440480"><span id="local-6989586621680440482"><span id="local-6989586621680440484"><span id="DocumentLinkParams"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;DocumentLinkParams&quot;</span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressParams</span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">PartialResultParams</span><span>
+</span><span id="line-43"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="hs-string">&quot;_textDocument&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">TextDocumentIdentifier</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-45"></span><span id="local-6989586621680440452"><span id="local-6989586621680440454"><span id="local-6989586621680440456"><span id="local-6989586621680440458"><span id="local-6989586621680440460"><span id="local-6989586621680440462"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentLinkParams</span></span></span></span></span></span></span><span>
+</span><span id="line-46"></span><span>
+</span><span id="line-47"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- | A document link is a range in a text document that links to an internal or</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- external resource, like another text document or a web site.</span><span>
+</span><span id="line-51"></span><span class="hs-keyword">data</span><span> </span><span id="DocumentLink"><span class="annot"><a href="Language.LSP.Types.DocumentLink.html#DocumentLink"><span class="hs-identifier hs-var">DocumentLink</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-52"></span><span>  </span><span id="DocumentLink"><span class="annot"><a href="Language.LSP.Types.DocumentLink.html#DocumentLink"><span class="hs-identifier hs-var">DocumentLink</span></a></span></span><span>
+</span><span id="line-53"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The range this link applies to.</span><span>
+</span><span id="line-54"></span><span>    </span><span id="%24sel%3A_range%3ADocumentLink"><span class="annot"><span class="annottext">DocumentLink -&gt; Range
+</span><a href="Language.LSP.Types.DocumentLink.html#%24sel%3A_range%3ADocumentLink"><span class="hs-identifier hs-var hs-var">_range</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html#Range"><span class="hs-identifier hs-type">Range</span></a></span><span>
+</span><span id="line-55"></span><span>    </span><span class="hs-comment">-- | The uri this link points to. If missing a resolve request is sent</span><span>
+</span><span id="line-56"></span><span>    </span><span class="hs-comment">-- later.</span><span>
+</span><span id="line-57"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_target%3ADocumentLink"><span class="annot"><span class="annottext">DocumentLink -&gt; Maybe Uri
+</span><a href="Language.LSP.Types.DocumentLink.html#%24sel%3A_target%3ADocumentLink"><span class="hs-identifier hs-var hs-var">_target</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Uri.html#Uri"><span class="hs-identifier hs-type">Uri</span></a></span><span>
+</span><span id="line-58"></span><span>    </span><span class="hs-comment">-- | The tooltip text when you hover over this link.</span><span>
+</span><span id="line-59"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-60"></span><span>    </span><span class="hs-comment">-- If a tooltip is provided, is will be displayed in a string that includes</span><span>
+</span><span id="line-61"></span><span>    </span><span class="hs-comment">-- instructions on how to trigger the link, such as @{0} (ctrl + click)@.</span><span>
+</span><span id="line-62"></span><span>    </span><span class="hs-comment">-- The specific instructions vary depending on OS, user settings, and</span><span>
+</span><span id="line-63"></span><span>    </span><span class="hs-comment">-- localization.</span><span>
+</span><span id="line-64"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-65"></span><span>    </span><span class="hs-comment">-- Since LSP 3.15.0</span><span>
+</span><span id="line-66"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_tooltip%3ADocumentLink"><span class="annot"><span class="annottext">DocumentLink -&gt; Maybe Text
+</span><a href="Language.LSP.Types.DocumentLink.html#%24sel%3A_tooltip%3ADocumentLink"><span class="hs-identifier hs-var hs-var">_tooltip</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-67"></span><span>    </span><span class="hs-comment">-- | A data entry field that is preserved on a document link between a</span><span>
+</span><span id="line-68"></span><span>    </span><span class="hs-comment">-- DocumentLinkRequest and a DocumentLinkResolveRequest.</span><span>
+</span><span id="line-69"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_xdata%3ADocumentLink"><span class="annot"><span class="annottext">DocumentLink -&gt; Maybe Value
+</span><a href="Language.LSP.Types.DocumentLink.html#%24sel%3A_xdata%3ADocumentLink"><span class="hs-identifier hs-var hs-var">_xdata</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Value</span></span><span>
+</span><span id="line-70"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680440439"><span id="local-6989586621680440441"><span id="local-6989586621680440443"><span id="local-6989586621680440445"><span class="annot"><span class="annottext">ReadPrec [DocumentLink]
+ReadPrec DocumentLink
+Int -&gt; ReadS DocumentLink
+ReadS [DocumentLink]
+(Int -&gt; ReadS DocumentLink)
+-&gt; ReadS [DocumentLink]
+-&gt; ReadPrec DocumentLink
+-&gt; ReadPrec [DocumentLink]
+-&gt; Read DocumentLink
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [DocumentLink]
+$creadListPrec :: ReadPrec [DocumentLink]
+readPrec :: ReadPrec DocumentLink
+$creadPrec :: ReadPrec DocumentLink
+readList :: ReadS [DocumentLink]
+$creadList :: ReadS [DocumentLink]
+readsPrec :: Int -&gt; ReadS DocumentLink
+$creadsPrec :: Int -&gt; ReadS DocumentLink
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680440433"><span id="local-6989586621680440435"><span id="local-6989586621680440437"><span class="annot"><span class="annottext">Int -&gt; DocumentLink -&gt; ShowS
+[DocumentLink] -&gt; ShowS
+DocumentLink -&gt; String
+(Int -&gt; DocumentLink -&gt; ShowS)
+-&gt; (DocumentLink -&gt; String)
+-&gt; ([DocumentLink] -&gt; ShowS)
+-&gt; Show DocumentLink
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [DocumentLink] -&gt; ShowS
+$cshowList :: [DocumentLink] -&gt; ShowS
+show :: DocumentLink -&gt; String
+$cshow :: DocumentLink -&gt; String
+showsPrec :: Int -&gt; DocumentLink -&gt; ShowS
+$cshowsPrec :: Int -&gt; DocumentLink -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680440429"><span id="local-6989586621680440431"><span class="annot"><span class="annottext">DocumentLink -&gt; DocumentLink -&gt; Bool
+(DocumentLink -&gt; DocumentLink -&gt; Bool)
+-&gt; (DocumentLink -&gt; DocumentLink -&gt; Bool) -&gt; Eq DocumentLink
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: DocumentLink -&gt; DocumentLink -&gt; Bool
+$c/= :: DocumentLink -&gt; DocumentLink -&gt; Bool
+== :: DocumentLink -&gt; DocumentLink -&gt; Bool
+$c== :: DocumentLink -&gt; DocumentLink -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-71"></span><span id="local-6989586621680440417"><span id="local-6989586621680440419"><span id="local-6989586621680440421"><span id="local-6989586621680440423"><span id="local-6989586621680440425"><span id="local-6989586621680440427"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentLink</span></span></span></span></span></span></span><span>
+</span><span id="line-72"></span></pre></body></html>

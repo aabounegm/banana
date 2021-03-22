@@ -1,0 +1,273 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, GeneralizedNewtypeDeriving, FlexibleContexts, TypeOperators #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span class="hs-cpp">
+#if __GLASGOW_HASKELL__ &gt;= 702
+</span><span class="hs-pragma">{-# LANGUAGE Trustworthy #-}</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- Module      :  Data.Semigroup.MonadPlus</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Copyright   :  (c) Edward Kmett 2009-2011</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- License     :  BSD-style</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- Maintainer  :  ekmett@gmail.com</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- Stability   :  experimental</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- Portability :  non-portable (MPTCs)</span><span>
+</span><span id="line-15"></span><span class="hs-comment">--</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- A semigroup for working with instances of 'MonadPlus'</span><span>
+</span><span id="line-17"></span><span class="hs-comment">--</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.Semigroup.MonadPlus</span><span>
+</span><span id="line-21"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Data.Semigroup.MonadPlus.html#MonadSum"><span class="hs-identifier">MonadSum</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadPlus</span></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#if __GLASGOW_HASKELL__ &lt; 710
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control.Applicative</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Applicative</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span class="hs-identifier">Alternative</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Monoid</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Monoid</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Applicative</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Alternative</span></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Semigroup</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Semigroup</span></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html"><span class="hs-identifier">Data.Semigroup.Reducer</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier">Reducer</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- | A 'MonadSum' turns any 'MonadPlus' instance into a 'Monoid'.</span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span class="hs-keyword">newtype</span><span> </span><span id="MonadSum"><span class="annot"><a href="Data.Semigroup.MonadPlus.html#MonadSum"><span class="hs-identifier hs-var">MonadSum</span></a></span></span><span> </span><span id="local-6989586621679077786"><span class="annot"><a href="#local-6989586621679077786"><span class="hs-identifier hs-type">f</span></a></span></span><span> </span><span id="local-6989586621679077785"><span class="annot"><a href="#local-6989586621679077785"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MonadSum"><span class="annot"><a href="Data.Semigroup.MonadPlus.html#MonadSum"><span class="hs-identifier hs-var">MonadSum</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="getMonadSum"><span class="annot"><span class="annottext">MonadSum f a -&gt; f a
+</span><a href="Data.Semigroup.MonadPlus.html#getMonadSum"><span class="hs-identifier hs-var hs-var">getMonadSum</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679077786"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077785"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-37"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679077771"><span id="local-6989586621679077773"><span class="annot"><span class="annottext">a -&gt; MonadSum f b -&gt; MonadSum f a
+(a -&gt; b) -&gt; MonadSum f a -&gt; MonadSum f b
+(forall a b. (a -&gt; b) -&gt; MonadSum f a -&gt; MonadSum f b)
+-&gt; (forall a b. a -&gt; MonadSum f b -&gt; MonadSum f a)
+-&gt; Functor (MonadSum f)
+forall a b. a -&gt; MonadSum f b -&gt; MonadSum f a
+forall a b. (a -&gt; b) -&gt; MonadSum f a -&gt; MonadSum f b
+forall (f :: * -&gt; *) a b.
+Functor f =&gt;
+a -&gt; MonadSum f b -&gt; MonadSum f a
+forall (f :: * -&gt; *) a b.
+Functor f =&gt;
+(a -&gt; b) -&gt; MonadSum f a -&gt; MonadSum f b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+&lt;$ :: a -&gt; MonadSum f b -&gt; MonadSum f a
+$c&lt;$ :: forall (f :: * -&gt; *) a b.
+Functor f =&gt;
+a -&gt; MonadSum f b -&gt; MonadSum f a
+fmap :: (a -&gt; b) -&gt; MonadSum f a -&gt; MonadSum f b
+$cfmap :: forall (f :: * -&gt; *) a b.
+Functor f =&gt;
+(a -&gt; b) -&gt; MonadSum f a -&gt; MonadSum f b
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Functor</span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679077759"><span id="local-6989586621679077761"><span id="local-6989586621679077763"><span id="local-6989586621679077765"><span id="local-6989586621679077767"><span class="annot"><span class="annottext">Functor (MonadSum f)
+a -&gt; MonadSum f a
+Functor (MonadSum f)
+-&gt; (forall a. a -&gt; MonadSum f a)
+-&gt; (forall a b.
+    MonadSum f (a -&gt; b) -&gt; MonadSum f a -&gt; MonadSum f b)
+-&gt; (forall a b c.
+    (a -&gt; b -&gt; c) -&gt; MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f c)
+-&gt; (forall a b. MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f b)
+-&gt; (forall a b. MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f a)
+-&gt; Applicative (MonadSum f)
+MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f b
+MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f a
+MonadSum f (a -&gt; b) -&gt; MonadSum f a -&gt; MonadSum f b
+(a -&gt; b -&gt; c) -&gt; MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f c
+forall a. a -&gt; MonadSum f a
+forall a b. MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f a
+forall a b. MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f b
+forall a b. MonadSum f (a -&gt; b) -&gt; MonadSum f a -&gt; MonadSum f b
+forall a b c.
+(a -&gt; b -&gt; c) -&gt; MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f c
+forall (f :: * -&gt; *).
+Functor f
+-&gt; (forall a. a -&gt; f a)
+-&gt; (forall a b. f (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b c. (a -&gt; b -&gt; c) -&gt; f a -&gt; f b -&gt; f c)
+-&gt; (forall a b. f a -&gt; f b -&gt; f b)
+-&gt; (forall a b. f a -&gt; f b -&gt; f a)
+-&gt; Applicative f
+forall (f :: * -&gt; *). Applicative f =&gt; Functor (MonadSum f)
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; MonadSum f a
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f a
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f b
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+MonadSum f (a -&gt; b) -&gt; MonadSum f a -&gt; MonadSum f b
+forall (f :: * -&gt; *) a b c.
+Applicative f =&gt;
+(a -&gt; b -&gt; c) -&gt; MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f c
+&lt;* :: MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f a
+$c&lt;* :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f a
+*&gt; :: MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f b
+$c*&gt; :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f b
+liftA2 :: (a -&gt; b -&gt; c) -&gt; MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f c
+$cliftA2 :: forall (f :: * -&gt; *) a b c.
+Applicative f =&gt;
+(a -&gt; b -&gt; c) -&gt; MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f c
+&lt;*&gt; :: MonadSum f (a -&gt; b) -&gt; MonadSum f a -&gt; MonadSum f b
+$c&lt;*&gt; :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+MonadSum f (a -&gt; b) -&gt; MonadSum f a -&gt; MonadSum f b
+pure :: a -&gt; MonadSum f a
+$cpure :: forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; MonadSum f a
+$cp1Applicative :: forall (f :: * -&gt; *). Applicative f =&gt; Functor (MonadSum f)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Applicative</span></span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679077749"><span id="local-6989586621679077751"><span id="local-6989586621679077753"><span id="local-6989586621679077755"><span class="annot"><span class="annottext">Applicative (MonadSum f)
+MonadSum f a
+Applicative (MonadSum f)
+-&gt; (forall a. MonadSum f a)
+-&gt; (forall a. MonadSum f a -&gt; MonadSum f a -&gt; MonadSum f a)
+-&gt; (forall a. MonadSum f a -&gt; MonadSum f [a])
+-&gt; (forall a. MonadSum f a -&gt; MonadSum f [a])
+-&gt; Alternative (MonadSum f)
+MonadSum f a -&gt; MonadSum f a -&gt; MonadSum f a
+MonadSum f a -&gt; MonadSum f [a]
+MonadSum f a -&gt; MonadSum f [a]
+forall a. MonadSum f a
+forall a. MonadSum f a -&gt; MonadSum f [a]
+forall a. MonadSum f a -&gt; MonadSum f a -&gt; MonadSum f a
+forall (f :: * -&gt; *).
+Applicative f
+-&gt; (forall a. f a)
+-&gt; (forall a. f a -&gt; f a -&gt; f a)
+-&gt; (forall a. f a -&gt; f [a])
+-&gt; (forall a. f a -&gt; f [a])
+-&gt; Alternative f
+forall (f :: * -&gt; *). Alternative f =&gt; Applicative (MonadSum f)
+forall (f :: * -&gt; *) a. Alternative f =&gt; MonadSum f a
+forall (f :: * -&gt; *) a.
+Alternative f =&gt;
+MonadSum f a -&gt; MonadSum f [a]
+forall (f :: * -&gt; *) a.
+Alternative f =&gt;
+MonadSum f a -&gt; MonadSum f a -&gt; MonadSum f a
+many :: MonadSum f a -&gt; MonadSum f [a]
+$cmany :: forall (f :: * -&gt; *) a.
+Alternative f =&gt;
+MonadSum f a -&gt; MonadSum f [a]
+some :: MonadSum f a -&gt; MonadSum f [a]
+$csome :: forall (f :: * -&gt; *) a.
+Alternative f =&gt;
+MonadSum f a -&gt; MonadSum f [a]
+&lt;|&gt; :: MonadSum f a -&gt; MonadSum f a -&gt; MonadSum f a
+$c&lt;|&gt; :: forall (f :: * -&gt; *) a.
+Alternative f =&gt;
+MonadSum f a -&gt; MonadSum f a -&gt; MonadSum f a
+empty :: MonadSum f a
+$cempty :: forall (f :: * -&gt; *) a. Alternative f =&gt; MonadSum f a
+$cp1Alternative :: forall (f :: * -&gt; *). Alternative f =&gt; Applicative (MonadSum f)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Alternative</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679077741"><span id="local-6989586621679077743"><span id="local-6989586621679077745"><span class="annot"><span class="annottext">Applicative (MonadSum f)
+a -&gt; MonadSum f a
+Applicative (MonadSum f)
+-&gt; (forall a b.
+    MonadSum f a -&gt; (a -&gt; MonadSum f b) -&gt; MonadSum f b)
+-&gt; (forall a b. MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f b)
+-&gt; (forall a. a -&gt; MonadSum f a)
+-&gt; Monad (MonadSum f)
+MonadSum f a -&gt; (a -&gt; MonadSum f b) -&gt; MonadSum f b
+MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f b
+forall a. a -&gt; MonadSum f a
+forall a b. MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f b
+forall a b. MonadSum f a -&gt; (a -&gt; MonadSum f b) -&gt; MonadSum f b
+forall (f :: * -&gt; *). Monad f =&gt; Applicative (MonadSum f)
+forall (f :: * -&gt; *) a. Monad f =&gt; a -&gt; MonadSum f a
+forall (f :: * -&gt; *) a b.
+Monad f =&gt;
+MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f b
+forall (f :: * -&gt; *) a b.
+Monad f =&gt;
+MonadSum f a -&gt; (a -&gt; MonadSum f b) -&gt; MonadSum f b
+forall (m :: * -&gt; *).
+Applicative m
+-&gt; (forall a b. m a -&gt; (a -&gt; m b) -&gt; m b)
+-&gt; (forall a b. m a -&gt; m b -&gt; m b)
+-&gt; (forall a. a -&gt; m a)
+-&gt; Monad m
+return :: a -&gt; MonadSum f a
+$creturn :: forall (f :: * -&gt; *) a. Monad f =&gt; a -&gt; MonadSum f a
+&gt;&gt; :: MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f b
+$c&gt;&gt; :: forall (f :: * -&gt; *) a b.
+Monad f =&gt;
+MonadSum f a -&gt; MonadSum f b -&gt; MonadSum f b
+&gt;&gt;= :: MonadSum f a -&gt; (a -&gt; MonadSum f b) -&gt; MonadSum f b
+$c&gt;&gt;= :: forall (f :: * -&gt; *) a b.
+Monad f =&gt;
+MonadSum f a -&gt; (a -&gt; MonadSum f b) -&gt; MonadSum f b
+$cp1Monad :: forall (f :: * -&gt; *). Monad f =&gt; Applicative (MonadSum f)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Monad</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679077734"><span id="local-6989586621679077736"><span class="annot"><span class="annottext">Monad (MonadSum f)
+Alternative (MonadSum f)
+MonadSum f a
+Alternative (MonadSum f)
+-&gt; Monad (MonadSum f)
+-&gt; (forall a. MonadSum f a)
+-&gt; (forall a. MonadSum f a -&gt; MonadSum f a -&gt; MonadSum f a)
+-&gt; MonadPlus (MonadSum f)
+MonadSum f a -&gt; MonadSum f a -&gt; MonadSum f a
+forall a. MonadSum f a
+forall a. MonadSum f a -&gt; MonadSum f a -&gt; MonadSum f a
+forall (m :: * -&gt; *).
+Alternative m
+-&gt; Monad m
+-&gt; (forall a. m a)
+-&gt; (forall a. m a -&gt; m a -&gt; m a)
+-&gt; MonadPlus m
+forall (f :: * -&gt; *). MonadPlus f =&gt; Monad (MonadSum f)
+forall (f :: * -&gt; *). MonadPlus f =&gt; Alternative (MonadSum f)
+forall (f :: * -&gt; *) a. MonadPlus f =&gt; MonadSum f a
+forall (f :: * -&gt; *) a.
+MonadPlus f =&gt;
+MonadSum f a -&gt; MonadSum f a -&gt; MonadSum f a
+mplus :: MonadSum f a -&gt; MonadSum f a -&gt; MonadSum f a
+$cmplus :: forall (f :: * -&gt; *) a.
+MonadPlus f =&gt;
+MonadSum f a -&gt; MonadSum f a -&gt; MonadSum f a
+mzero :: MonadSum f a
+$cmzero :: forall (f :: * -&gt; *) a. MonadPlus f =&gt; MonadSum f a
+$cp2MonadPlus :: forall (f :: * -&gt; *). MonadPlus f =&gt; Monad (MonadSum f)
+$cp1MonadPlus :: forall (f :: * -&gt; *). MonadPlus f =&gt; Alternative (MonadSum f)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">MonadPlus</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span id="local-6989586621679077731"><span id="local-6989586621679077732"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679077726"><span id="local-6989586621679077728"><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679077732"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.MonadPlus.html#MonadSum"><span class="hs-identifier hs-type">MonadSum</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077732"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077731"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-40"></span><span>  </span><span class="annot"><a href="Data.Semigroup.MonadPlus.html#MonadSum"><span class="hs-identifier hs-type">MonadSum</span></a></span><span> </span><span id="local-6989586621679077724"><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679077724"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679077723"><span class="annot"><span class="annottext">&lt;&gt; :: MonadSum f a -&gt; MonadSum f a -&gt; MonadSum f a
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></span></span><span> </span><span class="annot"><a href="Data.Semigroup.MonadPlus.html#MonadSum"><span class="hs-identifier hs-type">MonadSum</span></a></span><span> </span><span id="local-6989586621679077722"><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679077722"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">f a -&gt; MonadSum f a
+forall (f :: * -&gt; *) a. f a -&gt; MonadSum f a
+</span><a href="Data.Semigroup.MonadPlus.html#MonadSum"><span class="hs-identifier hs-var">MonadSum</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">f a -&gt; f a -&gt; f a
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; m a -&gt; m a -&gt; m a
+</span><span class="hs-identifier hs-var">mplus</span></span><span> </span><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679077724"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679077722"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span id="local-6989586621679077719"><span id="local-6989586621679077720"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679077714"><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679077720"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.MonadPlus.html#MonadSum"><span class="hs-identifier hs-type">MonadSum</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077720"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077719"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-43"></span><span>  </span><span id="local-6989586621679077712"><span class="annot"><span class="annottext">mempty :: MonadSum f a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MonadSum f a
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; m a
+</span><span class="hs-identifier hs-var">mzero</span></span><span>
+</span><span id="line-44"></span><span>  </span><span class="annot"><a href="Data.Semigroup.MonadPlus.html#MonadSum"><span class="hs-identifier hs-type">MonadSum</span></a></span><span> </span><span id="local-6989586621679077710"><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679077710"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679077709"><span class="annot"><span class="annottext">mappend :: MonadSum f a -&gt; MonadSum f a -&gt; MonadSum f a
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">`mappend`</span></span></span><span> </span><span class="annot"><a href="Data.Semigroup.MonadPlus.html#MonadSum"><span class="hs-identifier hs-type">MonadSum</span></a></span><span> </span><span id="local-6989586621679077708"><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679077708"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">f a -&gt; MonadSum f a
+forall (f :: * -&gt; *) a. f a -&gt; MonadSum f a
+</span><a href="Data.Semigroup.MonadPlus.html#MonadSum"><span class="hs-identifier hs-var">MonadSum</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">f a -&gt; f a -&gt; f a
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; m a -&gt; m a -&gt; m a
+</span><span class="hs-identifier hs-var">mplus</span></span><span> </span><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679077710"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679077708"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span id="local-6989586621679077706"><span id="local-6989586621679077707"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679077700"><span id="local-6989586621679077702"><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679077707"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679077707"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077706"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.MonadPlus.html#MonadSum"><span class="hs-identifier hs-type">MonadSum</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077707"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077706"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-47"></span><span>  </span><span id="local-6989586621679077698"><span class="annot"><span class="annottext">unit :: f a -&gt; MonadSum f a
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">f a -&gt; MonadSum f a
+forall (f :: * -&gt; *) a. f a -&gt; MonadSum f a
+</span><a href="Data.Semigroup.MonadPlus.html#MonadSum"><span class="hs-identifier hs-var">MonadSum</span></a></span></span></span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span></pre></body></html>

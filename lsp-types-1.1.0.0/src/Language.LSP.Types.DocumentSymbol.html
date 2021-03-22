@@ -1,0 +1,656 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="%24con2tag_Gcv5LynrIArHcHWVcPz29I"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell            #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields      #-}</span><span>
+</span><span id="line-3"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.DocumentSymbol</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Aeson</span></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Scientific</span></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span>                                      </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.TextDocument.html"><span class="hs-identifier">Language.LSP.Types.TextDocument</span></a></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Common.html"><span class="hs-identifier">Language.LSP.Types.Common</span></a></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Location.html"><span class="hs-identifier">Language.LSP.Types.Location</span></a></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Progress.html"><span class="hs-identifier">Language.LSP.Types.Progress</span></a></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span id="%24sel%3A_workDoneProgress%3ADocumentSymbolOptions"><span id="DocumentSymbolOptions"><span id="local-6989586621680440365"><span id="local-6989586621680440367"><span id="local-6989586621680440369"><span id="local-6989586621680440371"><span id="local-6989586621680440373"><span id="local-6989586621680440375"><span id="local-6989586621680440377"><span id="local-6989586621680440379"><span id="local-6989586621680440381"><span id="DocumentSymbolOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;DocumentSymbolOptions&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressOptions</span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-19"></span><span id="local-6989586621680440348"><span id="local-6989586621680440350"><span id="local-6989586621680440352"><span id="local-6989586621680440354"><span id="local-6989586621680440356"><span id="local-6989586621680440358"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentSymbolOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span id="%24sel%3A_workDoneProgress%3ADocumentSymbolRegistrationOptions"><span id="%24sel%3A_documentSelector%3ADocumentSymbolRegistrationOptions"><span id="DocumentSymbolRegistrationOptions"><span id="local-6989586621680440325"><span id="local-6989586621680440327"><span id="local-6989586621680440329"><span id="local-6989586621680440331"><span id="local-6989586621680440333"><span id="local-6989586621680440335"><span id="local-6989586621680440337"><span id="local-6989586621680440339"><span id="local-6989586621680440341"><span id="DocumentSymbolRegistrationOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;DocumentSymbolRegistrationOptions&quot;</span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentRegistrationOptions</span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentSymbolOptions</span><span>
+</span><span id="line-24"></span><span>  </span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-25"></span><span id="local-6989586621680440310"><span id="local-6989586621680440312"><span id="local-6989586621680440314"><span id="local-6989586621680440316"><span id="local-6989586621680440318"><span id="local-6989586621680440320"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentSymbolRegistrationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span id="%24sel%3A_textDocument%3ADocumentSymbolParams"><span id="%24sel%3A_partialResultToken%3ADocumentSymbolParams"><span id="%24sel%3A_workDoneToken%3ADocumentSymbolParams"><span id="DocumentSymbolParams"><span id="local-6989586621680440292"><span id="local-6989586621680440294"><span id="local-6989586621680440296"><span id="local-6989586621680440298"><span id="local-6989586621680440300"><span id="local-6989586621680440302"><span id="local-6989586621680440304"><span id="local-6989586621680440306"><span id="local-6989586621680440308"><span id="DocumentSymbolParams"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;DocumentSymbolParams&quot;</span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressParams</span><span>
+</span><span id="line-31"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">PartialResultParams</span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;_textDocument&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">TextDocumentIdentifier</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-34"></span><span id="local-6989586621680440276"><span id="local-6989586621680440278"><span id="local-6989586621680440280"><span id="local-6989586621680440282"><span id="local-6989586621680440284"><span id="local-6989586621680440286"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentSymbolParams</span></span></span></span></span></span></span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">data</span><span> </span><span id="SymbolKind"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SymbolKind"><span class="hs-identifier hs-var">SymbolKind</span></a></span></span><span>
+</span><span id="line-39"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span id="SkFile"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkFile"><span class="hs-identifier hs-var">SkFile</span></a></span></span><span>
+</span><span id="line-40"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkModule"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkModule"><span class="hs-identifier hs-var">SkModule</span></a></span></span><span>
+</span><span id="line-41"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkNamespace"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkNamespace"><span class="hs-identifier hs-var">SkNamespace</span></a></span></span><span>
+</span><span id="line-42"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkPackage"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkPackage"><span class="hs-identifier hs-var">SkPackage</span></a></span></span><span>
+</span><span id="line-43"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkClass"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkClass"><span class="hs-identifier hs-var">SkClass</span></a></span></span><span>
+</span><span id="line-44"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkMethod"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkMethod"><span class="hs-identifier hs-var">SkMethod</span></a></span></span><span>
+</span><span id="line-45"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkProperty"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkProperty"><span class="hs-identifier hs-var">SkProperty</span></a></span></span><span>
+</span><span id="line-46"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkField"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkField"><span class="hs-identifier hs-var">SkField</span></a></span></span><span>
+</span><span id="line-47"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkConstructor"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkConstructor"><span class="hs-identifier hs-var">SkConstructor</span></a></span></span><span>
+</span><span id="line-48"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkEnum"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkEnum"><span class="hs-identifier hs-var">SkEnum</span></a></span></span><span>
+</span><span id="line-49"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkInterface"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkInterface"><span class="hs-identifier hs-var">SkInterface</span></a></span></span><span>
+</span><span id="line-50"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkFunction"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkFunction"><span class="hs-identifier hs-var">SkFunction</span></a></span></span><span>
+</span><span id="line-51"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkVariable"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkVariable"><span class="hs-identifier hs-var">SkVariable</span></a></span></span><span>
+</span><span id="line-52"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkConstant"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkConstant"><span class="hs-identifier hs-var">SkConstant</span></a></span></span><span>
+</span><span id="line-53"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkString"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkString"><span class="hs-identifier hs-var">SkString</span></a></span></span><span>
+</span><span id="line-54"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkNumber"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkNumber"><span class="hs-identifier hs-var">SkNumber</span></a></span></span><span>
+</span><span id="line-55"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkBoolean"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkBoolean"><span class="hs-identifier hs-var">SkBoolean</span></a></span></span><span>
+</span><span id="line-56"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkArray"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkArray"><span class="hs-identifier hs-var">SkArray</span></a></span></span><span>
+</span><span id="line-57"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkObject"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkObject"><span class="hs-identifier hs-var">SkObject</span></a></span></span><span>
+</span><span id="line-58"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkKey"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkKey"><span class="hs-identifier hs-var">SkKey</span></a></span></span><span>
+</span><span id="line-59"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkNull"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkNull"><span class="hs-identifier hs-var">SkNull</span></a></span></span><span>
+</span><span id="line-60"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkEnumMember"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkEnumMember"><span class="hs-identifier hs-var">SkEnumMember</span></a></span></span><span>
+</span><span id="line-61"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkStruct"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkStruct"><span class="hs-identifier hs-var">SkStruct</span></a></span></span><span>
+</span><span id="line-62"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkEvent"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkEvent"><span class="hs-identifier hs-var">SkEvent</span></a></span></span><span>
+</span><span id="line-63"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkOperator"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkOperator"><span class="hs-identifier hs-var">SkOperator</span></a></span></span><span>
+</span><span id="line-64"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkTypeParameter"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkTypeParameter"><span class="hs-identifier hs-var">SkTypeParameter</span></a></span></span><span>
+</span><span id="line-65"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="SkUnknown"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkUnknown"><span class="hs-identifier hs-var">SkUnknown</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Scientific</span></span><span>
+</span><span id="line-66"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680440241"><span id="local-6989586621680440243"><span id="local-6989586621680440245"><span id="local-6989586621680440247"><span class="annot"><span class="annottext">ReadPrec [SymbolKind]
+ReadPrec SymbolKind
+Int -&gt; ReadS SymbolKind
+ReadS [SymbolKind]
+(Int -&gt; ReadS SymbolKind)
+-&gt; ReadS [SymbolKind]
+-&gt; ReadPrec SymbolKind
+-&gt; ReadPrec [SymbolKind]
+-&gt; Read SymbolKind
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [SymbolKind]
+$creadListPrec :: ReadPrec [SymbolKind]
+readPrec :: ReadPrec SymbolKind
+$creadPrec :: ReadPrec SymbolKind
+readList :: ReadS [SymbolKind]
+$creadList :: ReadS [SymbolKind]
+readsPrec :: Int -&gt; ReadS SymbolKind
+$creadsPrec :: Int -&gt; ReadS SymbolKind
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680440235"><span id="local-6989586621680440237"><span id="local-6989586621680440239"><span class="annot"><span class="annottext">Int -&gt; SymbolKind -&gt; ShowS
+[SymbolKind] -&gt; ShowS
+SymbolKind -&gt; String
+(Int -&gt; SymbolKind -&gt; ShowS)
+-&gt; (SymbolKind -&gt; String)
+-&gt; ([SymbolKind] -&gt; ShowS)
+-&gt; Show SymbolKind
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [SymbolKind] -&gt; ShowS
+$cshowList :: [SymbolKind] -&gt; ShowS
+show :: SymbolKind -&gt; String
+$cshow :: SymbolKind -&gt; String
+showsPrec :: Int -&gt; SymbolKind -&gt; ShowS
+$cshowsPrec :: Int -&gt; SymbolKind -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680440231"><span id="local-6989586621680440233"><span class="annot"><span class="annottext">SymbolKind -&gt; SymbolKind -&gt; Bool
+(SymbolKind -&gt; SymbolKind -&gt; Bool)
+-&gt; (SymbolKind -&gt; SymbolKind -&gt; Bool) -&gt; Eq SymbolKind
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: SymbolKind -&gt; SymbolKind -&gt; Bool
+$c/= :: SymbolKind -&gt; SymbolKind -&gt; Bool
+== :: SymbolKind -&gt; SymbolKind -&gt; Bool
+$c== :: SymbolKind -&gt; SymbolKind -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-67"></span><span>
+</span><span id="line-68"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680440224"><span id="local-6989586621680440226"><span id="local-6989586621680440228"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SymbolKind"><span class="hs-identifier hs-type">SymbolKind</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-69"></span><span>  </span><span id="local-6989586621680440223"><span class="annot"><span class="annottext">toJSON :: SymbolKind -&gt; Value
+</span><a href="#local-6989586621680440223"><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></a></span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkFile"><span class="hs-identifier hs-var">SkFile</span></a></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-70"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkModule"><span class="hs-identifier hs-var">SkModule</span></a></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">2</span></span><span>
+</span><span id="line-71"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkNamespace"><span class="hs-identifier hs-var">SkNamespace</span></a></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">3</span></span><span>
+</span><span id="line-72"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkPackage"><span class="hs-identifier hs-var">SkPackage</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">4</span></span><span>
+</span><span id="line-73"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkClass"><span class="hs-identifier hs-var">SkClass</span></a></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">5</span></span><span>
+</span><span id="line-74"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkMethod"><span class="hs-identifier hs-var">SkMethod</span></a></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">6</span></span><span>
+</span><span id="line-75"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkProperty"><span class="hs-identifier hs-var">SkProperty</span></a></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">7</span></span><span>
+</span><span id="line-76"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkField"><span class="hs-identifier hs-var">SkField</span></a></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">8</span></span><span>
+</span><span id="line-77"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkConstructor"><span class="hs-identifier hs-var">SkConstructor</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">9</span></span><span>
+</span><span id="line-78"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkEnum"><span class="hs-identifier hs-var">SkEnum</span></a></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">10</span></span><span>
+</span><span id="line-79"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkInterface"><span class="hs-identifier hs-var">SkInterface</span></a></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">11</span></span><span>
+</span><span id="line-80"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkFunction"><span class="hs-identifier hs-var">SkFunction</span></a></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">12</span></span><span>
+</span><span id="line-81"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkVariable"><span class="hs-identifier hs-var">SkVariable</span></a></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">13</span></span><span>
+</span><span id="line-82"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkConstant"><span class="hs-identifier hs-var">SkConstant</span></a></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">14</span></span><span>
+</span><span id="line-83"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkString"><span class="hs-identifier hs-var">SkString</span></a></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">15</span></span><span>
+</span><span id="line-84"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkNumber"><span class="hs-identifier hs-var">SkNumber</span></a></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">16</span></span><span>
+</span><span id="line-85"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkBoolean"><span class="hs-identifier hs-var">SkBoolean</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">17</span></span><span>
+</span><span id="line-86"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkArray"><span class="hs-identifier hs-var">SkArray</span></a></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">18</span></span><span>
+</span><span id="line-87"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkObject"><span class="hs-identifier hs-var">SkObject</span></a></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">19</span></span><span>
+</span><span id="line-88"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkKey"><span class="hs-identifier hs-var">SkKey</span></a></span><span>           </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">20</span></span><span>
+</span><span id="line-89"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkNull"><span class="hs-identifier hs-var">SkNull</span></a></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">21</span></span><span>
+</span><span id="line-90"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkEnumMember"><span class="hs-identifier hs-var">SkEnumMember</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">22</span></span><span>
+</span><span id="line-91"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkStruct"><span class="hs-identifier hs-var">SkStruct</span></a></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">23</span></span><span>
+</span><span id="line-92"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkEvent"><span class="hs-identifier hs-var">SkEvent</span></a></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">24</span></span><span>
+</span><span id="line-93"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkOperator"><span class="hs-identifier hs-var">SkOperator</span></a></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">25</span></span><span>
+</span><span id="line-94"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkTypeParameter"><span class="hs-identifier hs-var">SkTypeParameter</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">26</span></span><span>
+</span><span id="line-95"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SkUnknown"><span class="hs-identifier hs-type">SkUnknown</span></a></span><span> </span><span id="local-6989586621680440221"><span class="annot"><span class="annottext">Scientific
+</span><a href="#local-6989586621680440221"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><a href="#local-6989586621680440221"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-96"></span><span>
+</span><span id="line-97"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680440218"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SymbolKind"><span class="hs-identifier hs-type">SymbolKind</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-98"></span><span>  </span><span id="local-6989586621680440217"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser SymbolKind
+</span><a href="#local-6989586621680440217"><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkFile"><span class="hs-identifier hs-var">SkFile</span></a></span><span>
+</span><span id="line-99"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">2</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkModule"><span class="hs-identifier hs-var">SkModule</span></a></span><span>
+</span><span id="line-100"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">3</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkNamespace"><span class="hs-identifier hs-var">SkNamespace</span></a></span><span>
+</span><span id="line-101"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">4</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkPackage"><span class="hs-identifier hs-var">SkPackage</span></a></span><span>
+</span><span id="line-102"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">5</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkClass"><span class="hs-identifier hs-var">SkClass</span></a></span><span>
+</span><span id="line-103"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">6</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkMethod"><span class="hs-identifier hs-var">SkMethod</span></a></span><span>
+</span><span id="line-104"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">7</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkProperty"><span class="hs-identifier hs-var">SkProperty</span></a></span><span>
+</span><span id="line-105"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">8</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkField"><span class="hs-identifier hs-var">SkField</span></a></span><span>
+</span><span id="line-106"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">9</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkConstructor"><span class="hs-identifier hs-var">SkConstructor</span></a></span><span>
+</span><span id="line-107"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">10</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkEnum"><span class="hs-identifier hs-var">SkEnum</span></a></span><span>
+</span><span id="line-108"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">11</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkInterface"><span class="hs-identifier hs-var">SkInterface</span></a></span><span>
+</span><span id="line-109"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">12</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkFunction"><span class="hs-identifier hs-var">SkFunction</span></a></span><span>
+</span><span id="line-110"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">13</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkVariable"><span class="hs-identifier hs-var">SkVariable</span></a></span><span>
+</span><span id="line-111"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">14</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkConstant"><span class="hs-identifier hs-var">SkConstant</span></a></span><span>
+</span><span id="line-112"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">15</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkString"><span class="hs-identifier hs-var">SkString</span></a></span><span>
+</span><span id="line-113"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">16</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkNumber"><span class="hs-identifier hs-var">SkNumber</span></a></span><span>
+</span><span id="line-114"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">17</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkBoolean"><span class="hs-identifier hs-var">SkBoolean</span></a></span><span>
+</span><span id="line-115"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">18</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkArray"><span class="hs-identifier hs-var">SkArray</span></a></span><span>
+</span><span id="line-116"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">19</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkObject"><span class="hs-identifier hs-var">SkObject</span></a></span><span>
+</span><span id="line-117"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">20</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkKey"><span class="hs-identifier hs-var">SkKey</span></a></span><span>
+</span><span id="line-118"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">21</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkNull"><span class="hs-identifier hs-var">SkNull</span></a></span><span>
+</span><span id="line-119"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">22</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkEnumMember"><span class="hs-identifier hs-var">SkEnumMember</span></a></span><span>
+</span><span id="line-120"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">23</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkStruct"><span class="hs-identifier hs-var">SkStruct</span></a></span><span>
+</span><span id="line-121"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">24</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkEvent"><span class="hs-identifier hs-var">SkEvent</span></a></span><span>
+</span><span id="line-122"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">25</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkOperator"><span class="hs-identifier hs-var">SkOperator</span></a></span><span>
+</span><span id="line-123"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">26</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkTypeParameter"><span class="hs-identifier hs-var">SkTypeParameter</span></a></span><span>
+</span><span id="line-124"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span id="local-6989586621680440216"><span class="annot"><span class="annottext">Scientific
+</span><a href="#local-6989586621680440216"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SymbolKind -&gt; Parser SymbolKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Scientific -&gt; SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkUnknown"><span class="hs-identifier hs-var">SkUnknown</span></a></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><a href="#local-6989586621680440216"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-125"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><span class="hs-identifier">_</span></span><span>           </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser SymbolKind
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-126"></span><span>  </span><span>
+</span><span id="line-127"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-128"></span><span>
+</span><span id="line-129"></span><span class="hs-keyword">data</span><span> </span><span id="DocumentSymbolKindClientCapabilities"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#DocumentSymbolKindClientCapabilities"><span class="hs-identifier hs-var">DocumentSymbolKindClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-130"></span><span>  </span><span id="DocumentSymbolKindClientCapabilities"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#DocumentSymbolKindClientCapabilities"><span class="hs-identifier hs-var">DocumentSymbolKindClientCapabilities</span></a></span></span><span>
+</span><span id="line-131"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The symbol kind values the client supports. When this</span><span>
+</span><span id="line-132"></span><span>      </span><span class="hs-comment">--  property exists the client also guarantees that it will</span><span>
+</span><span id="line-133"></span><span>      </span><span class="hs-comment">--  handle values outside its set gracefully and falls back</span><span>
+</span><span id="line-134"></span><span>      </span><span class="hs-comment">--  to a default value when unknown.</span><span>
+</span><span id="line-135"></span><span>      </span><span class="hs-comment">--</span><span>
+</span><span id="line-136"></span><span>      </span><span class="hs-comment">--  If this property is not present the client only supports</span><span>
+</span><span id="line-137"></span><span>      </span><span class="hs-comment">--  the symbol kinds from `File` to `Array` as defined in</span><span>
+</span><span id="line-138"></span><span>      </span><span class="hs-comment">--  the initial version of the protocol.</span><span>
+</span><span id="line-139"></span><span>      </span><span id="%24sel%3A_valueSet%3ADocumentSymbolKindClientCapabilities"><span class="annot"><span class="annottext">DocumentSymbolKindClientCapabilities -&gt; Maybe (List SymbolKind)
+</span><a href="Language.LSP.Types.DocumentSymbol.html#%24sel%3A_valueSet%3ADocumentSymbolKindClientCapabilities"><span class="hs-identifier hs-var hs-var">_valueSet</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SymbolKind"><span class="hs-identifier hs-type">SymbolKind</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-140"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-141"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680440208"><span id="local-6989586621680440210"><span id="local-6989586621680440212"><span class="annot"><span class="annottext">Int -&gt; DocumentSymbolKindClientCapabilities -&gt; ShowS
+[DocumentSymbolKindClientCapabilities] -&gt; ShowS
+DocumentSymbolKindClientCapabilities -&gt; String
+(Int -&gt; DocumentSymbolKindClientCapabilities -&gt; ShowS)
+-&gt; (DocumentSymbolKindClientCapabilities -&gt; String)
+-&gt; ([DocumentSymbolKindClientCapabilities] -&gt; ShowS)
+-&gt; Show DocumentSymbolKindClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [DocumentSymbolKindClientCapabilities] -&gt; ShowS
+$cshowList :: [DocumentSymbolKindClientCapabilities] -&gt; ShowS
+show :: DocumentSymbolKindClientCapabilities -&gt; String
+$cshow :: DocumentSymbolKindClientCapabilities -&gt; String
+showsPrec :: Int -&gt; DocumentSymbolKindClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; DocumentSymbolKindClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680440200"><span id="local-6989586621680440202"><span id="local-6989586621680440204"><span id="local-6989586621680440206"><span class="annot"><span class="annottext">ReadPrec [DocumentSymbolKindClientCapabilities]
+ReadPrec DocumentSymbolKindClientCapabilities
+Int -&gt; ReadS DocumentSymbolKindClientCapabilities
+ReadS [DocumentSymbolKindClientCapabilities]
+(Int -&gt; ReadS DocumentSymbolKindClientCapabilities)
+-&gt; ReadS [DocumentSymbolKindClientCapabilities]
+-&gt; ReadPrec DocumentSymbolKindClientCapabilities
+-&gt; ReadPrec [DocumentSymbolKindClientCapabilities]
+-&gt; Read DocumentSymbolKindClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [DocumentSymbolKindClientCapabilities]
+$creadListPrec :: ReadPrec [DocumentSymbolKindClientCapabilities]
+readPrec :: ReadPrec DocumentSymbolKindClientCapabilities
+$creadPrec :: ReadPrec DocumentSymbolKindClientCapabilities
+readList :: ReadS [DocumentSymbolKindClientCapabilities]
+$creadList :: ReadS [DocumentSymbolKindClientCapabilities]
+readsPrec :: Int -&gt; ReadS DocumentSymbolKindClientCapabilities
+$creadsPrec :: Int -&gt; ReadS DocumentSymbolKindClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680440196"><span id="local-6989586621680440198"><span class="annot"><span class="annottext">DocumentSymbolKindClientCapabilities
+-&gt; DocumentSymbolKindClientCapabilities -&gt; Bool
+(DocumentSymbolKindClientCapabilities
+ -&gt; DocumentSymbolKindClientCapabilities -&gt; Bool)
+-&gt; (DocumentSymbolKindClientCapabilities
+    -&gt; DocumentSymbolKindClientCapabilities -&gt; Bool)
+-&gt; Eq DocumentSymbolKindClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: DocumentSymbolKindClientCapabilities
+-&gt; DocumentSymbolKindClientCapabilities -&gt; Bool
+$c/= :: DocumentSymbolKindClientCapabilities
+-&gt; DocumentSymbolKindClientCapabilities -&gt; Bool
+== :: DocumentSymbolKindClientCapabilities
+-&gt; DocumentSymbolKindClientCapabilities -&gt; Bool
+$c== :: DocumentSymbolKindClientCapabilities
+-&gt; DocumentSymbolKindClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-142"></span><span>
+</span><span id="line-143"></span><span id="local-6989586621680440184"><span id="local-6989586621680440186"><span id="local-6989586621680440188"><span id="local-6989586621680440190"><span id="local-6989586621680440192"><span id="local-6989586621680440194"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentSymbolKindClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-144"></span><span>
+</span><span id="line-145"></span><span class="hs-keyword">data</span><span> </span><span id="DocumentSymbolClientCapabilities"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#DocumentSymbolClientCapabilities"><span class="hs-identifier hs-var">DocumentSymbolClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-146"></span><span>  </span><span id="DocumentSymbolClientCapabilities"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#DocumentSymbolClientCapabilities"><span class="hs-identifier hs-var">DocumentSymbolClientCapabilities</span></a></span></span><span>
+</span><span id="line-147"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Whether document symbol supports dynamic registration.</span><span>
+</span><span id="line-148"></span><span>      </span><span id="%24sel%3A_dynamicRegistration%3ADocumentSymbolClientCapabilities"><span class="annot"><span class="annottext">DocumentSymbolClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.DocumentSymbol.html#%24sel%3A_dynamicRegistration%3ADocumentSymbolClientCapabilities"><span class="hs-identifier hs-var hs-var">_dynamicRegistration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-149"></span><span>      </span><span class="hs-comment">-- | Specific capabilities for the `SymbolKind`.</span><span>
+</span><span id="line-150"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_symbolKind%3ADocumentSymbolClientCapabilities"><span class="annot"><span class="annottext">DocumentSymbolClientCapabilities
+-&gt; Maybe DocumentSymbolKindClientCapabilities
+</span><a href="Language.LSP.Types.DocumentSymbol.html#%24sel%3A_symbolKind%3ADocumentSymbolClientCapabilities"><span class="hs-identifier hs-var hs-var">_symbolKind</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#DocumentSymbolKindClientCapabilities"><span class="hs-identifier hs-type">DocumentSymbolKindClientCapabilities</span></a></span><span>
+</span><span id="line-151"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_hierarchicalDocumentSymbolSupport%3ADocumentSymbolClientCapabilities"><span class="annot"><span class="annottext">DocumentSymbolClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.DocumentSymbol.html#%24sel%3A_hierarchicalDocumentSymbolSupport%3ADocumentSymbolClientCapabilities"><span class="hs-identifier hs-var hs-var">_hierarchicalDocumentSymbolSupport</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-152"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680440174"><span id="local-6989586621680440176"><span id="local-6989586621680440178"><span class="annot"><span class="annottext">Int -&gt; DocumentSymbolClientCapabilities -&gt; ShowS
+[DocumentSymbolClientCapabilities] -&gt; ShowS
+DocumentSymbolClientCapabilities -&gt; String
+(Int -&gt; DocumentSymbolClientCapabilities -&gt; ShowS)
+-&gt; (DocumentSymbolClientCapabilities -&gt; String)
+-&gt; ([DocumentSymbolClientCapabilities] -&gt; ShowS)
+-&gt; Show DocumentSymbolClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [DocumentSymbolClientCapabilities] -&gt; ShowS
+$cshowList :: [DocumentSymbolClientCapabilities] -&gt; ShowS
+show :: DocumentSymbolClientCapabilities -&gt; String
+$cshow :: DocumentSymbolClientCapabilities -&gt; String
+showsPrec :: Int -&gt; DocumentSymbolClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; DocumentSymbolClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680440166"><span id="local-6989586621680440168"><span id="local-6989586621680440170"><span id="local-6989586621680440172"><span class="annot"><span class="annottext">ReadPrec [DocumentSymbolClientCapabilities]
+ReadPrec DocumentSymbolClientCapabilities
+Int -&gt; ReadS DocumentSymbolClientCapabilities
+ReadS [DocumentSymbolClientCapabilities]
+(Int -&gt; ReadS DocumentSymbolClientCapabilities)
+-&gt; ReadS [DocumentSymbolClientCapabilities]
+-&gt; ReadPrec DocumentSymbolClientCapabilities
+-&gt; ReadPrec [DocumentSymbolClientCapabilities]
+-&gt; Read DocumentSymbolClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [DocumentSymbolClientCapabilities]
+$creadListPrec :: ReadPrec [DocumentSymbolClientCapabilities]
+readPrec :: ReadPrec DocumentSymbolClientCapabilities
+$creadPrec :: ReadPrec DocumentSymbolClientCapabilities
+readList :: ReadS [DocumentSymbolClientCapabilities]
+$creadList :: ReadS [DocumentSymbolClientCapabilities]
+readsPrec :: Int -&gt; ReadS DocumentSymbolClientCapabilities
+$creadsPrec :: Int -&gt; ReadS DocumentSymbolClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680440162"><span id="local-6989586621680440164"><span class="annot"><span class="annottext">DocumentSymbolClientCapabilities
+-&gt; DocumentSymbolClientCapabilities -&gt; Bool
+(DocumentSymbolClientCapabilities
+ -&gt; DocumentSymbolClientCapabilities -&gt; Bool)
+-&gt; (DocumentSymbolClientCapabilities
+    -&gt; DocumentSymbolClientCapabilities -&gt; Bool)
+-&gt; Eq DocumentSymbolClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: DocumentSymbolClientCapabilities
+-&gt; DocumentSymbolClientCapabilities -&gt; Bool
+$c/= :: DocumentSymbolClientCapabilities
+-&gt; DocumentSymbolClientCapabilities -&gt; Bool
+== :: DocumentSymbolClientCapabilities
+-&gt; DocumentSymbolClientCapabilities -&gt; Bool
+$c== :: DocumentSymbolClientCapabilities
+-&gt; DocumentSymbolClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-153"></span><span>
+</span><span id="line-154"></span><span id="local-6989586621680440150"><span id="local-6989586621680440152"><span id="local-6989586621680440154"><span id="local-6989586621680440156"><span id="local-6989586621680440158"><span id="local-6989586621680440160"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentSymbolClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-155"></span><span>
+</span><span id="line-156"></span><span>
+</span><span id="line-157"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-158"></span><span>
+</span><span id="line-159"></span><span class="hs-comment">-- | Represents programming constructs like variables, classes, interfaces etc.</span><span>
+</span><span id="line-160"></span><span class="hs-comment">-- that appear in a document. Document symbols can be hierarchical and they</span><span>
+</span><span id="line-161"></span><span class="hs-comment">-- have two ranges: one that encloses its definition and one that points to its</span><span>
+</span><span id="line-162"></span><span class="hs-comment">-- most interesting range, e.g. the range of an identifier.</span><span>
+</span><span id="line-163"></span><span class="hs-keyword">data</span><span> </span><span id="DocumentSymbol"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#DocumentSymbol"><span class="hs-identifier hs-var">DocumentSymbol</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-164"></span><span>  </span><span id="DocumentSymbol"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#DocumentSymbol"><span class="hs-identifier hs-var">DocumentSymbol</span></a></span></span><span>
+</span><span id="line-165"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_name%3ADocumentSymbol"><span class="annot"><span class="annottext">DocumentSymbol -&gt; Text
+</span><a href="Language.LSP.Types.DocumentSymbol.html#%24sel%3A_name%3ADocumentSymbol"><span class="hs-identifier hs-var hs-var">_name</span></a></span></span><span>           </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-comment">-- ^ The name of this symbol.</span><span>
+</span><span id="line-166"></span><span>    </span><span class="hs-comment">-- | More detail for this symbol, e.g the signature of a function. If not</span><span>
+</span><span id="line-167"></span><span>    </span><span class="hs-comment">-- provided the name is used.</span><span>
+</span><span id="line-168"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_detail%3ADocumentSymbol"><span class="annot"><span class="annottext">DocumentSymbol -&gt; Maybe Text
+</span><a href="Language.LSP.Types.DocumentSymbol.html#%24sel%3A_detail%3ADocumentSymbol"><span class="hs-identifier hs-var hs-var">_detail</span></a></span></span><span>         </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-169"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_kind%3ADocumentSymbol"><span class="annot"><span class="annottext">DocumentSymbol -&gt; SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#%24sel%3A_kind%3ADocumentSymbol"><span class="hs-identifier hs-var hs-var">_kind</span></a></span></span><span>           </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SymbolKind"><span class="hs-identifier hs-type">SymbolKind</span></a></span><span> </span><span class="hs-comment">-- ^ The kind of this symbol.</span><span>
+</span><span id="line-170"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_deprecated%3ADocumentSymbol"><span class="annot"><span class="annottext">DocumentSymbol -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.DocumentSymbol.html#%24sel%3A_deprecated%3ADocumentSymbol"><span class="hs-identifier hs-var hs-var">_deprecated</span></a></span></span><span>     </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-comment">-- ^ Indicates if this symbol is deprecated.</span><span>
+</span><span id="line-171"></span><span>    </span><span class="hs-comment">-- | The range enclosing this symbol not including leading/trailing</span><span>
+</span><span id="line-172"></span><span>    </span><span class="hs-comment">-- whitespace but everything else like comments. This information is</span><span>
+</span><span id="line-173"></span><span>    </span><span class="hs-comment">-- typically used to determine if the the clients cursor is inside the symbol</span><span>
+</span><span id="line-174"></span><span>    </span><span class="hs-comment">-- to reveal in the symbol in the UI.</span><span>
+</span><span id="line-175"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_range%3ADocumentSymbol"><span class="annot"><span class="annottext">DocumentSymbol -&gt; Range
+</span><a href="Language.LSP.Types.DocumentSymbol.html#%24sel%3A_range%3ADocumentSymbol"><span class="hs-identifier hs-var hs-var">_range</span></a></span></span><span>          </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html#Range"><span class="hs-identifier hs-type">Range</span></a></span><span>
+</span><span id="line-176"></span><span>    </span><span class="hs-comment">-- | The range that should be selected and revealed when this symbol is being</span><span>
+</span><span id="line-177"></span><span>    </span><span class="hs-comment">-- picked, e.g the name of a function. Must be contained by the the '_range'.</span><span>
+</span><span id="line-178"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_selectionRange%3ADocumentSymbol"><span class="annot"><span class="annottext">DocumentSymbol -&gt; Range
+</span><a href="Language.LSP.Types.DocumentSymbol.html#%24sel%3A_selectionRange%3ADocumentSymbol"><span class="hs-identifier hs-var hs-var">_selectionRange</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html#Range"><span class="hs-identifier hs-type">Range</span></a></span><span>
+</span><span id="line-179"></span><span>    </span><span class="hs-comment">-- | Children of this symbol, e.g. properties of a class.</span><span>
+</span><span id="line-180"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_children%3ADocumentSymbol"><span class="annot"><span class="annottext">DocumentSymbol -&gt; Maybe (List DocumentSymbol)
+</span><a href="Language.LSP.Types.DocumentSymbol.html#%24sel%3A_children%3ADocumentSymbol"><span class="hs-identifier hs-var hs-var">_children</span></a></span></span><span>       </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#DocumentSymbol"><span class="hs-identifier hs-type">DocumentSymbol</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-181"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680440134"><span id="local-6989586621680440136"><span id="local-6989586621680440138"><span id="local-6989586621680440140"><span class="annot"><span class="annottext">ReadPrec [DocumentSymbol]
+ReadPrec DocumentSymbol
+Int -&gt; ReadS DocumentSymbol
+ReadS [DocumentSymbol]
+(Int -&gt; ReadS DocumentSymbol)
+-&gt; ReadS [DocumentSymbol]
+-&gt; ReadPrec DocumentSymbol
+-&gt; ReadPrec [DocumentSymbol]
+-&gt; Read DocumentSymbol
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [DocumentSymbol]
+$creadListPrec :: ReadPrec [DocumentSymbol]
+readPrec :: ReadPrec DocumentSymbol
+$creadPrec :: ReadPrec DocumentSymbol
+readList :: ReadS [DocumentSymbol]
+$creadList :: ReadS [DocumentSymbol]
+readsPrec :: Int -&gt; ReadS DocumentSymbol
+$creadsPrec :: Int -&gt; ReadS DocumentSymbol
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680440128"><span id="local-6989586621680440130"><span id="local-6989586621680440132"><span class="annot"><span class="annottext">Int -&gt; DocumentSymbol -&gt; ShowS
+[DocumentSymbol] -&gt; ShowS
+DocumentSymbol -&gt; String
+(Int -&gt; DocumentSymbol -&gt; ShowS)
+-&gt; (DocumentSymbol -&gt; String)
+-&gt; ([DocumentSymbol] -&gt; ShowS)
+-&gt; Show DocumentSymbol
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [DocumentSymbol] -&gt; ShowS
+$cshowList :: [DocumentSymbol] -&gt; ShowS
+show :: DocumentSymbol -&gt; String
+$cshow :: DocumentSymbol -&gt; String
+showsPrec :: Int -&gt; DocumentSymbol -&gt; ShowS
+$cshowsPrec :: Int -&gt; DocumentSymbol -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680440124"><span id="local-6989586621680440126"><span class="annot"><span class="annottext">DocumentSymbol -&gt; DocumentSymbol -&gt; Bool
+(DocumentSymbol -&gt; DocumentSymbol -&gt; Bool)
+-&gt; (DocumentSymbol -&gt; DocumentSymbol -&gt; Bool) -&gt; Eq DocumentSymbol
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: DocumentSymbol -&gt; DocumentSymbol -&gt; Bool
+$c/= :: DocumentSymbol -&gt; DocumentSymbol -&gt; Bool
+== :: DocumentSymbol -&gt; DocumentSymbol -&gt; Bool
+$c== :: DocumentSymbol -&gt; DocumentSymbol -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-182"></span><span>
+</span><span id="line-183"></span><span id="local-6989586621680440112"><span id="local-6989586621680440114"><span id="local-6989586621680440116"><span id="local-6989586621680440118"><span id="local-6989586621680440120"><span id="local-6989586621680440122"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentSymbol</span></span></span></span></span></span></span><span>
+</span><span id="line-184"></span><span>
+</span><span id="line-185"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-186"></span><span>
+</span><span id="line-187"></span><span class="hs-comment">-- | Represents information about programming constructs like variables, classes,</span><span>
+</span><span id="line-188"></span><span class="hs-comment">-- interfaces etc.</span><span>
+</span><span id="line-189"></span><span class="hs-keyword">data</span><span> </span><span id="SymbolInformation"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SymbolInformation"><span class="hs-identifier hs-var">SymbolInformation</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-190"></span><span>  </span><span id="SymbolInformation"><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SymbolInformation"><span class="hs-identifier hs-var">SymbolInformation</span></a></span></span><span>
+</span><span id="line-191"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_name%3ASymbolInformation"><span class="annot"><span class="annottext">SymbolInformation -&gt; Text
+</span><a href="Language.LSP.Types.DocumentSymbol.html#%24sel%3A_name%3ASymbolInformation"><span class="hs-identifier hs-var hs-var">_name</span></a></span></span><span>          </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-comment">-- ^ The name of this symbol.</span><span>
+</span><span id="line-192"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_kind%3ASymbolInformation"><span class="annot"><span class="annottext">SymbolInformation -&gt; SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#%24sel%3A_kind%3ASymbolInformation"><span class="hs-identifier hs-var hs-var">_kind</span></a></span></span><span>          </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SymbolKind"><span class="hs-identifier hs-type">SymbolKind</span></a></span><span> </span><span class="hs-comment">-- ^ The kind of this symbol.</span><span>
+</span><span id="line-193"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_deprecated%3ASymbolInformation"><span class="annot"><span class="annottext">SymbolInformation -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.DocumentSymbol.html#%24sel%3A_deprecated%3ASymbolInformation"><span class="hs-identifier hs-var hs-var">_deprecated</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-comment">-- ^ Indicates if this symbol is deprecated.</span><span>
+</span><span id="line-194"></span><span>    </span><span class="hs-comment">-- | The location of this symbol. The location's range is used by a tool</span><span>
+</span><span id="line-195"></span><span>    </span><span class="hs-comment">-- to reveal the location in the editor. If the symbol is selected in the</span><span>
+</span><span id="line-196"></span><span>    </span><span class="hs-comment">-- tool the range's start information is used to position the cursor. So</span><span>
+</span><span id="line-197"></span><span>    </span><span class="hs-comment">-- the range usually spans more then the actual symbol's name and does</span><span>
+</span><span id="line-198"></span><span>    </span><span class="hs-comment">-- normally include things like visibility modifiers.</span><span>
+</span><span id="line-199"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-200"></span><span>    </span><span class="hs-comment">-- The range doesn't have to denote a node range in the sense of a abstract</span><span>
+</span><span id="line-201"></span><span>    </span><span class="hs-comment">-- syntax tree. It can therefore not be used to re-construct a hierarchy of</span><span>
+</span><span id="line-202"></span><span>    </span><span class="hs-comment">-- the symbols.</span><span>
+</span><span id="line-203"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_location%3ASymbolInformation"><span class="annot"><span class="annottext">SymbolInformation -&gt; Location
+</span><a href="Language.LSP.Types.DocumentSymbol.html#%24sel%3A_location%3ASymbolInformation"><span class="hs-identifier hs-var hs-var">_location</span></a></span></span><span>      </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html#Location"><span class="hs-identifier hs-type">Location</span></a></span><span>
+</span><span id="line-204"></span><span>    </span><span class="hs-comment">-- | The name of the symbol containing this symbol. This information is for</span><span>
+</span><span id="line-205"></span><span>    </span><span class="hs-comment">-- user interface purposes (e.g. to render a qualifier in the user interface</span><span>
+</span><span id="line-206"></span><span>    </span><span class="hs-comment">-- if necessary). It can't be used to re-infer a hierarchy for the document</span><span>
+</span><span id="line-207"></span><span>    </span><span class="hs-comment">-- symbols.</span><span>
+</span><span id="line-208"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_containerName%3ASymbolInformation"><span class="annot"><span class="annottext">SymbolInformation -&gt; Maybe Text
+</span><a href="Language.LSP.Types.DocumentSymbol.html#%24sel%3A_containerName%3ASymbolInformation"><span class="hs-identifier hs-var hs-var">_containerName</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-209"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680440098"><span id="local-6989586621680440100"><span id="local-6989586621680440102"><span id="local-6989586621680440104"><span class="annot"><span class="annottext">ReadPrec [SymbolInformation]
+ReadPrec SymbolInformation
+Int -&gt; ReadS SymbolInformation
+ReadS [SymbolInformation]
+(Int -&gt; ReadS SymbolInformation)
+-&gt; ReadS [SymbolInformation]
+-&gt; ReadPrec SymbolInformation
+-&gt; ReadPrec [SymbolInformation]
+-&gt; Read SymbolInformation
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [SymbolInformation]
+$creadListPrec :: ReadPrec [SymbolInformation]
+readPrec :: ReadPrec SymbolInformation
+$creadPrec :: ReadPrec SymbolInformation
+readList :: ReadS [SymbolInformation]
+$creadList :: ReadS [SymbolInformation]
+readsPrec :: Int -&gt; ReadS SymbolInformation
+$creadsPrec :: Int -&gt; ReadS SymbolInformation
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680440092"><span id="local-6989586621680440094"><span id="local-6989586621680440096"><span class="annot"><span class="annottext">Int -&gt; SymbolInformation -&gt; ShowS
+[SymbolInformation] -&gt; ShowS
+SymbolInformation -&gt; String
+(Int -&gt; SymbolInformation -&gt; ShowS)
+-&gt; (SymbolInformation -&gt; String)
+-&gt; ([SymbolInformation] -&gt; ShowS)
+-&gt; Show SymbolInformation
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [SymbolInformation] -&gt; ShowS
+$cshowList :: [SymbolInformation] -&gt; ShowS
+show :: SymbolInformation -&gt; String
+$cshow :: SymbolInformation -&gt; String
+showsPrec :: Int -&gt; SymbolInformation -&gt; ShowS
+$cshowsPrec :: Int -&gt; SymbolInformation -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680440088"><span id="local-6989586621680440090"><span class="annot"><span class="annottext">SymbolInformation -&gt; SymbolInformation -&gt; Bool
+(SymbolInformation -&gt; SymbolInformation -&gt; Bool)
+-&gt; (SymbolInformation -&gt; SymbolInformation -&gt; Bool)
+-&gt; Eq SymbolInformation
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: SymbolInformation -&gt; SymbolInformation -&gt; Bool
+$c/= :: SymbolInformation -&gt; SymbolInformation -&gt; Bool
+== :: SymbolInformation -&gt; SymbolInformation -&gt; Bool
+$c== :: SymbolInformation -&gt; SymbolInformation -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-210"></span><span>
+</span><span id="line-211"></span><span id="local-6989586621680440076"><span id="local-6989586621680440078"><span id="local-6989586621680440080"><span id="local-6989586621680440082"><span id="local-6989586621680440084"><span id="local-6989586621680440086"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">SymbolInformation</span></span></span></span></span></span></span><span>
+</span><span id="line-212"></span></pre></body></html>

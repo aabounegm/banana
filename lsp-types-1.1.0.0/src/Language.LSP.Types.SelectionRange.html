@@ -1,0 +1,152 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.SelectionRange</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html"><span class="hs-identifier">Language.LSP.Types.Common</span></a></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html"><span class="hs-identifier">Language.LSP.Types.Location</span></a></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Progress.html"><span class="hs-identifier">Language.LSP.Types.Progress</span></a></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.StaticRegistrationOptions.html"><span class="hs-identifier">Language.LSP.Types.StaticRegistrationOptions</span></a></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.TextDocument.html"><span class="hs-identifier">Language.LSP.Types.TextDocument</span></a></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">data</span><span> </span><span id="SelectionRangeClientCapabilities"><span class="annot"><a href="Language.LSP.Types.SelectionRange.html#SelectionRangeClientCapabilities"><span class="hs-identifier hs-var">SelectionRangeClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="SelectionRangeClientCapabilities"><span class="annot"><a href="Language.LSP.Types.SelectionRange.html#SelectionRangeClientCapabilities"><span class="hs-identifier hs-var">SelectionRangeClientCapabilities</span></a></span></span><span>
+</span><span id="line-15"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Whether implementation supports dynamic registration for selection range providers. If this is set to 'True'</span><span>
+</span><span id="line-16"></span><span>    </span><span class="hs-comment">-- the client supports the new 'SelectionRangeRegistrationOptions' return value for the corresponding server</span><span>
+</span><span id="line-17"></span><span>    </span><span class="hs-comment">-- capability as well.</span><span>
+</span><span id="line-18"></span><span>    </span><span id="%24sel%3A_dynamicRegistration%3ASelectionRangeClientCapabilities"><span class="annot"><span class="annottext">SelectionRangeClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.SelectionRange.html#%24sel%3A_dynamicRegistration%3ASelectionRangeClientCapabilities"><span class="hs-identifier hs-var hs-var">_dynamicRegistration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-19"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-20"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680438374"><span id="local-6989586621680438376"><span id="local-6989586621680438378"><span id="local-6989586621680438380"><span class="annot"><span class="annottext">ReadPrec [SelectionRangeClientCapabilities]
+ReadPrec SelectionRangeClientCapabilities
+Int -&gt; ReadS SelectionRangeClientCapabilities
+ReadS [SelectionRangeClientCapabilities]
+(Int -&gt; ReadS SelectionRangeClientCapabilities)
+-&gt; ReadS [SelectionRangeClientCapabilities]
+-&gt; ReadPrec SelectionRangeClientCapabilities
+-&gt; ReadPrec [SelectionRangeClientCapabilities]
+-&gt; Read SelectionRangeClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [SelectionRangeClientCapabilities]
+$creadListPrec :: ReadPrec [SelectionRangeClientCapabilities]
+readPrec :: ReadPrec SelectionRangeClientCapabilities
+$creadPrec :: ReadPrec SelectionRangeClientCapabilities
+readList :: ReadS [SelectionRangeClientCapabilities]
+$creadList :: ReadS [SelectionRangeClientCapabilities]
+readsPrec :: Int -&gt; ReadS SelectionRangeClientCapabilities
+$creadsPrec :: Int -&gt; ReadS SelectionRangeClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680438367"><span id="local-6989586621680438369"><span id="local-6989586621680438371"><span class="annot"><span class="annottext">Int -&gt; SelectionRangeClientCapabilities -&gt; ShowS
+[SelectionRangeClientCapabilities] -&gt; ShowS
+SelectionRangeClientCapabilities -&gt; String
+(Int -&gt; SelectionRangeClientCapabilities -&gt; ShowS)
+-&gt; (SelectionRangeClientCapabilities -&gt; String)
+-&gt; ([SelectionRangeClientCapabilities] -&gt; ShowS)
+-&gt; Show SelectionRangeClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [SelectionRangeClientCapabilities] -&gt; ShowS
+$cshowList :: [SelectionRangeClientCapabilities] -&gt; ShowS
+show :: SelectionRangeClientCapabilities -&gt; String
+$cshow :: SelectionRangeClientCapabilities -&gt; String
+showsPrec :: Int -&gt; SelectionRangeClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; SelectionRangeClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680438362"><span id="local-6989586621680438364"><span class="annot"><span class="annottext">SelectionRangeClientCapabilities
+-&gt; SelectionRangeClientCapabilities -&gt; Bool
+(SelectionRangeClientCapabilities
+ -&gt; SelectionRangeClientCapabilities -&gt; Bool)
+-&gt; (SelectionRangeClientCapabilities
+    -&gt; SelectionRangeClientCapabilities -&gt; Bool)
+-&gt; Eq SelectionRangeClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: SelectionRangeClientCapabilities
+-&gt; SelectionRangeClientCapabilities -&gt; Bool
+$c/= :: SelectionRangeClientCapabilities
+-&gt; SelectionRangeClientCapabilities -&gt; Bool
+== :: SelectionRangeClientCapabilities
+-&gt; SelectionRangeClientCapabilities -&gt; Bool
+$c== :: SelectionRangeClientCapabilities
+-&gt; SelectionRangeClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span id="local-6989586621680438349"><span id="local-6989586621680438351"><span id="local-6989586621680438353"><span id="local-6989586621680438355"><span id="local-6989586621680438357"><span id="local-6989586621680438359"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">SelectionRangeClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span id="%24sel%3A_workDoneProgress%3ASelectionRangeOptions"><span id="SelectionRangeOptions"><span id="local-6989586621680438326"><span id="local-6989586621680438328"><span id="local-6989586621680438330"><span id="local-6989586621680438332"><span id="local-6989586621680438334"><span id="local-6989586621680438336"><span id="local-6989586621680438338"><span id="local-6989586621680438340"><span id="local-6989586621680438342"><span id="SelectionRangeOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;SelectionRangeOptions&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressOptions</span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-25"></span><span id="local-6989586621680438312"><span id="local-6989586621680438314"><span id="local-6989586621680438316"><span id="local-6989586621680438318"><span id="local-6989586621680438320"><span id="local-6989586621680438322"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">SelectionRangeOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span id="%24sel%3A_id%3ASelectionRangeRegistrationOptions"><span id="%24sel%3A_documentSelector%3ASelectionRangeRegistrationOptions"><span id="%24sel%3A_workDoneProgress%3ASelectionRangeRegistrationOptions"><span id="SelectionRangeRegistrationOptions"><span id="local-6989586621680438294"><span id="local-6989586621680438296"><span id="local-6989586621680438298"><span id="local-6989586621680438300"><span id="local-6989586621680438302"><span id="local-6989586621680438304"><span id="local-6989586621680438306"><span id="local-6989586621680438308"><span id="local-6989586621680438310"><span id="SelectionRangeRegistrationOptions"><span class="hs-identifier">makeExtendingDatatype</span><span>
+</span><span id="line-28"></span><span>  </span><span class="hs-string">&quot;SelectionRangeRegistrationOptions&quot;</span><span>
+</span><span id="line-29"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">SelectionRangeOptions</span><span class="hs-special">,</span><span>
+</span><span id="line-30"></span><span>    </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentRegistrationOptions</span><span class="hs-special">,</span><span>
+</span><span id="line-31"></span><span>    </span><span class="hs-special">''</span><span class="hs-identifier">StaticRegistrationOptions</span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-34"></span><span id="local-6989586621680438278"><span id="local-6989586621680438280"><span id="local-6989586621680438282"><span id="local-6989586621680438284"><span id="local-6989586621680438286"><span id="local-6989586621680438288"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">SelectionRangeRegistrationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span id="%24sel%3A_positions%3ASelectionRangeParams"><span id="%24sel%3A_textDocument%3ASelectionRangeParams"><span id="%24sel%3A_partialResultToken%3ASelectionRangeParams"><span id="%24sel%3A_workDoneToken%3ASelectionRangeParams"><span id="SelectionRangeParams"><span id="local-6989586621680438260"><span id="local-6989586621680438262"><span id="local-6989586621680438264"><span id="local-6989586621680438266"><span id="local-6989586621680438268"><span id="local-6989586621680438270"><span id="local-6989586621680438272"><span id="local-6989586621680438274"><span id="local-6989586621680438276"><span id="SelectionRangeParams"><span class="hs-identifier">makeExtendingDatatype</span><span>
+</span><span id="line-37"></span><span>  </span><span class="hs-string">&quot;SelectionRangeParams&quot;</span><span>
+</span><span id="line-38"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressParams</span><span class="hs-special">,</span><span>
+</span><span id="line-39"></span><span>    </span><span class="hs-special">''</span><span class="hs-identifier">PartialResultParams</span><span>
+</span><span id="line-40"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;_textDocument&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span class="hs-identifier">TextDocumentIdentifier</span><span class="hs-special">|]</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-42"></span><span>    </span><span class="hs-special">(</span><span class="hs-string">&quot;_positions&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span class="hs-identifier">List</span><span> </span><span class="hs-identifier">Position</span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span>  </span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-44"></span><span id="local-6989586621680438243"><span id="local-6989586621680438245"><span id="local-6989586621680438247"><span id="local-6989586621680438249"><span id="local-6989586621680438251"><span id="local-6989586621680438253"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">SelectionRangeParams</span></span></span></span></span></span></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="hs-keyword">data</span><span> </span><span id="SelectionRange"><span class="annot"><a href="Language.LSP.Types.SelectionRange.html#SelectionRange"><span class="hs-identifier hs-var">SelectionRange</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="SelectionRange"><span class="annot"><a href="Language.LSP.Types.SelectionRange.html#SelectionRange"><span class="hs-identifier hs-var">SelectionRange</span></a></span></span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The 'range' of this selection range.</span><span>
+</span><span id="line-48"></span><span>    </span><span id="%24sel%3A_range%3ASelectionRange"><span class="annot"><span class="annottext">SelectionRange -&gt; Range
+</span><a href="Language.LSP.Types.SelectionRange.html#%24sel%3A_range%3ASelectionRange"><span class="hs-identifier hs-var hs-var">_range</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html#Range"><span class="hs-identifier hs-type">Range</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-49"></span><span>    </span><span class="hs-comment">-- | The parent selection range containing this range. Therefore @parent.range@ must contain @this.range@.</span><span>
+</span><span id="line-50"></span><span>    </span><span id="%24sel%3A_parent%3ASelectionRange"><span class="annot"><span class="annottext">SelectionRange -&gt; Maybe SelectionRange
+</span><a href="Language.LSP.Types.SelectionRange.html#%24sel%3A_parent%3ASelectionRange"><span class="hs-identifier hs-var hs-var">_parent</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.SelectionRange.html#SelectionRange"><span class="hs-identifier hs-type">SelectionRange</span></a></span><span>
+</span><span id="line-51"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-52"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680438232"><span id="local-6989586621680438234"><span id="local-6989586621680438236"><span id="local-6989586621680438238"><span class="annot"><span class="annottext">ReadPrec [SelectionRange]
+ReadPrec SelectionRange
+Int -&gt; ReadS SelectionRange
+ReadS [SelectionRange]
+(Int -&gt; ReadS SelectionRange)
+-&gt; ReadS [SelectionRange]
+-&gt; ReadPrec SelectionRange
+-&gt; ReadPrec [SelectionRange]
+-&gt; Read SelectionRange
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [SelectionRange]
+$creadListPrec :: ReadPrec [SelectionRange]
+readPrec :: ReadPrec SelectionRange
+$creadPrec :: ReadPrec SelectionRange
+readList :: ReadS [SelectionRange]
+$creadList :: ReadS [SelectionRange]
+readsPrec :: Int -&gt; ReadS SelectionRange
+$creadsPrec :: Int -&gt; ReadS SelectionRange
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680438226"><span id="local-6989586621680438228"><span id="local-6989586621680438230"><span class="annot"><span class="annottext">Int -&gt; SelectionRange -&gt; ShowS
+[SelectionRange] -&gt; ShowS
+SelectionRange -&gt; String
+(Int -&gt; SelectionRange -&gt; ShowS)
+-&gt; (SelectionRange -&gt; String)
+-&gt; ([SelectionRange] -&gt; ShowS)
+-&gt; Show SelectionRange
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [SelectionRange] -&gt; ShowS
+$cshowList :: [SelectionRange] -&gt; ShowS
+show :: SelectionRange -&gt; String
+$cshow :: SelectionRange -&gt; String
+showsPrec :: Int -&gt; SelectionRange -&gt; ShowS
+$cshowsPrec :: Int -&gt; SelectionRange -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680438222"><span id="local-6989586621680438224"><span class="annot"><span class="annottext">SelectionRange -&gt; SelectionRange -&gt; Bool
+(SelectionRange -&gt; SelectionRange -&gt; Bool)
+-&gt; (SelectionRange -&gt; SelectionRange -&gt; Bool) -&gt; Eq SelectionRange
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: SelectionRange -&gt; SelectionRange -&gt; Bool
+$c/= :: SelectionRange -&gt; SelectionRange -&gt; Bool
+== :: SelectionRange -&gt; SelectionRange -&gt; Bool
+$c== :: SelectionRange -&gt; SelectionRange -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-53"></span><span>
+</span><span id="line-54"></span><span id="local-6989586621680438210"><span id="local-6989586621680438212"><span id="local-6989586621680438214"><span id="local-6989586621680438216"><span id="local-6989586621680438218"><span id="local-6989586621680438220"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">SelectionRange</span></span></span></span></span></span></span><span>
+</span><span id="line-55"></span></pre></body></html>

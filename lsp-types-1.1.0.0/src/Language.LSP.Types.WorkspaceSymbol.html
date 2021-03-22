@@ -1,0 +1,213 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell       #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.WorkspaceSymbol</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Default</span></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html"><span class="hs-identifier">Language.LSP.Types.Common</span></a></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html"><span class="hs-identifier">Language.LSP.Types.DocumentSymbol</span></a></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Progress.html"><span class="hs-identifier">Language.LSP.Types.Progress</span></a></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">data</span><span> </span><span id="WorkspaceSymbolKindClientCapabilities"><span class="annot"><a href="Language.LSP.Types.WorkspaceSymbol.html#WorkspaceSymbolKindClientCapabilities"><span class="hs-identifier hs-var">WorkspaceSymbolKindClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-15"></span><span>  </span><span id="WorkspaceSymbolKindClientCapabilities"><span class="annot"><a href="Language.LSP.Types.WorkspaceSymbol.html#WorkspaceSymbolKindClientCapabilities"><span class="hs-identifier hs-var">WorkspaceSymbolKindClientCapabilities</span></a></span></span><span>
+</span><span id="line-16"></span><span>   </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The symbol kind values the client supports. When this</span><span>
+</span><span id="line-17"></span><span>     </span><span class="hs-comment">-- property exists the client also guarantees that it will</span><span>
+</span><span id="line-18"></span><span>     </span><span class="hs-comment">-- handle values outside its set gracefully and falls back</span><span>
+</span><span id="line-19"></span><span>     </span><span class="hs-comment">-- to a default value when unknown.</span><span>
+</span><span id="line-20"></span><span>     </span><span class="hs-comment">--</span><span>
+</span><span id="line-21"></span><span>     </span><span class="hs-comment">-- If this property is not present the client only supports</span><span>
+</span><span id="line-22"></span><span>     </span><span class="hs-comment">-- the symbol kinds from `File` to `Array` as defined in</span><span>
+</span><span id="line-23"></span><span>     </span><span class="hs-comment">-- the initial version of the protocol.</span><span>
+</span><span id="line-24"></span><span>     </span><span id="%24sel%3A_valueSet%3AWorkspaceSymbolKindClientCapabilities"><span class="annot"><span class="annottext">WorkspaceSymbolKindClientCapabilities -&gt; Maybe (List SymbolKind)
+</span><a href="Language.LSP.Types.WorkspaceSymbol.html#%24sel%3A_valueSet%3AWorkspaceSymbolKindClientCapabilities"><span class="hs-identifier hs-var hs-var">_valueSet</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#SymbolKind"><span class="hs-identifier hs-type">SymbolKind</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span>   </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680445158"><span id="local-6989586621680445160"><span id="local-6989586621680445162"><span class="annot"><span class="annottext">Int -&gt; WorkspaceSymbolKindClientCapabilities -&gt; ShowS
+[WorkspaceSymbolKindClientCapabilities] -&gt; ShowS
+WorkspaceSymbolKindClientCapabilities -&gt; String
+(Int -&gt; WorkspaceSymbolKindClientCapabilities -&gt; ShowS)
+-&gt; (WorkspaceSymbolKindClientCapabilities -&gt; String)
+-&gt; ([WorkspaceSymbolKindClientCapabilities] -&gt; ShowS)
+-&gt; Show WorkspaceSymbolKindClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [WorkspaceSymbolKindClientCapabilities] -&gt; ShowS
+$cshowList :: [WorkspaceSymbolKindClientCapabilities] -&gt; ShowS
+show :: WorkspaceSymbolKindClientCapabilities -&gt; String
+$cshow :: WorkspaceSymbolKindClientCapabilities -&gt; String
+showsPrec :: Int -&gt; WorkspaceSymbolKindClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; WorkspaceSymbolKindClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680445149"><span id="local-6989586621680445151"><span id="local-6989586621680445153"><span id="local-6989586621680445155"><span class="annot"><span class="annottext">ReadPrec [WorkspaceSymbolKindClientCapabilities]
+ReadPrec WorkspaceSymbolKindClientCapabilities
+Int -&gt; ReadS WorkspaceSymbolKindClientCapabilities
+ReadS [WorkspaceSymbolKindClientCapabilities]
+(Int -&gt; ReadS WorkspaceSymbolKindClientCapabilities)
+-&gt; ReadS [WorkspaceSymbolKindClientCapabilities]
+-&gt; ReadPrec WorkspaceSymbolKindClientCapabilities
+-&gt; ReadPrec [WorkspaceSymbolKindClientCapabilities]
+-&gt; Read WorkspaceSymbolKindClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [WorkspaceSymbolKindClientCapabilities]
+$creadListPrec :: ReadPrec [WorkspaceSymbolKindClientCapabilities]
+readPrec :: ReadPrec WorkspaceSymbolKindClientCapabilities
+$creadPrec :: ReadPrec WorkspaceSymbolKindClientCapabilities
+readList :: ReadS [WorkspaceSymbolKindClientCapabilities]
+$creadList :: ReadS [WorkspaceSymbolKindClientCapabilities]
+readsPrec :: Int -&gt; ReadS WorkspaceSymbolKindClientCapabilities
+$creadsPrec :: Int -&gt; ReadS WorkspaceSymbolKindClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680445144"><span id="local-6989586621680445146"><span class="annot"><span class="annottext">WorkspaceSymbolKindClientCapabilities
+-&gt; WorkspaceSymbolKindClientCapabilities -&gt; Bool
+(WorkspaceSymbolKindClientCapabilities
+ -&gt; WorkspaceSymbolKindClientCapabilities -&gt; Bool)
+-&gt; (WorkspaceSymbolKindClientCapabilities
+    -&gt; WorkspaceSymbolKindClientCapabilities -&gt; Bool)
+-&gt; Eq WorkspaceSymbolKindClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: WorkspaceSymbolKindClientCapabilities
+-&gt; WorkspaceSymbolKindClientCapabilities -&gt; Bool
+$c/= :: WorkspaceSymbolKindClientCapabilities
+-&gt; WorkspaceSymbolKindClientCapabilities -&gt; Bool
+== :: WorkspaceSymbolKindClientCapabilities
+-&gt; WorkspaceSymbolKindClientCapabilities -&gt; Bool
+$c== :: WorkspaceSymbolKindClientCapabilities
+-&gt; WorkspaceSymbolKindClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span id="local-6989586621680445131"><span id="local-6989586621680445133"><span id="local-6989586621680445135"><span id="local-6989586621680445137"><span id="local-6989586621680445139"><span id="local-6989586621680445141"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkspaceSymbolKindClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Default</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.WorkspaceSymbol.html#WorkspaceSymbolKindClientCapabilities"><span class="hs-identifier hs-type">WorkspaceSymbolKindClientCapabilities</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-30"></span><span>  </span><span id="local-6989586621680445123"><span class="annot"><span class="annottext">def :: WorkspaceSymbolKindClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">def</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe (List SymbolKind) -&gt; WorkspaceSymbolKindClientCapabilities
+</span><a href="Language.LSP.Types.WorkspaceSymbol.html#WorkspaceSymbolKindClientCapabilities"><span class="hs-identifier hs-var">WorkspaceSymbolKindClientCapabilities</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">List SymbolKind -&gt; Maybe (List SymbolKind)
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">(List SymbolKind -&gt; Maybe (List SymbolKind))
+-&gt; List SymbolKind -&gt; Maybe (List SymbolKind)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[SymbolKind] -&gt; List SymbolKind
+forall a. [a] -&gt; List a
+</span><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-var">List</span></a></span><span> </span><span class="annot"><span class="annottext">[SymbolKind]
+</span><a href="#local-6989586621680445120"><span class="hs-identifier hs-var">allKinds</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span>    </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621680445120"><span class="annot"><span class="annottext">allKinds :: [SymbolKind]
+</span><a href="#local-6989586621680445120"><span class="hs-identifier hs-var hs-var">allKinds</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkFile"><span class="hs-identifier hs-var">SkFile</span></a></span><span>
+</span><span id="line-32"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkModule"><span class="hs-identifier hs-var">SkModule</span></a></span><span>
+</span><span id="line-33"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkNamespace"><span class="hs-identifier hs-var">SkNamespace</span></a></span><span>
+</span><span id="line-34"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkPackage"><span class="hs-identifier hs-var">SkPackage</span></a></span><span>
+</span><span id="line-35"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkClass"><span class="hs-identifier hs-var">SkClass</span></a></span><span>
+</span><span id="line-36"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkMethod"><span class="hs-identifier hs-var">SkMethod</span></a></span><span>
+</span><span id="line-37"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkProperty"><span class="hs-identifier hs-var">SkProperty</span></a></span><span>
+</span><span id="line-38"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkField"><span class="hs-identifier hs-var">SkField</span></a></span><span>
+</span><span id="line-39"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkConstructor"><span class="hs-identifier hs-var">SkConstructor</span></a></span><span>
+</span><span id="line-40"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkEnum"><span class="hs-identifier hs-var">SkEnum</span></a></span><span>
+</span><span id="line-41"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkInterface"><span class="hs-identifier hs-var">SkInterface</span></a></span><span>
+</span><span id="line-42"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkFunction"><span class="hs-identifier hs-var">SkFunction</span></a></span><span>
+</span><span id="line-43"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkVariable"><span class="hs-identifier hs-var">SkVariable</span></a></span><span>
+</span><span id="line-44"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkConstant"><span class="hs-identifier hs-var">SkConstant</span></a></span><span>
+</span><span id="line-45"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkString"><span class="hs-identifier hs-var">SkString</span></a></span><span>
+</span><span id="line-46"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkNumber"><span class="hs-identifier hs-var">SkNumber</span></a></span><span>
+</span><span id="line-47"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkBoolean"><span class="hs-identifier hs-var">SkBoolean</span></a></span><span>
+</span><span id="line-48"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">SymbolKind
+</span><a href="Language.LSP.Types.DocumentSymbol.html#SkArray"><span class="hs-identifier hs-var">SkArray</span></a></span><span>
+</span><span id="line-49"></span><span>                     </span><span class="hs-special">]</span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="hs-keyword">data</span><span> </span><span id="WorkspaceSymbolClientCapabilities"><span class="annot"><a href="Language.LSP.Types.WorkspaceSymbol.html#WorkspaceSymbolClientCapabilities"><span class="hs-identifier hs-var">WorkspaceSymbolClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-52"></span><span>  </span><span id="WorkspaceSymbolClientCapabilities"><span class="annot"><a href="Language.LSP.Types.WorkspaceSymbol.html#WorkspaceSymbolClientCapabilities"><span class="hs-identifier hs-var">WorkspaceSymbolClientCapabilities</span></a></span></span><span>
+</span><span id="line-53"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_dynamicRegistration%3AWorkspaceSymbolClientCapabilities"><span class="annot"><span class="annottext">WorkspaceSymbolClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.WorkspaceSymbol.html#%24sel%3A_dynamicRegistration%3AWorkspaceSymbolClientCapabilities"><span class="hs-identifier hs-var hs-var">_dynamicRegistration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-comment">-- ^Symbol request supports dynamic</span><span>
+</span><span id="line-54"></span><span>                                         </span><span class="hs-comment">-- registration.</span><span>
+</span><span id="line-55"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_symbolKind%3AWorkspaceSymbolClientCapabilities"><span class="annot"><span class="annottext">WorkspaceSymbolClientCapabilities
+-&gt; Maybe WorkspaceSymbolKindClientCapabilities
+</span><a href="Language.LSP.Types.WorkspaceSymbol.html#%24sel%3A_symbolKind%3AWorkspaceSymbolClientCapabilities"><span class="hs-identifier hs-var hs-var">_symbolKind</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.WorkspaceSymbol.html#WorkspaceSymbolKindClientCapabilities"><span class="hs-identifier hs-type">WorkspaceSymbolKindClientCapabilities</span></a></span><span> </span><span class="hs-comment">-- ^ Specific capabilities for the `SymbolKind`.</span><span>
+</span><span id="line-56"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680445093"><span id="local-6989586621680445095"><span id="local-6989586621680445097"><span class="annot"><span class="annottext">Int -&gt; WorkspaceSymbolClientCapabilities -&gt; ShowS
+[WorkspaceSymbolClientCapabilities] -&gt; ShowS
+WorkspaceSymbolClientCapabilities -&gt; String
+(Int -&gt; WorkspaceSymbolClientCapabilities -&gt; ShowS)
+-&gt; (WorkspaceSymbolClientCapabilities -&gt; String)
+-&gt; ([WorkspaceSymbolClientCapabilities] -&gt; ShowS)
+-&gt; Show WorkspaceSymbolClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [WorkspaceSymbolClientCapabilities] -&gt; ShowS
+$cshowList :: [WorkspaceSymbolClientCapabilities] -&gt; ShowS
+show :: WorkspaceSymbolClientCapabilities -&gt; String
+$cshow :: WorkspaceSymbolClientCapabilities -&gt; String
+showsPrec :: Int -&gt; WorkspaceSymbolClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; WorkspaceSymbolClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680445085"><span id="local-6989586621680445087"><span id="local-6989586621680445089"><span id="local-6989586621680445091"><span class="annot"><span class="annottext">ReadPrec [WorkspaceSymbolClientCapabilities]
+ReadPrec WorkspaceSymbolClientCapabilities
+Int -&gt; ReadS WorkspaceSymbolClientCapabilities
+ReadS [WorkspaceSymbolClientCapabilities]
+(Int -&gt; ReadS WorkspaceSymbolClientCapabilities)
+-&gt; ReadS [WorkspaceSymbolClientCapabilities]
+-&gt; ReadPrec WorkspaceSymbolClientCapabilities
+-&gt; ReadPrec [WorkspaceSymbolClientCapabilities]
+-&gt; Read WorkspaceSymbolClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [WorkspaceSymbolClientCapabilities]
+$creadListPrec :: ReadPrec [WorkspaceSymbolClientCapabilities]
+readPrec :: ReadPrec WorkspaceSymbolClientCapabilities
+$creadPrec :: ReadPrec WorkspaceSymbolClientCapabilities
+readList :: ReadS [WorkspaceSymbolClientCapabilities]
+$creadList :: ReadS [WorkspaceSymbolClientCapabilities]
+readsPrec :: Int -&gt; ReadS WorkspaceSymbolClientCapabilities
+$creadsPrec :: Int -&gt; ReadS WorkspaceSymbolClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680445081"><span id="local-6989586621680445083"><span class="annot"><span class="annottext">WorkspaceSymbolClientCapabilities
+-&gt; WorkspaceSymbolClientCapabilities -&gt; Bool
+(WorkspaceSymbolClientCapabilities
+ -&gt; WorkspaceSymbolClientCapabilities -&gt; Bool)
+-&gt; (WorkspaceSymbolClientCapabilities
+    -&gt; WorkspaceSymbolClientCapabilities -&gt; Bool)
+-&gt; Eq WorkspaceSymbolClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: WorkspaceSymbolClientCapabilities
+-&gt; WorkspaceSymbolClientCapabilities -&gt; Bool
+$c/= :: WorkspaceSymbolClientCapabilities
+-&gt; WorkspaceSymbolClientCapabilities -&gt; Bool
+== :: WorkspaceSymbolClientCapabilities
+-&gt; WorkspaceSymbolClientCapabilities -&gt; Bool
+$c== :: WorkspaceSymbolClientCapabilities
+-&gt; WorkspaceSymbolClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-57"></span><span>
+</span><span id="line-58"></span><span id="local-6989586621680445069"><span id="local-6989586621680445071"><span id="local-6989586621680445073"><span id="local-6989586621680445075"><span id="local-6989586621680445077"><span id="local-6989586621680445079"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkspaceSymbolClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-59"></span><span>
+</span><span id="line-60"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-61"></span><span>
+</span><span id="line-62"></span><span id="%24sel%3A_workDoneProgress%3AWorkspaceSymbolOptions"><span id="WorkspaceSymbolOptions"><span id="local-6989586621680445051"><span id="local-6989586621680445053"><span id="local-6989586621680445055"><span id="local-6989586621680445057"><span id="local-6989586621680445059"><span id="local-6989586621680445061"><span id="local-6989586621680445063"><span id="local-6989586621680445065"><span id="local-6989586621680445067"><span id="WorkspaceSymbolOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;WorkspaceSymbolOptions&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressOptions</span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-63"></span><span id="local-6989586621680445037"><span id="local-6989586621680445039"><span id="local-6989586621680445041"><span id="local-6989586621680445043"><span id="local-6989586621680445045"><span id="local-6989586621680445047"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkspaceSymbolOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span id="%24sel%3A_workDoneProgress%3AWorkspaceSymbolRegistrationOptions"><span id="WorkspaceSymbolRegistrationOptions"><span id="local-6989586621680445019"><span id="local-6989586621680445021"><span id="local-6989586621680445023"><span id="local-6989586621680445025"><span id="local-6989586621680445027"><span id="local-6989586621680445029"><span id="local-6989586621680445031"><span id="local-6989586621680445033"><span id="local-6989586621680445035"><span id="WorkspaceSymbolRegistrationOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;WorkspaceSymbolRegistrationOptions&quot;</span><span>
+</span><span id="line-66"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">WorkspaceSymbolOptions</span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-67"></span><span id="local-6989586621680445005"><span id="local-6989586621680445007"><span id="local-6989586621680445009"><span id="local-6989586621680445011"><span id="local-6989586621680445013"><span id="local-6989586621680445015"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkspaceSymbolRegistrationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-68"></span><span>
+</span><span id="line-69"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-70"></span><span>
+</span><span id="line-71"></span><span id="%24sel%3A_query%3AWorkspaceSymbolParams"><span id="%24sel%3A_partialResultToken%3AWorkspaceSymbolParams"><span id="%24sel%3A_workDoneToken%3AWorkspaceSymbolParams"><span id="WorkspaceSymbolParams"><span id="local-6989586621680444987"><span id="local-6989586621680444989"><span id="local-6989586621680444991"><span id="local-6989586621680444993"><span id="local-6989586621680444995"><span id="local-6989586621680444997"><span id="local-6989586621680444999"><span id="local-6989586621680445001"><span id="local-6989586621680445003"><span id="WorkspaceSymbolParams"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;WorkspaceSymbolParams&quot;</span><span>
+</span><span id="line-72"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressParams</span><span>
+</span><span id="line-73"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">PartialResultParams</span><span>
+</span><span id="line-74"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-75"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="hs-string">&quot;_query&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">Text</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-76"></span><span>
+</span><span id="line-77"></span><span id="local-6989586621680444971"><span id="local-6989586621680444973"><span id="local-6989586621680444975"><span id="local-6989586621680444977"><span id="local-6989586621680444979"><span id="local-6989586621680444981"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkspaceSymbolParams</span></span></span></span></span></span></span><span>
+</span><span id="line-78"></span></pre></body></html>

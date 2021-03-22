@@ -1,0 +1,960 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE UndecidableInstances , FlexibleContexts , MultiParamTypeClasses , FlexibleInstances , GeneralizedNewtypeDeriving, TypeOperators, ScopedTypeVariables, CPP #-}</span><span class="hs-cpp">
+#if __GLASGOW_HASKELL__ &gt;= 702
+</span><span class="hs-pragma">{-# LANGUAGE Trustworthy #-}</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+#ifndef MIN_VERSION_semigroups
+</span><span class="hs-cpp">#define MIN_VERSION_semigroups(x,y,z) 1
+</span><span class="hs-cpp">#endif
+</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- Module      :  Data.Semigroup.Reducer</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- Copyright   :  (c) Edward Kmett 2009</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- License     :  BSD3</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- Maintainer  :  ekmett@gmail.com</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- Stability   :  experimental</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- Portability :  non-portable (MPTCs)</span><span>
+</span><span id="line-18"></span><span class="hs-comment">--</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- A @c@-'Reducer' is a 'Semigroup' with a canonical mapping from @c@ to the Semigroup.</span><span>
+</span><span id="line-20"></span><span class="hs-comment">--</span><span>
+</span><span id="line-21"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.Semigroup.Reducer</span><span>
+</span><span id="line-24"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier">Reducer</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#foldMapReduce"><span class="hs-identifier">foldMapReduce</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#foldMapReduce1"><span class="hs-identifier">foldMapReduce1</span></a></span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#foldReduce"><span class="hs-identifier">foldReduce</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#foldReduce1"><span class="hs-identifier">foldReduce1</span></a></span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#pureUnit"><span class="hs-identifier">pureUnit</span></a></span><span>
+</span><span id="line-28"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#returnUnit"><span class="hs-identifier">returnUnit</span></a></span><span>
+</span><span id="line-29"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier">Count</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span class="hs-cpp">
+
+#if __GLASGOW_HASKELL__ &lt; 710
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control.Applicative</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Monoid</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Monoid</span></span><span>
+</span><span id="line-37"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Semigroup</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Semigroup</span></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Semigroup.Foldable</span></span><span>
+</span><span id="line-39"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Data.Semigroup.Instances.html"><span class="hs-identifier">Data.Semigroup.Instances</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-40"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Hashable</span></span><span class="hs-cpp">
+
+#if __GLASGOW_HASKELL__ &lt; 710
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Foldable</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-46"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.FingerTree</span></span><span>
+</span><span id="line-47"></span><span>
+</span><span id="line-48"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Sequence</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Seq</span></span><span>
+</span><span id="line-49"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Sequence</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Seq</span></span><span class="hs-special">)</span><span>
+</span><span id="line-50"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Set</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Set</span></span><span>
+</span><span id="line-51"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Set</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Set</span></span><span class="hs-special">)</span><span>
+</span><span id="line-52"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.IntSet</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">IntSet</span></span><span>
+</span><span id="line-53"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.IntSet</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">IntSet</span></span><span class="hs-special">)</span><span>
+</span><span id="line-54"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.IntMap</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">IntMap</span></span><span>
+</span><span id="line-55"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.IntMap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">IntMap</span></span><span class="hs-special">)</span><span>
+</span><span id="line-56"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Map</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Map</span></span><span>
+</span><span id="line-57"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Map</span></span><span class="hs-special">)</span><span>
+</span><span id="line-58"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.HashMap.Lazy</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">HashMap</span></span><span>
+</span><span id="line-59"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.HashMap.Lazy</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HashMap</span></span><span class="hs-special">)</span><span class="hs-cpp">
+
+#ifdef LANGUAGE_DeriveDataTypeable
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Data</span></span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-65"></span><span class="hs-comment">--import Text.Parsec.Prim</span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span class="hs-comment">-- | This type may be best read infix. A @c `Reducer` m@ is a 'Semigroup' @m@ that maps</span><span>
+</span><span id="line-68"></span><span class="hs-comment">-- values of type @c@ through @unit@ to values of type @m@. A @c@-'Reducer' may also</span><span>
+</span><span id="line-69"></span><span class="hs-comment">-- supply operations which tack-on another @c@ to an existing 'Monoid' @m@ on the left</span><span>
+</span><span id="line-70"></span><span class="hs-comment">-- or right. These specialized reductions may be more efficient in some scenarios</span><span>
+</span><span id="line-71"></span><span class="hs-comment">-- and are used when appropriate by a 'Generator'. The names 'cons' and 'snoc' work</span><span>
+</span><span id="line-72"></span><span class="hs-comment">-- by analogy to the synonymous operations in the list monoid.</span><span>
+</span><span id="line-73"></span><span class="hs-comment">--</span><span>
+</span><span id="line-74"></span><span class="hs-comment">-- This class deliberately avoids functional-dependencies, so that () can be a @c@-Reducer</span><span>
+</span><span id="line-75"></span><span class="hs-comment">-- for all @c@, and so many common reducers can work over multiple types, for instance,</span><span>
+</span><span id="line-76"></span><span class="hs-comment">-- First and Last may reduce both @a@ and 'Maybe' @a@. Since a 'Generator' has a fixed element</span><span>
+</span><span id="line-77"></span><span class="hs-comment">-- type, the input to the reducer is generally known and extracting from the monoid usually</span><span>
+</span><span id="line-78"></span><span class="hs-comment">-- is sufficient to fix the result type. Combinators are available for most scenarios where</span><span>
+</span><span id="line-79"></span><span class="hs-comment">-- this is not the case, and the few remaining cases can be handled by using an explicit</span><span>
+</span><span id="line-80"></span><span class="hs-comment">-- type annotation.</span><span>
+</span><span id="line-81"></span><span class="hs-comment">--</span><span>
+</span><span id="line-82"></span><span class="hs-comment">-- Minimal definition: 'unit'</span><span>
+</span><span id="line-83"></span><span class="hs-keyword">class</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="#local-6989586621679077696"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span id="Reducer"><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-var">Reducer</span></a></span></span><span> </span><span id="local-6989586621679077695"><span class="annot"><a href="#local-6989586621679077695"><span class="hs-identifier hs-type">c</span></a></span></span><span> </span><span id="local-6989586621679077696"><span class="annot"><a href="#local-6989586621679077696"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-84"></span><span>  </span><span class="hs-comment">-- | Convert a value into a 'Semigroup'</span><span>
+</span><span id="line-85"></span><span>  </span><span id="unit"><span class="annot"><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-type">unit</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679077695"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077696"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-86"></span><span>  </span><span class="hs-comment">-- | Append a value to a 'Semigroup' for use in left-to-right reduction</span><span>
+</span><span id="line-87"></span><span>  </span><span id="snoc"><span class="annot"><a href="Data.Semigroup.Reducer.html#snoc"><span class="hs-identifier hs-type">snoc</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679077696"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077695"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077696"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-88"></span><span>  </span><span class="hs-comment">-- | Prepend a value onto a 'Semigroup' for use during right-to-left reduction</span><span>
+</span><span id="line-89"></span><span>  </span><span id="cons"><span class="annot"><a href="Data.Semigroup.Reducer.html#cons"><span class="hs-identifier hs-type">cons</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679077695"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077696"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077696"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-90"></span><span>
+</span><span id="line-91"></span><span>  </span><span id="local-6989586621679077489"><span class="annot"><a href="Data.Semigroup.Reducer.html#snoc"><span class="hs-identifier hs-var hs-var">snoc</span></a></span><span> </span><span id="local-6989586621679077488"><span class="annot"><span class="annottext">m
+</span><a href="#local-6989586621679077488"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m -&gt; m -&gt; m
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(&lt;&gt;)</span></span><span> </span><span class="annot"><span class="annottext">m
+</span><a href="#local-6989586621679077488"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">(m -&gt; m) -&gt; (c -&gt; m) -&gt; c -&gt; m
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">c -&gt; m
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span></span><span>
+</span><span id="line-92"></span><span>  </span><span id="local-6989586621679077486"><span class="annot"><a href="Data.Semigroup.Reducer.html#cons"><span class="hs-identifier hs-var hs-var">cons</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m -&gt; m -&gt; m
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(&lt;&gt;)</span></span><span> </span><span class="annot"><span class="annottext">(m -&gt; m -&gt; m) -&gt; (c -&gt; m) -&gt; c -&gt; m -&gt; m
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">c -&gt; m
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span></span><span>
+</span><span id="line-93"></span><span>
+</span><span id="line-94"></span><span class="hs-comment">-- | Apply a 'Reducer' to a 'Foldable' container, after mapping the contents into a suitable form for reduction.</span><span>
+</span><span id="line-95"></span><span id="local-6989586621679077482"><span id="local-6989586621679077483"><span id="local-6989586621679077484"><span id="local-6989586621679077485"><span class="annot"><a href="Data.Semigroup.Reducer.html#foldMapReduce"><span class="hs-identifier hs-type">foldMapReduce</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Foldable</span></span><span> </span><span class="annot"><a href="#local-6989586621679077485"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="#local-6989586621679077484"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077483"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077484"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679077482"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077483"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077485"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077482"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077484"><span class="hs-identifier hs-type">m</span></a></span></span></span></span></span><span>
+</span><span id="line-96"></span><span id="foldMapReduce"><span class="annot"><span class="annottext">foldMapReduce :: (a -&gt; e) -&gt; f a -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#foldMapReduce"><span class="hs-identifier hs-var hs-var">foldMapReduce</span></a></span></span><span> </span><span id="local-6989586621679077481"><span class="annot"><span class="annottext">a -&gt; e
+</span><a href="#local-6989586621679077481"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a -&gt; m) -&gt; f a -&gt; m
+forall (t :: * -&gt; *) m a.
+(Foldable t, Monoid m) =&gt;
+(a -&gt; m) -&gt; t a -&gt; m
+</span><span class="hs-identifier hs-var">foldMap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">e -&gt; m
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span><span> </span><span class="annot"><span class="annottext">(e -&gt; m) -&gt; (a -&gt; e) -&gt; a -&gt; m
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; e
+</span><a href="#local-6989586621679077481"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-97"></span><span>
+</span><span id="line-98"></span><span id="local-6989586621679077476"><span id="local-6989586621679077477"><span id="local-6989586621679077478"><span id="local-6989586621679077479"><span class="annot"><a href="Data.Semigroup.Reducer.html#foldMapReduce1"><span class="hs-identifier hs-type">foldMapReduce1</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Foldable1</span></span><span> </span><span class="annot"><a href="#local-6989586621679077479"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077478"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077477"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679077476"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077478"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077479"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077476"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077477"><span class="hs-identifier hs-type">m</span></a></span></span></span></span></span><span>
+</span><span id="line-99"></span><span id="foldMapReduce1"><span class="annot"><span class="annottext">foldMapReduce1 :: (a -&gt; e) -&gt; f a -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#foldMapReduce1"><span class="hs-identifier hs-var hs-var">foldMapReduce1</span></a></span></span><span> </span><span id="local-6989586621679077475"><span class="annot"><span class="annottext">a -&gt; e
+</span><a href="#local-6989586621679077475"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a -&gt; m) -&gt; f a -&gt; m
+forall (t :: * -&gt; *) m a.
+(Foldable1 t, Semigroup m) =&gt;
+(a -&gt; m) -&gt; t a -&gt; m
+</span><span class="hs-identifier hs-var">foldMap1</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">e -&gt; m
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span><span> </span><span class="annot"><span class="annottext">(e -&gt; m) -&gt; (a -&gt; e) -&gt; a -&gt; m
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; e
+</span><a href="#local-6989586621679077475"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-100"></span><span>
+</span><span id="line-101"></span><span class="hs-comment">-- | Apply a 'Reducer' to a 'Foldable' mapping each element through 'unit'</span><span>
+</span><span id="line-102"></span><span id="local-6989586621679077471"><span id="local-6989586621679077472"><span id="local-6989586621679077473"><span class="annot"><a href="Data.Semigroup.Reducer.html#foldReduce"><span class="hs-identifier hs-type">foldReduce</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Foldable</span></span><span> </span><span class="annot"><a href="#local-6989586621679077473"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="#local-6989586621679077472"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077471"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077472"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077473"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077471"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077472"><span class="hs-identifier hs-type">m</span></a></span></span></span></span><span>
+</span><span id="line-103"></span><span id="foldReduce"><span class="annot"><span class="annottext">foldReduce :: f e -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#foldReduce"><span class="hs-identifier hs-var hs-var">foldReduce</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(e -&gt; m) -&gt; f e -&gt; m
+forall (t :: * -&gt; *) m a.
+(Foldable t, Monoid m) =&gt;
+(a -&gt; m) -&gt; t a -&gt; m
+</span><span class="hs-identifier hs-var">foldMap</span></span><span> </span><span class="annot"><span class="annottext">e -&gt; m
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span><span>
+</span><span id="line-104"></span><span>
+</span><span id="line-105"></span><span class="hs-comment">-- | Apply a 'Reducer' to a 'Foldable1' mapping each element through 'unit'</span><span>
+</span><span id="line-106"></span><span id="local-6989586621679077468"><span id="local-6989586621679077469"><span id="local-6989586621679077470"><span class="annot"><a href="Data.Semigroup.Reducer.html#foldReduce1"><span class="hs-identifier hs-type">foldReduce1</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Foldable1</span></span><span> </span><span class="annot"><a href="#local-6989586621679077470"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077469"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077468"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077470"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077469"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077468"><span class="hs-identifier hs-type">m</span></a></span></span></span></span><span>
+</span><span id="line-107"></span><span id="foldReduce1"><span class="annot"><span class="annottext">foldReduce1 :: f e -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#foldReduce1"><span class="hs-identifier hs-var hs-var">foldReduce1</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(e -&gt; m) -&gt; f e -&gt; m
+forall (t :: * -&gt; *) m a.
+(Foldable1 t, Semigroup m) =&gt;
+(a -&gt; m) -&gt; t a -&gt; m
+</span><span class="hs-identifier hs-var">foldMap1</span></span><span> </span><span class="annot"><span class="annottext">e -&gt; m
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span><span>
+</span><span id="line-108"></span><span>
+</span><span id="line-109"></span><span id="local-6989586621679077465"><span id="local-6989586621679077466"><span id="local-6989586621679077467"><span class="annot"><a href="Data.Semigroup.Reducer.html#returnUnit"><span class="hs-identifier hs-type">returnUnit</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679077467"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077466"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077465"><span class="hs-identifier hs-type">n</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077466"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077467"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077465"><span class="hs-identifier hs-type">n</span></a></span></span></span></span><span>
+</span><span id="line-110"></span><span id="returnUnit"><span class="annot"><span class="annottext">returnUnit :: c -&gt; m n
+</span><a href="Data.Semigroup.Reducer.html#returnUnit"><span class="hs-identifier hs-var hs-var">returnUnit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">n -&gt; m n
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(n -&gt; m n) -&gt; (c -&gt; n) -&gt; c -&gt; m n
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">c -&gt; n
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span><span>
+</span><span id="line-111"></span><span>
+</span><span id="line-112"></span><span id="local-6989586621679077462"><span id="local-6989586621679077463"><span id="local-6989586621679077464"><span class="annot"><a href="Data.Semigroup.Reducer.html#pureUnit"><span class="hs-identifier hs-type">pureUnit</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Applicative</span></span><span> </span><span class="annot"><a href="#local-6989586621679077464"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077463"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077462"><span class="hs-identifier hs-type">n</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077463"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077464"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077462"><span class="hs-identifier hs-type">n</span></a></span></span></span></span><span>
+</span><span id="line-113"></span><span id="pureUnit"><span class="annot"><span class="annottext">pureUnit :: c -&gt; f n
+</span><a href="Data.Semigroup.Reducer.html#pureUnit"><span class="hs-identifier hs-var hs-var">pureUnit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">n -&gt; f n
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">(n -&gt; f n) -&gt; (c -&gt; n) -&gt; c -&gt; f n
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">c -&gt; n
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span><span>
+</span><span id="line-114"></span><span>
+</span><span id="line-115"></span><span class="hs-keyword">newtype</span><span> </span><span id="Count"><span class="annot"><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-var">Count</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Count"><span class="annot"><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-var">Count</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="getCount"><span class="annot"><span class="annottext">Count -&gt; Int
+</span><a href="Data.Semigroup.Reducer.html#getCount"><span class="hs-identifier hs-var hs-var">getCount</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span>
+</span><span id="line-116"></span><span>  </span><span class="hs-special">(</span><span> </span><span id="local-6989586621679077456"><span id="local-6989586621679077458"><span class="annot"><span class="annottext">Count -&gt; Count -&gt; Bool
+(Count -&gt; Count -&gt; Bool) -&gt; (Count -&gt; Count -&gt; Bool) -&gt; Eq Count
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Count -&gt; Count -&gt; Bool
+$c/= :: Count -&gt; Count -&gt; Bool
+== :: Count -&gt; Count -&gt; Bool
+$c== :: Count -&gt; Count -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679077440"><span id="local-6989586621679077442"><span id="local-6989586621679077444"><span id="local-6989586621679077446"><span id="local-6989586621679077448"><span id="local-6989586621679077450"><span id="local-6989586621679077452"><span class="annot"><span class="annottext">Eq Count
+Eq Count
+-&gt; (Count -&gt; Count -&gt; Ordering)
+-&gt; (Count -&gt; Count -&gt; Bool)
+-&gt; (Count -&gt; Count -&gt; Bool)
+-&gt; (Count -&gt; Count -&gt; Bool)
+-&gt; (Count -&gt; Count -&gt; Bool)
+-&gt; (Count -&gt; Count -&gt; Count)
+-&gt; (Count -&gt; Count -&gt; Count)
+-&gt; Ord Count
+Count -&gt; Count -&gt; Bool
+Count -&gt; Count -&gt; Ordering
+Count -&gt; Count -&gt; Count
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: Count -&gt; Count -&gt; Count
+$cmin :: Count -&gt; Count -&gt; Count
+max :: Count -&gt; Count -&gt; Count
+$cmax :: Count -&gt; Count -&gt; Count
+&gt;= :: Count -&gt; Count -&gt; Bool
+$c&gt;= :: Count -&gt; Count -&gt; Bool
+&gt; :: Count -&gt; Count -&gt; Bool
+$c&gt; :: Count -&gt; Count -&gt; Bool
+&lt;= :: Count -&gt; Count -&gt; Bool
+$c&lt;= :: Count -&gt; Count -&gt; Bool
+&lt; :: Count -&gt; Count -&gt; Bool
+$c&lt; :: Count -&gt; Count -&gt; Bool
+compare :: Count -&gt; Count -&gt; Ordering
+$ccompare :: Count -&gt; Count -&gt; Ordering
+$cp1Ord :: Eq Count
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679077433"><span id="local-6989586621679077435"><span id="local-6989586621679077437"><span class="annot"><span class="annottext">Int -&gt; Count -&gt; ShowS
+[Count] -&gt; ShowS
+Count -&gt; String
+(Int -&gt; Count -&gt; ShowS)
+-&gt; (Count -&gt; String) -&gt; ([Count] -&gt; ShowS) -&gt; Show Count
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Count] -&gt; ShowS
+$cshowList :: [Count] -&gt; ShowS
+show :: Count -&gt; String
+$cshow :: Count -&gt; String
+showsPrec :: Int -&gt; Count -&gt; ShowS
+$cshowsPrec :: Int -&gt; Count -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679077424"><span id="local-6989586621679077426"><span id="local-6989586621679077428"><span id="local-6989586621679077430"><span class="annot"><span class="annottext">ReadPrec [Count]
+ReadPrec Count
+Int -&gt; ReadS Count
+ReadS [Count]
+(Int -&gt; ReadS Count)
+-&gt; ReadS [Count]
+-&gt; ReadPrec Count
+-&gt; ReadPrec [Count]
+-&gt; Read Count
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [Count]
+$creadListPrec :: ReadPrec [Count]
+readPrec :: ReadPrec Count
+$creadPrec :: ReadPrec Count
+readList :: ReadS [Count]
+$creadList :: ReadS [Count]
+readsPrec :: Int -&gt; ReadS Count
+$creadsPrec :: Int -&gt; ReadS Count
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-cpp">
+#ifdef LANGUAGE_DeriveDataTypeable
+</span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24cCount"><span id="%24tCount"><span id="local-6989586621679077394"><span id="local-6989586621679077396"><span id="local-6989586621679077398"><span id="local-6989586621679077400"><span id="local-6989586621679077402"><span id="local-6989586621679077404"><span id="local-6989586621679077406"><span id="local-6989586621679077408"><span id="local-6989586621679077410"><span id="local-6989586621679077412"><span id="local-6989586621679077414"><span id="local-6989586621679077416"><span id="local-6989586621679077418"><span id="local-6989586621679077420"><span class="annot"><span class="annottext">Typeable Count
+DataType
+Constr
+Typeable Count
+-&gt; (forall (c :: * -&gt; *).
+    (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+    -&gt; (forall g. g -&gt; c g) -&gt; Count -&gt; c Count)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Count)
+-&gt; (Count -&gt; Constr)
+-&gt; (Count -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Count))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Count))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; Count -&gt; Count)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Count -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Count -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; Count -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Count -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; Count -&gt; m Count)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; Count -&gt; m Count)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; Count -&gt; m Count)
+-&gt; Data Count
+Count -&gt; DataType
+Count -&gt; Constr
+(forall b. Data b =&gt; b -&gt; b) -&gt; Count -&gt; Count
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Count -&gt; c Count
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Count
+forall a.
+Typeable a
+-&gt; (forall (c :: * -&gt; *).
+    (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+    -&gt; (forall g. g -&gt; c g) -&gt; a -&gt; c a)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c a)
+-&gt; (a -&gt; Constr)
+-&gt; (a -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c a))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c a))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; a -&gt; a)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; Data a
+forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Count -&gt; u
+forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; Count -&gt; [u]
+forall r r'.
+(r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Count -&gt; r
+forall r r'.
+(r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Count -&gt; r
+forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Count -&gt; m Count
+forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Count -&gt; m Count
+forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Count
+forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Count -&gt; c Count
+forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Count)
+forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Count)
+$cCount :: Constr
+$tCount :: DataType
+gmapMo :: (forall d. Data d =&gt; d -&gt; m d) -&gt; Count -&gt; m Count
+$cgmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Count -&gt; m Count
+gmapMp :: (forall d. Data d =&gt; d -&gt; m d) -&gt; Count -&gt; m Count
+$cgmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Count -&gt; m Count
+gmapM :: (forall d. Data d =&gt; d -&gt; m d) -&gt; Count -&gt; m Count
+$cgmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Count -&gt; m Count
+gmapQi :: Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Count -&gt; u
+$cgmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Count -&gt; u
+gmapQ :: (forall d. Data d =&gt; d -&gt; u) -&gt; Count -&gt; [u]
+$cgmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; Count -&gt; [u]
+gmapQr :: (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Count -&gt; r
+$cgmapQr :: forall r r'.
+(r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Count -&gt; r
+gmapQl :: (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Count -&gt; r
+$cgmapQl :: forall r r'.
+(r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Count -&gt; r
+gmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; Count -&gt; Count
+$cgmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; Count -&gt; Count
+dataCast2 :: (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Count)
+$cdataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Count)
+dataCast1 :: (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Count)
+$cdataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Count)
+dataTypeOf :: Count -&gt; DataType
+$cdataTypeOf :: Count -&gt; DataType
+toConstr :: Count -&gt; Constr
+$ctoConstr :: Count -&gt; Constr
+gunfold :: (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Count
+$cgunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Count
+gfoldl :: (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Count -&gt; c Count
+$cgfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Count -&gt; c Count
+$cp1Data :: Typeable Count
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Data</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Typeable</span></span><span class="hs-cpp">
+#endif
+</span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-121"></span><span>
+</span><span id="line-122"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679077388"><span class="annot"><span class="hs-identifier hs-type">Hashable</span></span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-type">Count</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-123"></span><span>  </span><span id="local-6989586621679077386"><span class="annot"><span class="annottext">hashWithSalt :: Int -&gt; Count -&gt; Int
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">hashWithSalt</span></span></span><span> </span><span id="local-6989586621679077384"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679077384"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Hashable a =&gt; Int -&gt; a -&gt; Int
+</span><span class="hs-identifier hs-var">hashWithSalt</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679077384"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Int) -&gt; (Count -&gt; Int) -&gt; Count -&gt; Int
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Count -&gt; Int
+</span><a href="Data.Semigroup.Reducer.html#getCount"><span class="hs-identifier hs-var hs-var">getCount</span></a></span><span>
+</span><span id="line-124"></span><span>
+</span><span id="line-125"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679077381"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-type">Count</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-126"></span><span>  </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-type">Count</span></a></span><span> </span><span id="local-6989586621679077378"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679077378"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679077377"><span class="annot"><span class="annottext">&lt;&gt; :: Count -&gt; Count -&gt; Count
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></span></span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-type">Count</span></a></span><span> </span><span id="local-6989586621679077376"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679077376"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Count
+</span><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-var">Count</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679077378"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679077376"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span class="hs-cpp">
+#if MIN_VERSION_semigroups(0,17,0)
+</span><span>  </span><span id="local-6989586621679077374"><span class="annot"><span class="annottext">stimes :: b -&gt; Count -&gt; Count
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">stimes</span></span></span><span> </span><span id="local-6989586621679077372"><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679077372"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-type">Count</span></a></span><span> </span><span id="local-6989586621679077371"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679077371"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Count
+</span><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-var">Count</span></a></span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Count) -&gt; Int -&gt; Count
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">b -&gt; Int
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679077372"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">*</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679077371"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-cpp">
+#else
+</span><span>  </span><span class="hs-identifier">times1p</span><span> </span><span class="hs-identifier">n</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Count</span><span> </span><span class="hs-identifier">a</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">Count</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">fromIntegral</span><span> </span><span class="hs-identifier">n</span><span> </span><span class="hs-operator">+</span><span> </span><span class="hs-number">1</span><span class="hs-special">)</span><span> </span><span class="hs-operator">*</span><span> </span><span class="hs-identifier">a</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-133"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679077365"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-type">Count</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-134"></span><span>  </span><span id="local-6989586621679077363"><span class="annot"><span class="annottext">mempty :: Count
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Count
+</span><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-var">Count</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-135"></span><span>  </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-type">Count</span></a></span><span> </span><span id="local-6989586621679077362"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679077362"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679077361"><span class="annot"><span class="annottext">mappend :: Count -&gt; Count -&gt; Count
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">`mappend`</span></span></span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-type">Count</span></a></span><span> </span><span id="local-6989586621679077360"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679077360"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Count
+</span><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-var">Count</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679077362"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679077360"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-136"></span><span>
+</span><span id="line-137"></span><span id="local-6989586621679077359"><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077359"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-type">Count</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-138"></span><span>  </span><span id="local-6989586621679077353"><span class="annot"><span class="annottext">unit :: a -&gt; Count
+</span><a href="#local-6989586621679077353"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Count
+</span><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-var">Count</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-139"></span><span>  </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-type">Count</span></a></span><span> </span><span id="local-6989586621679077352"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679077352"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679077351"><span class="annot"><span class="annottext">snoc :: Count -&gt; a -&gt; Count
+</span><a href="#local-6989586621679077351"><span class="hs-operator hs-var hs-var hs-var hs-var">`snoc`</span></a></span></span><span> </span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Count
+</span><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-var">Count</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679077352"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
+</span><span id="line-140"></span><span>  </span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679077350"><span class="annot"><span class="annottext">cons :: a -&gt; Count -&gt; Count
+</span><a href="#local-6989586621679077350"><span class="hs-operator hs-var hs-var hs-var hs-var">`cons`</span></a></span></span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-type">Count</span></a></span><span> </span><span id="local-6989586621679077349"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679077349"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Count
+</span><a href="Data.Semigroup.Reducer.html#Count"><span class="hs-identifier hs-var">Count</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679077349"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span></span><span>
+</span><span id="line-141"></span><span>
+</span><span id="line-142"></span><span id="local-6989586621679077346"><span id="local-6989586621679077347"><span id="local-6989586621679077348"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077348"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077347"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077348"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077346"><span class="hs-identifier hs-type">n</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077348"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679077347"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span class="annot"><a href="#local-6989586621679077346"><span class="hs-identifier hs-type">n</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-143"></span><span>  </span><span id="local-6989586621679077341"><span class="annot"><span class="annottext">unit :: c -&gt; (m, n)
+</span><a href="#local-6989586621679077341"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span id="local-6989586621679077340"><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077340"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">c -&gt; m
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077340"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">c -&gt; n
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077340"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-144"></span><span>  </span><span class="hs-special">(</span><span id="local-6989586621679077339"><span class="annot"><span class="annottext">m
+</span><a href="#local-6989586621679077339"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679077338"><span class="annot"><span class="annottext">n
+</span><a href="#local-6989586621679077338"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679077337"><span class="annot"><span class="annottext">snoc :: (m, n) -&gt; c -&gt; (m, n)
+</span><a href="#local-6989586621679077337"><span class="hs-operator hs-var hs-var hs-var hs-var">`snoc`</span></a></span></span><span> </span><span id="local-6989586621679077336"><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077336"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">m
+</span><a href="#local-6989586621679077339"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">m -&gt; c -&gt; m
+forall c m. Reducer c m =&gt; m -&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#snoc"><span class="hs-operator hs-var">`snoc`</span></a></span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077336"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">n
+</span><a href="#local-6989586621679077338"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">n -&gt; c -&gt; n
+forall c m. Reducer c m =&gt; m -&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#snoc"><span class="hs-operator hs-var">`snoc`</span></a></span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077336"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-145"></span><span>  </span><span id="local-6989586621679077335"><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077335"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679077334"><span class="annot"><span class="annottext">cons :: c -&gt; (m, n) -&gt; (m, n)
+</span><a href="#local-6989586621679077334"><span class="hs-operator hs-var hs-var hs-var hs-var">`cons`</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679077333"><span class="annot"><span class="annottext">m
+</span><a href="#local-6989586621679077333"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679077332"><span class="annot"><span class="annottext">n
+</span><a href="#local-6989586621679077332"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077335"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">c -&gt; m -&gt; m
+forall c m. Reducer c m =&gt; c -&gt; m -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#cons"><span class="hs-operator hs-var">`cons`</span></a></span><span> </span><span class="annot"><span class="annottext">m
+</span><a href="#local-6989586621679077333"><span class="hs-identifier hs-var">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077335"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">c -&gt; n -&gt; n
+forall c m. Reducer c m =&gt; c -&gt; m -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#cons"><span class="hs-operator hs-var">`cons`</span></a></span><span> </span><span class="annot"><span class="annottext">n
+</span><a href="#local-6989586621679077332"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">)</span></span></span></span><span>
+</span><span id="line-146"></span><span>
+</span><span id="line-147"></span><span id="local-6989586621679077328"><span id="local-6989586621679077329"><span id="local-6989586621679077330"><span id="local-6989586621679077331"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077331"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077330"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077331"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077329"><span class="hs-identifier hs-type">n</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077331"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077328"><span class="hs-identifier hs-type">o</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077331"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679077330"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span class="annot"><a href="#local-6989586621679077329"><span class="hs-identifier hs-type">n</span></a></span><span class="hs-special">,</span><span class="annot"><a href="#local-6989586621679077328"><span class="hs-identifier hs-type">o</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-148"></span><span>  </span><span id="local-6989586621679077323"><span class="annot"><span class="annottext">unit :: c -&gt; (m, n, o)
+</span><a href="#local-6989586621679077323"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span id="local-6989586621679077322"><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077322"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">c -&gt; m
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077322"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">c -&gt; n
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077322"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">c -&gt; o
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077322"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-149"></span><span>  </span><span class="hs-special">(</span><span id="local-6989586621679077321"><span class="annot"><span class="annottext">m
+</span><a href="#local-6989586621679077321"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679077320"><span class="annot"><span class="annottext">n
+</span><a href="#local-6989586621679077320"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679077319"><span class="annot"><span class="annottext">o
+</span><a href="#local-6989586621679077319"><span class="hs-identifier hs-var">o</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679077318"><span class="annot"><span class="annottext">snoc :: (m, n, o) -&gt; c -&gt; (m, n, o)
+</span><a href="#local-6989586621679077318"><span class="hs-operator hs-var hs-var hs-var hs-var">`snoc`</span></a></span></span><span> </span><span id="local-6989586621679077317"><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077317"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">m
+</span><a href="#local-6989586621679077321"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">m -&gt; c -&gt; m
+forall c m. Reducer c m =&gt; m -&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#snoc"><span class="hs-operator hs-var">`snoc`</span></a></span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077317"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">n
+</span><a href="#local-6989586621679077320"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">n -&gt; c -&gt; n
+forall c m. Reducer c m =&gt; m -&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#snoc"><span class="hs-operator hs-var">`snoc`</span></a></span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077317"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">o
+</span><a href="#local-6989586621679077319"><span class="hs-identifier hs-var">o</span></a></span><span> </span><span class="annot"><span class="annottext">o -&gt; c -&gt; o
+forall c m. Reducer c m =&gt; m -&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#snoc"><span class="hs-operator hs-var">`snoc`</span></a></span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077317"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-150"></span><span>  </span><span id="local-6989586621679077316"><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077316"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679077315"><span class="annot"><span class="annottext">cons :: c -&gt; (m, n, o) -&gt; (m, n, o)
+</span><a href="#local-6989586621679077315"><span class="hs-operator hs-var hs-var hs-var hs-var">`cons`</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679077314"><span class="annot"><span class="annottext">m
+</span><a href="#local-6989586621679077314"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679077313"><span class="annot"><span class="annottext">n
+</span><a href="#local-6989586621679077313"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679077312"><span class="annot"><span class="annottext">o
+</span><a href="#local-6989586621679077312"><span class="hs-identifier hs-var">o</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077316"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">c -&gt; m -&gt; m
+forall c m. Reducer c m =&gt; c -&gt; m -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#cons"><span class="hs-operator hs-var">`cons`</span></a></span><span> </span><span class="annot"><span class="annottext">m
+</span><a href="#local-6989586621679077314"><span class="hs-identifier hs-var">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077316"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">c -&gt; n -&gt; n
+forall c m. Reducer c m =&gt; c -&gt; m -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#cons"><span class="hs-operator hs-var">`cons`</span></a></span><span> </span><span class="annot"><span class="annottext">n
+</span><a href="#local-6989586621679077313"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077316"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">c -&gt; o -&gt; o
+forall c m. Reducer c m =&gt; c -&gt; m -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#cons"><span class="hs-operator hs-var">`cons`</span></a></span><span> </span><span class="annot"><span class="annottext">o
+</span><a href="#local-6989586621679077312"><span class="hs-identifier hs-var">o</span></a></span><span class="hs-special">)</span></span></span></span></span><span>
+</span><span id="line-151"></span><span>
+</span><span id="line-152"></span><span id="local-6989586621679077307"><span id="local-6989586621679077308"><span id="local-6989586621679077309"><span id="local-6989586621679077310"><span id="local-6989586621679077311"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077311"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077310"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077311"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077309"><span class="hs-identifier hs-type">n</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077311"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077308"><span class="hs-identifier hs-type">o</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077311"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077307"><span class="hs-identifier hs-type">p</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077311"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679077310"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span class="annot"><a href="#local-6989586621679077309"><span class="hs-identifier hs-type">n</span></a></span><span class="hs-special">,</span><span class="annot"><a href="#local-6989586621679077308"><span class="hs-identifier hs-type">o</span></a></span><span class="hs-special">,</span><span class="annot"><a href="#local-6989586621679077307"><span class="hs-identifier hs-type">p</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-153"></span><span>  </span><span id="local-6989586621679077302"><span class="annot"><span class="annottext">unit :: c -&gt; (m, n, o, p)
+</span><a href="#local-6989586621679077302"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span id="local-6989586621679077301"><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077301"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">c -&gt; m
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077301"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">c -&gt; n
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077301"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">c -&gt; o
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077301"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">c -&gt; p
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077301"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-154"></span><span>  </span><span class="hs-special">(</span><span id="local-6989586621679077300"><span class="annot"><span class="annottext">m
+</span><a href="#local-6989586621679077300"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679077299"><span class="annot"><span class="annottext">n
+</span><a href="#local-6989586621679077299"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679077298"><span class="annot"><span class="annottext">o
+</span><a href="#local-6989586621679077298"><span class="hs-identifier hs-var">o</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679077297"><span class="annot"><span class="annottext">p
+</span><a href="#local-6989586621679077297"><span class="hs-identifier hs-var">p</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679077296"><span class="annot"><span class="annottext">snoc :: (m, n, o, p) -&gt; c -&gt; (m, n, o, p)
+</span><a href="#local-6989586621679077296"><span class="hs-operator hs-var hs-var hs-var hs-var">`snoc`</span></a></span></span><span> </span><span id="local-6989586621679077295"><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077295"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">m
+</span><a href="#local-6989586621679077300"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">m -&gt; c -&gt; m
+forall c m. Reducer c m =&gt; m -&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#snoc"><span class="hs-operator hs-var">`snoc`</span></a></span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077295"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">n
+</span><a href="#local-6989586621679077299"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">n -&gt; c -&gt; n
+forall c m. Reducer c m =&gt; m -&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#snoc"><span class="hs-operator hs-var">`snoc`</span></a></span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077295"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">o
+</span><a href="#local-6989586621679077298"><span class="hs-identifier hs-var">o</span></a></span><span> </span><span class="annot"><span class="annottext">o -&gt; c -&gt; o
+forall c m. Reducer c m =&gt; m -&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#snoc"><span class="hs-operator hs-var">`snoc`</span></a></span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077295"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">p
+</span><a href="#local-6989586621679077297"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">p -&gt; c -&gt; p
+forall c m. Reducer c m =&gt; m -&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#snoc"><span class="hs-operator hs-var">`snoc`</span></a></span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077295"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-155"></span><span>  </span><span id="local-6989586621679077294"><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077294"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679077293"><span class="annot"><span class="annottext">cons :: c -&gt; (m, n, o, p) -&gt; (m, n, o, p)
+</span><a href="#local-6989586621679077293"><span class="hs-operator hs-var hs-var hs-var hs-var">`cons`</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679077292"><span class="annot"><span class="annottext">m
+</span><a href="#local-6989586621679077292"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679077291"><span class="annot"><span class="annottext">n
+</span><a href="#local-6989586621679077291"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679077290"><span class="annot"><span class="annottext">o
+</span><a href="#local-6989586621679077290"><span class="hs-identifier hs-var">o</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679077289"><span class="annot"><span class="annottext">p
+</span><a href="#local-6989586621679077289"><span class="hs-identifier hs-var">p</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077294"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">c -&gt; m -&gt; m
+forall c m. Reducer c m =&gt; c -&gt; m -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#cons"><span class="hs-operator hs-var">`cons`</span></a></span><span> </span><span class="annot"><span class="annottext">m
+</span><a href="#local-6989586621679077292"><span class="hs-identifier hs-var">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077294"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">c -&gt; n -&gt; n
+forall c m. Reducer c m =&gt; c -&gt; m -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#cons"><span class="hs-operator hs-var">`cons`</span></a></span><span> </span><span class="annot"><span class="annottext">n
+</span><a href="#local-6989586621679077291"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077294"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">c -&gt; o -&gt; o
+forall c m. Reducer c m =&gt; c -&gt; m -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#cons"><span class="hs-operator hs-var">`cons`</span></a></span><span> </span><span class="annot"><span class="annottext">o
+</span><a href="#local-6989586621679077290"><span class="hs-identifier hs-var">o</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077294"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">c -&gt; p -&gt; p
+forall c m. Reducer c m =&gt; c -&gt; m -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#cons"><span class="hs-operator hs-var">`cons`</span></a></span><span> </span><span class="annot"><span class="annottext">p
+</span><a href="#local-6989586621679077289"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span></span></span></span></span></span><span>
+</span><span id="line-156"></span><span>
+</span><span id="line-157"></span><span id="local-6989586621679077288"><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077288"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679077288"><span class="hs-identifier hs-type">c</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-158"></span><span>  </span><span id="local-6989586621679077283"><span class="annot"><span class="annottext">unit :: c -&gt; [c]
+</span><a href="#local-6989586621679077283"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">c -&gt; [c]
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span>
+</span><span id="line-159"></span><span>  </span><span id="local-6989586621679077282"><span class="annot"><span class="annottext">cons :: c -&gt; [c] -&gt; [c]
+</span><a href="#local-6989586621679077282"><span class="hs-identifier hs-var hs-var hs-var hs-var">cons</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">:</span><span class="hs-special">)</span><span>
+</span><span id="line-160"></span><span>  </span><span id="local-6989586621679077281"><span class="annot"><span class="annottext">[c]
+</span><a href="#local-6989586621679077281"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span id="local-6989586621679077280"><span class="annot"><span class="annottext">snoc :: [c] -&gt; c -&gt; [c]
+</span><a href="#local-6989586621679077280"><span class="hs-operator hs-var hs-var hs-var hs-var">`snoc`</span></a></span></span><span> </span><span id="local-6989586621679077279"><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077279"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[c]
+</span><a href="#local-6989586621679077281"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">[c] -&gt; [c] -&gt; [c]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">c
+</span><a href="#local-6989586621679077279"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-161"></span><span>
+</span><span id="line-162"></span><span id="local-6989586621679077278"><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077278"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-163"></span><span>  </span><span id="local-6989586621679077273"><span class="annot"><span class="annottext">unit :: c -&gt; ()
+</span><a href="#local-6989586621679077273"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="annot"><span class="annottext">c
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-164"></span><span>  </span><span class="annot"><span class="annottext">()
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679077272"><span class="annot"><span class="annottext">snoc :: () -&gt; c -&gt; ()
+</span><a href="#local-6989586621679077272"><span class="hs-operator hs-var hs-var hs-var hs-var">`snoc`</span></a></span></span><span> </span><span class="annot"><span class="annottext">c
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-165"></span><span>  </span><span class="annot"><span class="annottext">c
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679077271"><span class="annot"><span class="annottext">cons :: c -&gt; () -&gt; ()
+</span><a href="#local-6989586621679077271"><span class="hs-operator hs-var hs-var hs-var hs-var">`cons`</span></a></span></span><span> </span><span class="annot"><span class="annottext">()
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-166"></span><span>
+</span><span id="line-167"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679077265"><span id="local-6989586621679077267"><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Any</span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-168"></span><span>  </span><span id="local-6989586621679077264"><span class="annot"><span class="annottext">unit :: Bool -&gt; Any
+</span><a href="#local-6989586621679077264"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Any
+</span><span class="hs-identifier hs-var">Any</span></span><span>
+</span><span id="line-169"></span><span>
+</span><span id="line-170"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679077257"><span id="local-6989586621679077259"><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">All</span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-171"></span><span>  </span><span id="local-6989586621679077256"><span class="annot"><span class="annottext">unit :: Bool -&gt; All
+</span><a href="#local-6989586621679077256"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; All
+</span><span class="hs-identifier hs-var">All</span></span><span>
+</span><span id="line-172"></span><span>
+</span><span id="line-173"></span><span id="local-6989586621679077254"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679077248"><span id="local-6989586621679077250"><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679077254"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679077254"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Endo</span></span><span> </span><span class="annot"><a href="#local-6989586621679077254"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-174"></span><span>  </span><span id="local-6989586621679077247"><span class="annot"><span class="annottext">unit :: (a -&gt; a) -&gt; Endo a
+</span><a href="#local-6989586621679077247"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a -&gt; a) -&gt; Endo a
+forall a. (a -&gt; a) -&gt; Endo a
+</span><span class="hs-identifier hs-var">Endo</span></span></span><span>
+</span><span id="line-175"></span><span>
+</span><span id="line-176"></span><span id="local-6989586621679077245"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679077239"><span id="local-6989586621679077241"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="#local-6989586621679077245"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077245"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Dual</span></span><span> </span><span class="annot"><a href="#local-6989586621679077245"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-177"></span><span>  </span><span id="local-6989586621679077238"><span class="annot"><span class="annottext">unit :: a -&gt; Dual a
+</span><a href="#local-6989586621679077238"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Dual a
+forall a. a -&gt; Dual a
+</span><span class="hs-identifier hs-var">Dual</span></span></span><span>
+</span><span id="line-178"></span><span>
+</span><span id="line-179"></span><span id="local-6989586621679077236"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679077230"><span id="local-6989586621679077232"><span class="annot"><span class="hs-identifier hs-type">Num</span></span><span> </span><span class="annot"><a href="#local-6989586621679077236"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077236"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Sum</span></span><span> </span><span class="annot"><a href="#local-6989586621679077236"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-180"></span><span>  </span><span id="local-6989586621679077229"><span class="annot"><span class="annottext">unit :: a -&gt; Sum a
+</span><a href="#local-6989586621679077229"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Sum a
+forall a. a -&gt; Sum a
+</span><span class="hs-identifier hs-var">Sum</span></span></span><span>
+</span><span id="line-181"></span><span>
+</span><span id="line-182"></span><span id="local-6989586621679077227"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679077221"><span id="local-6989586621679077223"><span class="annot"><span class="hs-identifier hs-type">Num</span></span><span> </span><span class="annot"><a href="#local-6989586621679077227"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077227"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Product</span></span><span> </span><span class="annot"><a href="#local-6989586621679077227"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-183"></span><span>  </span><span id="local-6989586621679077220"><span class="annot"><span class="annottext">unit :: a -&gt; Product a
+</span><a href="#local-6989586621679077220"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Product a
+forall a. a -&gt; Product a
+</span><span class="hs-identifier hs-var">Product</span></span></span><span>
+</span><span id="line-184"></span><span>
+</span><span id="line-185"></span><span id="local-6989586621679077218"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679077212"><span id="local-6989586621679077214"><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="#local-6989586621679077218"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077218"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Min</span></span><span> </span><span class="annot"><a href="#local-6989586621679077218"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-186"></span><span>  </span><span id="local-6989586621679077211"><span class="annot"><span class="annottext">unit :: a -&gt; Min a
+</span><a href="#local-6989586621679077211"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Min a
+forall a. a -&gt; Min a
+</span><span class="hs-identifier hs-var">Min</span></span></span><span>
+</span><span id="line-187"></span><span>
+</span><span id="line-188"></span><span id="local-6989586621679077209"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679077203"><span id="local-6989586621679077205"><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="#local-6989586621679077209"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077209"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Max</span></span><span> </span><span class="annot"><a href="#local-6989586621679077209"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-189"></span><span>  </span><span id="local-6989586621679077202"><span class="annot"><span class="annottext">unit :: a -&gt; Max a
+</span><a href="#local-6989586621679077202"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Max a
+forall a. a -&gt; Max a
+</span><span class="hs-identifier hs-var">Max</span></span></span><span>
+</span><span id="line-190"></span><span>
+</span><span id="line-191"></span><span id="local-6989586621679077200"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679077194"><span id="local-6989586621679077196"><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679077200"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Monoid.First</span></span><span> </span><span class="annot"><a href="#local-6989586621679077200"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-192"></span><span>  </span><span id="local-6989586621679077193"><span class="annot"><span class="annottext">unit :: Maybe a -&gt; First a
+</span><a href="#local-6989586621679077193"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe a -&gt; First a
+forall a. Maybe a -&gt; First a
+</span><span class="hs-identifier hs-var">Monoid.First</span></span></span><span>
+</span><span id="line-193"></span><span>
+</span><span id="line-194"></span><span id="local-6989586621679077191"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679077185"><span id="local-6989586621679077187"><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077191"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Semigroup.First</span></span><span> </span><span class="annot"><a href="#local-6989586621679077191"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-195"></span><span>  </span><span id="local-6989586621679077184"><span class="annot"><span class="annottext">unit :: a -&gt; First a
+</span><a href="#local-6989586621679077184"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; First a
+forall a. a -&gt; First a
+</span><span class="hs-identifier hs-var">Semigroup.First</span></span></span><span>
+</span><span id="line-196"></span><span>
+</span><span id="line-197"></span><span id="local-6989586621679077182"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679077176"><span id="local-6989586621679077178"><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679077182"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Monoid.Last</span></span><span> </span><span class="annot"><a href="#local-6989586621679077182"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-198"></span><span>  </span><span id="local-6989586621679077175"><span class="annot"><span class="annottext">unit :: Maybe a -&gt; Last a
+</span><a href="#local-6989586621679077175"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe a -&gt; Last a
+forall a. Maybe a -&gt; Last a
+</span><span class="hs-identifier hs-var">Monoid.Last</span></span></span><span>
+</span><span id="line-199"></span><span>
+</span><span id="line-200"></span><span id="local-6989586621679077173"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679077167"><span id="local-6989586621679077169"><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077173"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Semigroup.Last</span></span><span> </span><span class="annot"><a href="#local-6989586621679077173"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-201"></span><span>  </span><span id="local-6989586621679077166"><span class="annot"><span class="annottext">unit :: a -&gt; Last a
+</span><a href="#local-6989586621679077166"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Last a
+forall a. a -&gt; Last a
+</span><span class="hs-identifier hs-var">Semigroup.Last</span></span></span><span>
+</span><span id="line-202"></span><span>
+</span><span id="line-203"></span><span id="local-6989586621679077163"><span id="local-6989586621679077164"><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Measured</span></span><span> </span><span class="annot"><a href="#local-6989586621679077164"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077163"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077163"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">FingerTree</span></span><span> </span><span class="annot"><a href="#local-6989586621679077164"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077163"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-204"></span><span>  </span><span id="local-6989586621679077158"><span class="annot"><span class="annottext">unit :: a -&gt; FingerTree v a
+</span><a href="#local-6989586621679077158"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; FingerTree v a
+forall v a. Measured v a =&gt; a -&gt; FingerTree v a
+</span><span class="hs-identifier hs-var">singleton</span></span><span>
+</span><span id="line-205"></span><span>  </span><span id="local-6989586621679077156"><span class="annot"><span class="annottext">cons :: a -&gt; FingerTree v a -&gt; FingerTree v a
+</span><a href="#local-6989586621679077156"><span class="hs-identifier hs-var hs-var hs-var hs-var">cons</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; FingerTree v a -&gt; FingerTree v a
+forall v a. Measured v a =&gt; a -&gt; FingerTree v a -&gt; FingerTree v a
+</span><span class="hs-operator hs-var">(&lt;|)</span></span><span>
+</span><span id="line-206"></span><span>  </span><span id="local-6989586621679077154"><span class="annot"><span class="annottext">snoc :: FingerTree v a -&gt; a -&gt; FingerTree v a
+</span><a href="#local-6989586621679077154"><span class="hs-identifier hs-var hs-var hs-var hs-var">snoc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FingerTree v a -&gt; a -&gt; FingerTree v a
+forall v a. Measured v a =&gt; FingerTree v a -&gt; a -&gt; FingerTree v a
+</span><span class="hs-operator hs-var">(|&gt;)</span></span></span></span><span>
+</span><span id="line-207"></span><span>
+</span><span id="line-208"></span><span class="hs-comment">--instance (Stream s m t, Reducer c a) =&gt; Reducer c (ParsecT s u m a) where</span><span>
+</span><span id="line-209"></span><span class="hs-comment">--    unit = return . unit</span><span>
+</span><span id="line-210"></span><span>
+</span><span id="line-211"></span><span id="local-6989586621679077152"><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077152"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Seq</span></span><span> </span><span class="annot"><a href="#local-6989586621679077152"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-212"></span><span>  </span><span id="local-6989586621679077147"><span class="annot"><span class="annottext">unit :: a -&gt; Seq a
+</span><a href="#local-6989586621679077147"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Seq a
+forall a. a -&gt; Seq a
+</span><span class="hs-identifier hs-var">Seq.singleton</span></span><span>
+</span><span id="line-213"></span><span>  </span><span id="local-6989586621679077145"><span class="annot"><span class="annottext">cons :: a -&gt; Seq a -&gt; Seq a
+</span><a href="#local-6989586621679077145"><span class="hs-identifier hs-var hs-var hs-var hs-var">cons</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Seq a -&gt; Seq a
+forall a. a -&gt; Seq a -&gt; Seq a
+</span><span class="hs-operator hs-var">(Seq.&lt;|)</span></span><span>
+</span><span id="line-214"></span><span>  </span><span id="local-6989586621679077143"><span class="annot"><span class="annottext">snoc :: Seq a -&gt; a -&gt; Seq a
+</span><a href="#local-6989586621679077143"><span class="hs-identifier hs-var hs-var hs-var hs-var">snoc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Seq a -&gt; a -&gt; Seq a
+forall a. Seq a -&gt; a -&gt; Seq a
+</span><span class="hs-operator hs-var">(Seq.|&gt;)</span></span></span><span>
+</span><span id="line-215"></span><span>
+</span><span id="line-216"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IntSet</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-217"></span><span>  </span><span id="local-6989586621679077137"><span class="annot"><span class="annottext">unit :: Int -&gt; IntSet
+</span><a href="#local-6989586621679077137"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; IntSet
+</span><span class="hs-identifier hs-var">IntSet.singleton</span></span><span>
+</span><span id="line-218"></span><span>  </span><span id="local-6989586621679077135"><span class="annot"><span class="annottext">cons :: Int -&gt; IntSet -&gt; IntSet
+</span><a href="#local-6989586621679077135"><span class="hs-identifier hs-var hs-var hs-var hs-var">cons</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; IntSet -&gt; IntSet
+</span><span class="hs-identifier hs-var">IntSet.insert</span></span><span>
+</span><span id="line-219"></span><span>  </span><span id="local-6989586621679077133"><span class="annot"><span class="annottext">snoc :: IntSet -&gt; Int -&gt; IntSet
+</span><a href="#local-6989586621679077133"><span class="hs-identifier hs-var hs-var hs-var hs-var">snoc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; IntSet -&gt; IntSet) -&gt; IntSet -&gt; Int -&gt; IntSet
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span><span class="hs-identifier hs-var">flip</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; IntSet -&gt; IntSet
+</span><span class="hs-identifier hs-var">IntSet.insert</span></span><span> </span><span class="hs-comment">-- left bias irrelevant</span><span>
+</span><span id="line-220"></span><span>
+</span><span id="line-221"></span><span id="local-6989586621679077131"><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="#local-6989586621679077131"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077131"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Set</span></span><span> </span><span class="annot"><a href="#local-6989586621679077131"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-222"></span><span>  </span><span id="local-6989586621679077126"><span class="annot"><span class="annottext">unit :: a -&gt; Set a
+</span><a href="#local-6989586621679077126"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Set a
+forall a. a -&gt; Set a
+</span><span class="hs-identifier hs-var">Set.singleton</span></span><span>
+</span><span id="line-223"></span><span>  </span><span id="local-6989586621679077124"><span class="annot"><span class="annottext">cons :: a -&gt; Set a -&gt; Set a
+</span><a href="#local-6989586621679077124"><span class="hs-identifier hs-var hs-var hs-var hs-var">cons</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Set a -&gt; Set a
+forall a. Ord a =&gt; a -&gt; Set a -&gt; Set a
+</span><span class="hs-identifier hs-var">Set.insert</span></span><span>
+</span><span id="line-224"></span><span>  </span><span class="hs-comment">-- pedantic about order in case 'Eq' doesn't implement structural equality</span><span>
+</span><span id="line-225"></span><span>  </span><span id="local-6989586621679077122"><span class="annot"><span class="annottext">snoc :: Set a -&gt; a -&gt; Set a
+</span><a href="#local-6989586621679077122"><span class="hs-identifier hs-var hs-var hs-var hs-var">snoc</span></a></span></span><span> </span><span id="local-6989586621679077121"><span class="annot"><span class="annottext">Set a
+</span><a href="#local-6989586621679077121"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679077120"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679077120"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">a -&gt; Set a -&gt; Bool
+forall a. Ord a =&gt; a -&gt; Set a -&gt; Bool
+</span><span class="hs-identifier hs-var">Set.member</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679077120"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">Set a
+</span><a href="#local-6989586621679077121"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Set a
+</span><a href="#local-6989586621679077121"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-226"></span><span>           </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Set a -&gt; Set a
+forall a. Ord a =&gt; a -&gt; Set a -&gt; Set a
+</span><span class="hs-identifier hs-var">Set.insert</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679077120"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">Set a
+</span><a href="#local-6989586621679077121"><span class="hs-identifier hs-var">s</span></a></span></span><span>
+</span><span id="line-227"></span><span>
+</span><span id="line-228"></span><span id="local-6989586621679077118"><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679077118"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">IntMap</span></span><span> </span><span class="annot"><a href="#local-6989586621679077118"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-229"></span><span>  </span><span id="local-6989586621679077113"><span class="annot"><span class="annottext">unit :: (Int, v) -&gt; IntMap v
+</span><a href="#local-6989586621679077113"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; v -&gt; IntMap v) -&gt; (Int, v) -&gt; IntMap v
+forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
+</span><span class="hs-identifier hs-var">uncurry</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; v -&gt; IntMap v
+forall a. Int -&gt; a -&gt; IntMap a
+</span><span class="hs-identifier hs-var">IntMap.singleton</span></span><span>
+</span><span id="line-230"></span><span>  </span><span id="local-6989586621679077110"><span class="annot"><span class="annottext">cons :: (Int, v) -&gt; IntMap v -&gt; IntMap v
+</span><a href="#local-6989586621679077110"><span class="hs-identifier hs-var hs-var hs-var hs-var">cons</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; v -&gt; IntMap v -&gt; IntMap v)
+-&gt; (Int, v) -&gt; IntMap v -&gt; IntMap v
+forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
+</span><span class="hs-identifier hs-var">uncurry</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; v -&gt; IntMap v -&gt; IntMap v
+forall a. Int -&gt; a -&gt; IntMap a -&gt; IntMap a
+</span><span class="hs-identifier hs-var">IntMap.insert</span></span><span>
+</span><span id="line-231"></span><span>  </span><span id="local-6989586621679077108"><span class="annot"><span class="annottext">snoc :: IntMap v -&gt; (Int, v) -&gt; IntMap v
+</span><a href="#local-6989586621679077108"><span class="hs-identifier hs-var hs-var hs-var hs-var">snoc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((Int, v) -&gt; IntMap v -&gt; IntMap v)
+-&gt; IntMap v -&gt; (Int, v) -&gt; IntMap v
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span><span class="hs-identifier hs-var">flip</span></span><span> </span><span class="annot"><span class="annottext">(((Int, v) -&gt; IntMap v -&gt; IntMap v)
+ -&gt; IntMap v -&gt; (Int, v) -&gt; IntMap v)
+-&gt; ((v -&gt; v -&gt; v) -&gt; (Int, v) -&gt; IntMap v -&gt; IntMap v)
+-&gt; (v -&gt; v -&gt; v)
+-&gt; IntMap v
+-&gt; (Int, v)
+-&gt; IntMap v
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Int -&gt; v -&gt; IntMap v -&gt; IntMap v)
+-&gt; (Int, v) -&gt; IntMap v -&gt; IntMap v
+forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
+</span><span class="hs-identifier hs-var">uncurry</span></span><span> </span><span class="annot"><span class="annottext">((Int -&gt; v -&gt; IntMap v -&gt; IntMap v)
+ -&gt; (Int, v) -&gt; IntMap v -&gt; IntMap v)
+-&gt; ((v -&gt; v -&gt; v) -&gt; Int -&gt; v -&gt; IntMap v -&gt; IntMap v)
+-&gt; (v -&gt; v -&gt; v)
+-&gt; (Int, v)
+-&gt; IntMap v
+-&gt; IntMap v
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(v -&gt; v -&gt; v) -&gt; Int -&gt; v -&gt; IntMap v -&gt; IntMap v
+forall a. (a -&gt; a -&gt; a) -&gt; Int -&gt; a -&gt; IntMap a -&gt; IntMap a
+</span><span class="hs-identifier hs-var">IntMap.insertWith</span></span><span> </span><span class="annot"><span class="annottext">((v -&gt; v -&gt; v) -&gt; IntMap v -&gt; (Int, v) -&gt; IntMap v)
+-&gt; (v -&gt; v -&gt; v) -&gt; IntMap v -&gt; (Int, v) -&gt; IntMap v
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(v -&gt; v) -&gt; v -&gt; v -&gt; v
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">v -&gt; v
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span></span><span>
+</span><span id="line-232"></span><span>
+</span><span id="line-233"></span><span id="local-6989586621679077103"><span id="local-6989586621679077104"><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="#local-6989586621679077104"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679077104"><span class="hs-identifier hs-type">k</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679077103"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Map</span></span><span> </span><span class="annot"><a href="#local-6989586621679077104"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077103"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-234"></span><span>  </span><span id="local-6989586621679077098"><span class="annot"><span class="annottext">unit :: (k, v) -&gt; Map k v
+</span><a href="#local-6989586621679077098"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(k -&gt; v -&gt; Map k v) -&gt; (k, v) -&gt; Map k v
+forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
+</span><span class="hs-identifier hs-var">uncurry</span></span><span> </span><span class="annot"><span class="annottext">k -&gt; v -&gt; Map k v
+forall k a. k -&gt; a -&gt; Map k a
+</span><span class="hs-identifier hs-var">Map.singleton</span></span><span>
+</span><span id="line-235"></span><span>  </span><span id="local-6989586621679077096"><span class="annot"><span class="annottext">cons :: (k, v) -&gt; Map k v -&gt; Map k v
+</span><a href="#local-6989586621679077096"><span class="hs-identifier hs-var hs-var hs-var hs-var">cons</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(k -&gt; v -&gt; Map k v -&gt; Map k v) -&gt; (k, v) -&gt; Map k v -&gt; Map k v
+forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
+</span><span class="hs-identifier hs-var">uncurry</span></span><span> </span><span class="annot"><span class="annottext">k -&gt; v -&gt; Map k v -&gt; Map k v
+forall k a. Ord k =&gt; k -&gt; a -&gt; Map k a -&gt; Map k a
+</span><span class="hs-identifier hs-var">Map.insert</span></span><span>
+</span><span id="line-236"></span><span>  </span><span id="local-6989586621679077094"><span class="annot"><span class="annottext">snoc :: Map k v -&gt; (k, v) -&gt; Map k v
+</span><a href="#local-6989586621679077094"><span class="hs-identifier hs-var hs-var hs-var hs-var">snoc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((k, v) -&gt; Map k v -&gt; Map k v) -&gt; Map k v -&gt; (k, v) -&gt; Map k v
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span><span class="hs-identifier hs-var">flip</span></span><span> </span><span class="annot"><span class="annottext">(((k, v) -&gt; Map k v -&gt; Map k v) -&gt; Map k v -&gt; (k, v) -&gt; Map k v)
+-&gt; ((v -&gt; v -&gt; v) -&gt; (k, v) -&gt; Map k v -&gt; Map k v)
+-&gt; (v -&gt; v -&gt; v)
+-&gt; Map k v
+-&gt; (k, v)
+-&gt; Map k v
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(k -&gt; v -&gt; Map k v -&gt; Map k v) -&gt; (k, v) -&gt; Map k v -&gt; Map k v
+forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
+</span><span class="hs-identifier hs-var">uncurry</span></span><span> </span><span class="annot"><span class="annottext">((k -&gt; v -&gt; Map k v -&gt; Map k v) -&gt; (k, v) -&gt; Map k v -&gt; Map k v)
+-&gt; ((v -&gt; v -&gt; v) -&gt; k -&gt; v -&gt; Map k v -&gt; Map k v)
+-&gt; (v -&gt; v -&gt; v)
+-&gt; (k, v)
+-&gt; Map k v
+-&gt; Map k v
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(v -&gt; v -&gt; v) -&gt; k -&gt; v -&gt; Map k v -&gt; Map k v
+forall k a. Ord k =&gt; (a -&gt; a -&gt; a) -&gt; k -&gt; a -&gt; Map k a -&gt; Map k a
+</span><span class="hs-identifier hs-var">Map.insertWith</span></span><span> </span><span class="annot"><span class="annottext">((v -&gt; v -&gt; v) -&gt; Map k v -&gt; (k, v) -&gt; Map k v)
+-&gt; (v -&gt; v -&gt; v) -&gt; Map k v -&gt; (k, v) -&gt; Map k v
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(v -&gt; v) -&gt; v -&gt; v -&gt; v
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">v -&gt; v
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span></span></span><span>
+</span><span id="line-237"></span><span>
+</span><span id="line-238"></span><span>
+</span><span id="line-239"></span><span id="local-6989586621679077091"><span id="local-6989586621679077092"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="annot"><a href="#local-6989586621679077092"><span class="hs-identifier hs-type">k</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Hashable</span></span><span> </span><span class="annot"><a href="#local-6989586621679077092"><span class="hs-identifier hs-type">k</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679077092"><span class="hs-identifier hs-type">k</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679077091"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HashMap</span></span><span> </span><span class="annot"><a href="#local-6989586621679077092"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077091"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-240"></span><span>  </span><span id="local-6989586621679077086"><span class="annot"><span class="annottext">unit :: (k, v) -&gt; HashMap k v
+</span><a href="#local-6989586621679077086"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(k -&gt; v -&gt; HashMap k v) -&gt; (k, v) -&gt; HashMap k v
+forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
+</span><span class="hs-identifier hs-var">uncurry</span></span><span> </span><span class="annot"><span class="annottext">k -&gt; v -&gt; HashMap k v
+forall k v. Hashable k =&gt; k -&gt; v -&gt; HashMap k v
+</span><span class="hs-identifier hs-var">HashMap.singleton</span></span><span>
+</span><span id="line-241"></span><span>  </span><span id="local-6989586621679077084"><span class="annot"><span class="annottext">cons :: (k, v) -&gt; HashMap k v -&gt; HashMap k v
+</span><a href="#local-6989586621679077084"><span class="hs-identifier hs-var hs-var hs-var hs-var">cons</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(k -&gt; v -&gt; HashMap k v -&gt; HashMap k v)
+-&gt; (k, v) -&gt; HashMap k v -&gt; HashMap k v
+forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
+</span><span class="hs-identifier hs-var">uncurry</span></span><span> </span><span class="annot"><span class="annottext">k -&gt; v -&gt; HashMap k v -&gt; HashMap k v
+forall k v.
+(Eq k, Hashable k) =&gt;
+k -&gt; v -&gt; HashMap k v -&gt; HashMap k v
+</span><span class="hs-identifier hs-var">HashMap.insert</span></span><span>
+</span><span id="line-242"></span><span>  </span><span id="local-6989586621679077082"><span class="annot"><span class="annottext">snoc :: HashMap k v -&gt; (k, v) -&gt; HashMap k v
+</span><a href="#local-6989586621679077082"><span class="hs-identifier hs-var hs-var hs-var hs-var">snoc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((k, v) -&gt; HashMap k v -&gt; HashMap k v)
+-&gt; HashMap k v -&gt; (k, v) -&gt; HashMap k v
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span><span class="hs-identifier hs-var">flip</span></span><span> </span><span class="annot"><span class="annottext">(((k, v) -&gt; HashMap k v -&gt; HashMap k v)
+ -&gt; HashMap k v -&gt; (k, v) -&gt; HashMap k v)
+-&gt; ((v -&gt; v -&gt; v) -&gt; (k, v) -&gt; HashMap k v -&gt; HashMap k v)
+-&gt; (v -&gt; v -&gt; v)
+-&gt; HashMap k v
+-&gt; (k, v)
+-&gt; HashMap k v
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(k -&gt; v -&gt; HashMap k v -&gt; HashMap k v)
+-&gt; (k, v) -&gt; HashMap k v -&gt; HashMap k v
+forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
+</span><span class="hs-identifier hs-var">uncurry</span></span><span> </span><span class="annot"><span class="annottext">((k -&gt; v -&gt; HashMap k v -&gt; HashMap k v)
+ -&gt; (k, v) -&gt; HashMap k v -&gt; HashMap k v)
+-&gt; ((v -&gt; v -&gt; v) -&gt; k -&gt; v -&gt; HashMap k v -&gt; HashMap k v)
+-&gt; (v -&gt; v -&gt; v)
+-&gt; (k, v)
+-&gt; HashMap k v
+-&gt; HashMap k v
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(v -&gt; v -&gt; v) -&gt; k -&gt; v -&gt; HashMap k v -&gt; HashMap k v
+forall k v.
+(Eq k, Hashable k) =&gt;
+(v -&gt; v -&gt; v) -&gt; k -&gt; v -&gt; HashMap k v -&gt; HashMap k v
+</span><span class="hs-identifier hs-var">HashMap.insertWith</span></span><span> </span><span class="annot"><span class="annottext">((v -&gt; v -&gt; v) -&gt; HashMap k v -&gt; (k, v) -&gt; HashMap k v)
+-&gt; (v -&gt; v -&gt; v) -&gt; HashMap k v -&gt; (k, v) -&gt; HashMap k v
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(v -&gt; v) -&gt; v -&gt; v -&gt; v
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">v -&gt; v
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span></span></span><span>
+</span><span id="line-243"></span><span>
+</span><span id="line-244"></span><span id="local-6989586621679077080"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679077074"><span id="local-6989586621679077076"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="#local-6989586621679077080"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679077080"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">WrappedMonoid</span></span><span> </span><span class="annot"><a href="#local-6989586621679077080"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-245"></span><span>  </span><span id="local-6989586621679077073"><span class="annot"><span class="annottext">unit :: m -&gt; WrappedMonoid m
+</span><a href="#local-6989586621679077073"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m -&gt; WrappedMonoid m
+forall m. m -&gt; WrappedMonoid m
+</span><span class="hs-identifier hs-var">WrapMonoid</span></span></span><span>
+</span><span id="line-246"></span></pre></body></html>

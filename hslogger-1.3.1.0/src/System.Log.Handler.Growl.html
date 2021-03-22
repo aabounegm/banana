@@ -1,0 +1,414 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{- |
+   Module     : System.Log.Handler.Growl
+   Copyright  : Copyright (C) 2007-2011 John Goerzen &lt;jgoerzen@complete.org&gt;
+   License    : BSD3
+
+   Portability: portable
+
+Simple log handlers
+
+Written by Richard M. Neswold, Jr. rich.neswold\@gmail.com
+-}</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">System.Log.Handler.Growl</span><span class="hs-special">(</span><span class="annot"><a href="System.Log.Handler.Growl.html#addTarget"><span class="hs-identifier">addTarget</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.Log.Handler.Growl.html#growlHandler"><span class="hs-identifier">growlHandler</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span>    </span><span class="hs-keyword">where</span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Char</span></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Word</span></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Network.Socket</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">S</span></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Network.Socket.ByteString</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">SBS</span></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Network.BSD</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">S</span></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="System.Log.html"><span class="hs-identifier">System.Log</span></a></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="System.Log.Handler.html"><span class="hs-identifier">System.Log.Handler</span></a></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="System.Log.Formatter.html"><span class="hs-identifier">System.Log.Formatter</span></a></span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="UTF8.html"><span class="hs-identifier">UTF8</span></a></span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span class="annot"><a href="System.Log.Handler.Growl.html#sendTo"><span class="hs-identifier hs-type">sendTo</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">S.Socket</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">S.SockAddr</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-28"></span><span id="sendTo"><span class="annot"><span class="annottext">sendTo :: Socket -&gt; String -&gt; SockAddr -&gt; IO Int
+</span><a href="System.Log.Handler.Growl.html#sendTo"><span class="hs-identifier hs-var hs-var">sendTo</span></a></span></span><span> </span><span id="local-6989586621679051214"><span class="annot"><span class="annottext">Socket
+</span><a href="#local-6989586621679051214"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679051213"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051213"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Socket -&gt; ByteString -&gt; SockAddr -&gt; IO Int
+</span><span class="hs-identifier hs-var">SBS.sendTo</span></span><span> </span><span class="annot"><span class="annottext">Socket
+</span><a href="#local-6989586621679051214"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; ByteString
+</span><a href="UTF8.html#toUTF8BS"><span class="hs-identifier hs-var">toUTF8BS</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051213"><span class="hs-identifier hs-var">str</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">data</span><span> </span><span id="GrowlHandler"><span class="annot"><a href="System.Log.Handler.Growl.html#GrowlHandler"><span class="hs-identifier hs-var">GrowlHandler</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="GrowlHandler"><span class="annot"><a href="System.Log.Handler.Growl.html#GrowlHandler"><span class="hs-identifier hs-var">GrowlHandler</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="priority"><span class="annot"><span class="annottext">GrowlHandler -&gt; Priority
+</span><a href="System.Log.Handler.Growl.html#priority"><span class="hs-identifier hs-var hs-var">priority</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-31"></span><span>                                   </span><span id="formatter"><span class="annot"><span class="annottext">GrowlHandler -&gt; LogFormatter GrowlHandler
+</span><a href="System.Log.Handler.Growl.html#formatter"><span class="hs-identifier hs-var hs-var">formatter</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="System.Log.Formatter.html#LogFormatter"><span class="hs-identifier hs-type">LogFormatter</span></a></span><span> </span><span class="annot"><a href="System.Log.Handler.Growl.html#GrowlHandler"><span class="hs-identifier hs-type">GrowlHandler</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-32"></span><span>                                   </span><span id="appName"><span class="annot"><span class="annottext">GrowlHandler -&gt; String
+</span><a href="System.Log.Handler.Growl.html#appName"><span class="hs-identifier hs-var hs-var">appName</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span>
+</span><span id="line-33"></span><span>                                   </span><span id="skt"><span class="annot"><span class="annottext">GrowlHandler -&gt; Socket
+</span><a href="System.Log.Handler.Growl.html#skt"><span class="hs-identifier hs-var hs-var">skt</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">S.Socket</span></span><span class="hs-special">,</span><span>
+</span><span id="line-34"></span><span>                                   </span><span id="targets"><span class="annot"><span class="annottext">GrowlHandler -&gt; [HostAddress]
+</span><a href="System.Log.Handler.Growl.html#targets"><span class="hs-identifier hs-var hs-var">targets</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">S.HostAddress</span></span><span class="hs-special">]</span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679051199"><span class="annot"><a href="System.Log.Handler.html#LogHandler"><span class="hs-identifier hs-type">LogHandler</span></a></span><span> </span><span class="annot"><a href="System.Log.Handler.Growl.html#GrowlHandler"><span class="hs-identifier hs-type">GrowlHandler</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span>    </span><span id="local-6989586621679051195"><span class="annot"><span class="annottext">setLevel :: GrowlHandler -&gt; Priority -&gt; GrowlHandler
+</span><a href="System.Log.Handler.html#setLevel"><span class="hs-identifier hs-var hs-var hs-var hs-var">setLevel</span></a></span></span><span> </span><span id="local-6989586621679051193"><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051193"><span class="hs-identifier hs-var">gh</span></a></span></span><span> </span><span id="local-6989586621679051192"><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679051192"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051193"><span class="hs-identifier hs-var">gh</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">priority :: Priority
+</span><a href="System.Log.Handler.Growl.html#priority"><span class="hs-identifier hs-var">priority</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679051192"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span>    </span><span id="local-6989586621679051191"><span class="annot"><span class="annottext">getLevel :: GrowlHandler -&gt; Priority
+</span><a href="System.Log.Handler.html#getLevel"><span class="hs-identifier hs-var hs-var hs-var hs-var">getLevel</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GrowlHandler -&gt; Priority
+</span><a href="System.Log.Handler.Growl.html#priority"><span class="hs-identifier hs-var hs-var">priority</span></a></span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span>    </span><span id="local-6989586621679051189"><span class="annot"><span class="annottext">setFormatter :: GrowlHandler -&gt; LogFormatter GrowlHandler -&gt; GrowlHandler
+</span><a href="System.Log.Handler.html#setFormatter"><span class="hs-identifier hs-var hs-var hs-var hs-var">setFormatter</span></a></span></span><span> </span><span id="local-6989586621679051187"><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051187"><span class="hs-identifier hs-var">gh</span></a></span></span><span> </span><span id="local-6989586621679051186"><span class="annot"><span class="annottext">LogFormatter GrowlHandler
+</span><a href="#local-6989586621679051186"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051187"><span class="hs-identifier hs-var">gh</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">formatter :: LogFormatter GrowlHandler
+</span><a href="System.Log.Handler.Growl.html#formatter"><span class="hs-identifier hs-var">formatter</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LogFormatter GrowlHandler
+</span><a href="#local-6989586621679051186"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-43"></span><span>    </span><span id="local-6989586621679051185"><span class="annot"><span class="annottext">getFormatter :: GrowlHandler -&gt; LogFormatter GrowlHandler
+</span><a href="System.Log.Handler.html#getFormatter"><span class="hs-identifier hs-var hs-var hs-var hs-var">getFormatter</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GrowlHandler -&gt; LogFormatter GrowlHandler
+</span><a href="System.Log.Handler.Growl.html#formatter"><span class="hs-identifier hs-var hs-var">formatter</span></a></span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span>    </span><span id="local-6989586621679051183"><span class="annot"><span class="annottext">emit :: GrowlHandler -&gt; LogRecord -&gt; String -&gt; IO ()
+</span><a href="System.Log.Handler.html#emit"><span class="hs-identifier hs-var hs-var hs-var hs-var">emit</span></a></span></span><span> </span><span id="local-6989586621679051181"><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051181"><span class="hs-identifier hs-var">gh</span></a></span></span><span> </span><span id="local-6989586621679051180"><span class="annot"><span class="annottext">LogRecord
+</span><a href="#local-6989586621679051180"><span class="hs-identifier hs-var">lr</span></a></span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679051179"><span class="annot"><span class="annottext">pkt :: String
+</span><a href="#local-6989586621679051179"><span class="hs-identifier hs-var hs-var">pkt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GrowlHandler -&gt; String -&gt; LogRecord -&gt; String
+</span><a href="System.Log.Handler.Growl.html#buildNotification"><span class="hs-identifier hs-var">buildNotification</span></a></span><span> </span><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051181"><span class="hs-identifier hs-var">gh</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="System.Log.Handler.Growl.html#nmGeneralMsg"><span class="hs-identifier hs-var">nmGeneralMsg</span></a></span><span> </span><span class="annot"><span class="annottext">LogRecord
+</span><a href="#local-6989586621679051180"><span class="hs-identifier hs-var">lr</span></a></span><span>
+</span><span id="line-46"></span><span>                   </span><span class="hs-keyword">in</span><span>  </span><span class="annot"><span class="annottext">(HostAddress -&gt; IO Int) -&gt; [HostAddress] -&gt; IO ()
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Foldable t, Monad m) =&gt;
+(a -&gt; m b) -&gt; t a -&gt; m ()
+</span><span class="hs-identifier hs-var">mapM_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Socket -&gt; String -&gt; HostAddress -&gt; IO Int
+</span><a href="System.Log.Handler.Growl.html#sendNote"><span class="hs-identifier hs-var">sendNote</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GrowlHandler -&gt; Socket
+</span><a href="System.Log.Handler.Growl.html#skt"><span class="hs-identifier hs-var hs-var">skt</span></a></span><span> </span><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051181"><span class="hs-identifier hs-var">gh</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051179"><span class="hs-identifier hs-var">pkt</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GrowlHandler -&gt; [HostAddress]
+</span><a href="System.Log.Handler.Growl.html#targets"><span class="hs-identifier hs-var hs-var">targets</span></a></span><span> </span><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051181"><span class="hs-identifier hs-var">gh</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-47"></span><span>
+</span><span id="line-48"></span><span>    </span><span id="local-6989586621679051174"><span class="annot"><span class="annottext">close :: GrowlHandler -&gt; IO ()
+</span><a href="System.Log.Handler.html#close"><span class="hs-identifier hs-var hs-var hs-var hs-var">close</span></a></span></span><span> </span><span id="local-6989586621679051172"><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051172"><span class="hs-identifier hs-var">gh</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679051171"><span class="annot"><span class="annottext">pkt :: String
+</span><a href="#local-6989586621679051171"><span class="hs-identifier hs-var hs-var">pkt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GrowlHandler -&gt; String -&gt; LogRecord -&gt; String
+</span><a href="System.Log.Handler.Growl.html#buildNotification"><span class="hs-identifier hs-var">buildNotification</span></a></span><span> </span><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051172"><span class="hs-identifier hs-var">gh</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="System.Log.Handler.Growl.html#nmClosingMsg"><span class="hs-identifier hs-var">nmClosingMsg</span></a></span><span>
+</span><span id="line-49"></span><span>                             </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#WARNING"><span class="hs-identifier hs-var">WARNING</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Connection closing.&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-50"></span><span>                   </span><span id="local-6989586621679051168"><span class="annot"><span class="annottext">s :: Socket
+</span><a href="#local-6989586621679051168"><span class="hs-identifier hs-var hs-var">s</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GrowlHandler -&gt; Socket
+</span><a href="System.Log.Handler.Growl.html#skt"><span class="hs-identifier hs-var hs-var">skt</span></a></span><span> </span><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051172"><span class="hs-identifier hs-var">gh</span></a></span><span>
+</span><span id="line-51"></span><span>               </span><span class="hs-keyword">in</span><span>  </span><span class="annot"><span class="annottext">(HostAddress -&gt; IO Int) -&gt; [HostAddress] -&gt; IO ()
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Foldable t, Monad m) =&gt;
+(a -&gt; m b) -&gt; t a -&gt; m ()
+</span><span class="hs-identifier hs-var">mapM_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Socket -&gt; String -&gt; HostAddress -&gt; IO Int
+</span><a href="System.Log.Handler.Growl.html#sendNote"><span class="hs-identifier hs-var">sendNote</span></a></span><span> </span><span class="annot"><span class="annottext">Socket
+</span><a href="#local-6989586621679051168"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051171"><span class="hs-identifier hs-var">pkt</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GrowlHandler -&gt; [HostAddress]
+</span><a href="System.Log.Handler.Growl.html#targets"><span class="hs-identifier hs-var hs-var">targets</span></a></span><span> </span><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051172"><span class="hs-identifier hs-var">gh</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">IO () -&gt; IO () -&gt; IO ()
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Socket -&gt; IO ()
+</span><span class="hs-identifier hs-var">S.close</span></span><span> </span><span class="annot"><span class="annottext">Socket
+</span><a href="#local-6989586621679051168"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-52"></span><span>
+</span><span id="line-53"></span><span class="annot"><a href="System.Log.Handler.Growl.html#sendNote"><span class="hs-identifier hs-type">sendNote</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">S.Socket</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">S.HostAddress</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-54"></span><span id="sendNote"><span class="annot"><span class="annottext">sendNote :: Socket -&gt; String -&gt; HostAddress -&gt; IO Int
+</span><a href="System.Log.Handler.Growl.html#sendNote"><span class="hs-identifier hs-var hs-var">sendNote</span></a></span></span><span> </span><span id="local-6989586621679051166"><span class="annot"><span class="annottext">Socket
+</span><a href="#local-6989586621679051166"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679051165"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051165"><span class="hs-identifier hs-var">pkt</span></a></span></span><span> </span><span id="local-6989586621679051164"><span class="annot"><span class="annottext">HostAddress
+</span><a href="#local-6989586621679051164"><span class="hs-identifier hs-var">ha</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Socket -&gt; String -&gt; SockAddr -&gt; IO Int
+</span><a href="System.Log.Handler.Growl.html#sendTo"><span class="hs-identifier hs-var">sendTo</span></a></span><span> </span><span class="annot"><span class="annottext">Socket
+</span><a href="#local-6989586621679051166"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051165"><span class="hs-identifier hs-var">pkt</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PortNumber -&gt; HostAddress -&gt; SockAddr
+</span><span class="hs-identifier hs-var">S.SockAddrInet</span></span><span> </span><span class="annot"><span class="annottext">PortNumber
+</span><span class="hs-number">9887</span></span><span> </span><span class="annot"><span class="annottext">HostAddress
+</span><a href="#local-6989586621679051164"><span class="hs-identifier hs-var">ha</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-55"></span><span>
+</span><span id="line-56"></span><span class="hs-comment">-- Right now there are two &quot;notification names&quot;: &quot;message&quot; and</span><span>
+</span><span id="line-57"></span><span class="hs-comment">-- &quot;disconnecting&quot;. All log messages are sent using the &quot;message&quot;</span><span>
+</span><span id="line-58"></span><span class="hs-comment">-- name. When the handler gets closed properly, the &quot;disconnecting&quot;</span><span>
+</span><span id="line-59"></span><span class="hs-comment">-- notification gets sent.</span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span class="annot"><a href="System.Log.Handler.Growl.html#nmGeneralMsg"><span class="hs-identifier hs-type">nmGeneralMsg</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-62"></span><span id="nmGeneralMsg"><span class="annot"><span class="annottext">nmGeneralMsg :: String
+</span><a href="System.Log.Handler.Growl.html#nmGeneralMsg"><span class="hs-identifier hs-var hs-var">nmGeneralMsg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;message&quot;</span></span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="annot"><a href="System.Log.Handler.Growl.html#nmClosingMsg"><span class="hs-identifier hs-type">nmClosingMsg</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-65"></span><span id="nmClosingMsg"><span class="annot"><span class="annottext">nmClosingMsg :: String
+</span><a href="System.Log.Handler.Growl.html#nmClosingMsg"><span class="hs-identifier hs-var hs-var">nmClosingMsg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;disconnecting&quot;</span></span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span class="hs-comment">{- | Creates a Growl handler. Once a Growl handler has been created,
+     machines that are to receive the message have to be specified. -}</span><span>
+</span><span id="line-69"></span><span>
+</span><span id="line-70"></span><span class="annot"><a href="System.Log.Handler.Growl.html#growlHandler"><span class="hs-identifier hs-type">growlHandler</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>          </span><span class="hs-comment">-- ^ The name of the service</span><span>
+</span><span id="line-71"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span>        </span><span class="hs-comment">-- ^ Priority of handler</span><span>
+</span><span id="line-72"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="System.Log.Handler.Growl.html#GrowlHandler"><span class="hs-identifier hs-type">GrowlHandler</span></a></span><span>
+</span><span id="line-73"></span><span id="growlHandler"><span class="annot"><span class="annottext">growlHandler :: String -&gt; Priority -&gt; IO GrowlHandler
+</span><a href="System.Log.Handler.Growl.html#growlHandler"><span class="hs-identifier hs-var hs-var">growlHandler</span></a></span></span><span> </span><span id="local-6989586621679051162"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051162"><span class="hs-identifier hs-var">nm</span></a></span></span><span> </span><span id="local-6989586621679051161"><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679051161"><span class="hs-identifier hs-var">pri</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-74"></span><span>    </span><span class="hs-keyword">do</span><span> </span><span class="hs-special">{</span><span> </span><span id="local-6989586621679051160"><span class="annot"><span class="annottext">Socket
+</span><a href="#local-6989586621679051160"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Family -&gt; SocketType -&gt; ProtocolNumber -&gt; IO Socket
+</span><span class="hs-identifier hs-var">S.socket</span></span><span> </span><span class="annot"><span class="annottext">Family
+</span><span class="hs-identifier hs-var">S.AF_INET</span></span><span> </span><span class="annot"><span class="annottext">SocketType
+</span><span class="hs-identifier hs-var">S.Datagram</span></span><span> </span><span class="annot"><span class="annottext">ProtocolNumber
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-75"></span><span>       </span><span class="hs-special">;</span><span> </span><span class="annot"><span class="annottext">GrowlHandler -&gt; IO GrowlHandler
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">GrowlHandler :: Priority
+-&gt; LogFormatter GrowlHandler
+-&gt; String
+-&gt; Socket
+-&gt; [HostAddress]
+-&gt; GrowlHandler
+</span><a href="System.Log.Handler.Growl.html#GrowlHandler"><span class="hs-identifier hs-type">GrowlHandler</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">priority :: Priority
+</span><a href="System.Log.Handler.Growl.html#priority"><span class="hs-identifier hs-var">priority</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679051161"><span class="hs-identifier hs-var">pri</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">appName :: String
+</span><a href="System.Log.Handler.Growl.html#appName"><span class="hs-identifier hs-var">appName</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051162"><span class="hs-identifier hs-var">nm</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">formatter :: LogFormatter GrowlHandler
+</span><a href="System.Log.Handler.Growl.html#formatter"><span class="hs-identifier hs-var">formatter</span></a></span><span class="hs-glyph">=</span><span class="annot"><span class="annottext">LogFormatter GrowlHandler
+forall a. LogFormatter a
+</span><a href="System.Log.Formatter.html#nullFormatter"><span class="hs-identifier hs-var">nullFormatter</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-76"></span><span>                               </span><span class="annot"><span class="annottext">skt :: Socket
+</span><a href="System.Log.Handler.Growl.html#skt"><span class="hs-identifier hs-var">skt</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Socket
+</span><a href="#local-6989586621679051160"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">targets :: [HostAddress]
+</span><a href="System.Log.Handler.Growl.html#targets"><span class="hs-identifier hs-var">targets</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-77"></span><span>       </span><span class="hs-special">}</span><span>
+</span><span id="line-78"></span><span>
+</span><span id="line-79"></span><span class="hs-comment">-- Converts a Word16 into a string of two characters. The value is</span><span>
+</span><span id="line-80"></span><span class="hs-comment">-- emitted in network byte order.</span><span>
+</span><span id="line-81"></span><span>
+</span><span id="line-82"></span><span class="annot"><a href="System.Log.Handler.Growl.html#emit16"><span class="hs-identifier hs-type">emit16</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Word16</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-83"></span><span id="emit16"><span class="annot"><span class="annottext">emit16 :: Word16 -&gt; String
+</span><a href="System.Log.Handler.Growl.html#emit16"><span class="hs-identifier hs-var hs-var">emit16</span></a></span></span><span> </span><span id="local-6989586621679051154"><span class="annot"><span class="annottext">Word16
+</span><a href="#local-6989586621679051154"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679051153"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679051153"><span class="hs-identifier hs-var">h</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679051152"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679051152"><span class="hs-identifier hs-var">l</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Word16 -&gt; Int
+forall a. Enum a =&gt; a -&gt; Int
+</span><span class="hs-identifier hs-var">fromEnum</span></span><span> </span><span class="annot"><span class="annottext">Word16
+</span><a href="#local-6989586621679051154"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; (Int, Int)
+forall a. Integral a =&gt; a -&gt; a -&gt; (a, a)
+</span><span class="hs-operator hs-var">`divMod`</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">256</span></span><span> </span><span class="hs-keyword">in</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Int -&gt; Char
+</span><span class="hs-identifier hs-var">chr</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679051153"><span class="hs-identifier hs-var">h</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Char
+</span><span class="hs-identifier hs-var">chr</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679051152"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-84"></span><span>
+</span><span id="line-85"></span><span id="local-6989586621679051228"><span class="annot"><a href="System.Log.Handler.Growl.html#emitLen16"><span class="hs-identifier hs-type">emitLen16</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679051228"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span></span><span>
+</span><span id="line-86"></span><span id="emitLen16"><span class="annot"><span class="annottext">emitLen16 :: [a] -&gt; String
+</span><a href="System.Log.Handler.Growl.html#emitLen16"><span class="hs-identifier hs-var hs-var">emitLen16</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word16 -&gt; String
+</span><a href="System.Log.Handler.Growl.html#emit16"><span class="hs-identifier hs-var">emit16</span></a></span><span> </span><span class="annot"><span class="annottext">(Word16 -&gt; String) -&gt; ([a] -&gt; Word16) -&gt; [a] -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Word16
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Word16) -&gt; ([a] -&gt; Int) -&gt; [a] -&gt; Word16
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">length</span></span><span>
+</span><span id="line-87"></span><span>
+</span><span id="line-88"></span><span class="hs-comment">-- Takes a Service record and generates a network packet</span><span>
+</span><span id="line-89"></span><span class="hs-comment">-- representing the service.</span><span>
+</span><span id="line-90"></span><span>
+</span><span id="line-91"></span><span class="annot"><a href="System.Log.Handler.Growl.html#buildRegistration"><span class="hs-identifier hs-type">buildRegistration</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="System.Log.Handler.Growl.html#GrowlHandler"><span class="hs-identifier hs-type">GrowlHandler</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-92"></span><span id="buildRegistration"><span class="annot"><span class="annottext">buildRegistration :: GrowlHandler -&gt; String
+</span><a href="System.Log.Handler.Growl.html#buildRegistration"><span class="hs-identifier hs-var hs-var">buildRegistration</span></a></span></span><span> </span><span id="local-6989586621679051144"><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051144"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">concat</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679051142"><span class="hs-identifier hs-var">fields</span></a></span><span>
+</span><span id="line-93"></span><span>    </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679051142"><span class="annot"><span class="annottext">fields :: [String]
+</span><a href="#local-6989586621679051142"><span class="hs-identifier hs-var hs-var">fields</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\x1'</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\x4'</span></span><span class="hs-special">]</span><span class="hs-special">,</span><span>
+</span><span id="line-94"></span><span>                     </span><span class="annot"><span class="annottext">String -&gt; String
+forall a. [a] -&gt; String
+</span><a href="System.Log.Handler.Growl.html#emitLen16"><span class="hs-identifier hs-var">emitLen16</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GrowlHandler -&gt; String
+</span><a href="System.Log.Handler.Growl.html#appName"><span class="hs-identifier hs-var hs-var">appName</span></a></span><span> </span><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051144"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-95"></span><span>                     </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; String
+</span><a href="#local-6989586621679051141"><span class="hs-identifier hs-var">emitLen8</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679051140"><span class="hs-identifier hs-var">appNotes</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-96"></span><span>                     </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; String
+</span><a href="#local-6989586621679051141"><span class="hs-identifier hs-var">emitLen8</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679051140"><span class="hs-identifier hs-var">appNotes</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-97"></span><span>                     </span><span class="annot"><span class="annottext">GrowlHandler -&gt; String
+</span><a href="System.Log.Handler.Growl.html#appName"><span class="hs-identifier hs-var hs-var">appName</span></a></span><span> </span><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051144"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-98"></span><span>                     </span><span class="annot"><span class="annottext">(String -&gt; String -&gt; String) -&gt; String -&gt; [String] -&gt; String
+forall (t :: * -&gt; *) b a.
+Foldable t =&gt;
+(b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span><span class="hs-identifier hs-var">foldl</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679051138"><span class="hs-identifier hs-var">packIt</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679051140"><span class="hs-identifier hs-var">appNotes</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-99"></span><span>                     </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\x0'</span></span><span> </span><span class="hs-glyph">..</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Char
+</span><span class="hs-identifier hs-var">chr</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[String] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679051140"><span class="hs-identifier hs-var">appNotes</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-100"></span><span>          </span><span id="local-6989586621679051138"><span class="annot"><span class="annottext">packIt :: String -&gt; String -&gt; String
+</span><a href="#local-6989586621679051138"><span class="hs-identifier hs-var hs-var">packIt</span></a></span></span><span> </span><span id="local-6989586621679051137"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051137"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679051136"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051136"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051137"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; String
+forall a. [a] -&gt; String
+</span><a href="System.Log.Handler.Growl.html#emitLen16"><span class="hs-identifier hs-var">emitLen16</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051136"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051136"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-101"></span><span>          </span><span id="local-6989586621679051140"><span class="annot"><span class="annottext">appNotes :: [String]
+</span><a href="#local-6989586621679051140"><span class="hs-identifier hs-var hs-var">appNotes</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="System.Log.Handler.Growl.html#nmGeneralMsg"><span class="hs-identifier hs-var">nmGeneralMsg</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="System.Log.Handler.Growl.html#nmClosingMsg"><span class="hs-identifier hs-var">nmClosingMsg</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-102"></span><span>          </span><span id="local-6989586621679051141"><span class="annot"><span class="annottext">emitLen8 :: t a -&gt; String
+</span><a href="#local-6989586621679051141"><span class="hs-identifier hs-var hs-var">emitLen8</span></a></span></span><span> </span><span id="local-6989586621679051135"><span class="annot"><span class="annottext">t a
+</span><a href="#local-6989586621679051135"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Int -&gt; Char
+</span><span class="hs-identifier hs-var">chr</span></span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Char) -&gt; Int -&gt; Char
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">t a -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">t a
+</span><a href="#local-6989586621679051135"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-103"></span><span>
+</span><span id="line-104"></span><span class="hs-comment">{- | Adds a remote machine's address to the list of targets that will
+     receive log messages. Calling this function sends a registration
+     packet to the machine. This function will throw an exception if
+     the host name cannot be found. -}</span><span>
+</span><span id="line-108"></span><span>
+</span><span id="line-109"></span><span class="annot"><a href="System.Log.Handler.Growl.html#addTarget"><span class="hs-identifier hs-type">addTarget</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">S.HostName</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.Handler.Growl.html#GrowlHandler"><span class="hs-identifier hs-type">GrowlHandler</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="System.Log.Handler.Growl.html#GrowlHandler"><span class="hs-identifier hs-type">GrowlHandler</span></a></span><span>
+</span><span id="line-110"></span><span id="addTarget"><span class="annot"><span class="annottext">addTarget :: String -&gt; GrowlHandler -&gt; IO GrowlHandler
+</span><a href="System.Log.Handler.Growl.html#addTarget"><span class="hs-identifier hs-var hs-var">addTarget</span></a></span></span><span> </span><span id="local-6989586621679051133"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051133"><span class="hs-identifier hs-var">hn</span></a></span></span><span> </span><span id="local-6989586621679051132"><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051132"><span class="hs-identifier hs-var">gh</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span class="hs-special">{</span><span> </span><span id="local-6989586621679051131"><span class="annot"><span class="annottext">HostEntry
+</span><a href="#local-6989586621679051131"><span class="hs-identifier hs-var">he</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO HostEntry
+</span><span class="hs-identifier hs-var">S.getHostByName</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051133"><span class="hs-identifier hs-var">hn</span></a></span><span>
+</span><span id="line-111"></span><span>                     </span><span class="hs-special">;</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679051129"><span class="annot"><span class="annottext">ha :: HostAddress
+</span><a href="#local-6989586621679051129"><span class="hs-identifier hs-var hs-var">ha</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">HostEntry -&gt; HostAddress
+</span><span class="hs-identifier hs-var">S.hostAddress</span></span><span> </span><span class="annot"><span class="annottext">HostEntry
+</span><a href="#local-6989586621679051131"><span class="hs-identifier hs-var">he</span></a></span><span>
+</span><span id="line-112"></span><span>                           </span><span id="local-6989586621679051127"><span class="annot"><span class="annottext">sa :: SockAddr
+</span><a href="#local-6989586621679051127"><span class="hs-identifier hs-var hs-var">sa</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PortNumber -&gt; HostAddress -&gt; SockAddr
+</span><span class="hs-identifier hs-var">S.SockAddrInet</span></span><span> </span><span class="annot"><span class="annottext">PortNumber
+</span><span class="hs-number">9887</span></span><span> </span><span class="annot"><span class="annottext">HostAddress
+</span><a href="#local-6989586621679051129"><span class="hs-identifier hs-var">ha</span></a></span><span>
+</span><span id="line-113"></span><span>                       </span><span class="hs-keyword">in</span><span> </span><span class="hs-keyword">do</span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Socket -&gt; String -&gt; SockAddr -&gt; IO Int
+</span><a href="System.Log.Handler.Growl.html#sendTo"><span class="hs-identifier hs-var">sendTo</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GrowlHandler -&gt; Socket
+</span><a href="System.Log.Handler.Growl.html#skt"><span class="hs-identifier hs-var hs-var">skt</span></a></span><span> </span><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051132"><span class="hs-identifier hs-var">gh</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GrowlHandler -&gt; String
+</span><a href="System.Log.Handler.Growl.html#buildRegistration"><span class="hs-identifier hs-var">buildRegistration</span></a></span><span> </span><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051132"><span class="hs-identifier hs-var">gh</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">SockAddr
+</span><a href="#local-6989586621679051127"><span class="hs-identifier hs-var">sa</span></a></span><span>
+</span><span id="line-114"></span><span>                             </span><span class="hs-special">;</span><span> </span><span class="annot"><span class="annottext">GrowlHandler -&gt; IO GrowlHandler
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051132"><span class="hs-identifier hs-var">gh</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">targets :: [HostAddress]
+</span><a href="System.Log.Handler.Growl.html#targets"><span class="hs-identifier hs-var">targets</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">HostAddress
+</span><a href="#local-6989586621679051129"><span class="hs-identifier hs-var">ha</span></a></span><span class="annot"><span class="annottext">HostAddress -&gt; [HostAddress] -&gt; [HostAddress]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="hs-special">(</span><span class="annot"><span class="annottext">GrowlHandler -&gt; [HostAddress]
+</span><a href="System.Log.Handler.Growl.html#targets"><span class="hs-identifier hs-var hs-var">targets</span></a></span><span> </span><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051132"><span class="hs-identifier hs-var">gh</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">}</span><span> </span><span class="hs-special">}</span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-115"></span><span>
+</span><span id="line-116"></span><span class="hs-comment">-- Converts a Priority type into the subset of integers needed in the</span><span>
+</span><span id="line-117"></span><span class="hs-comment">-- network packet's flag field.</span><span>
+</span><span id="line-118"></span><span>
+</span><span id="line-119"></span><span class="annot"><a href="System.Log.Handler.Growl.html#toFlags"><span class="hs-identifier hs-type">toFlags</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Word16</span></span><span>
+</span><span id="line-120"></span><span id="toFlags"><span class="annot"><span class="annottext">toFlags :: Priority -&gt; Word16
+</span><a href="System.Log.Handler.Growl.html#toFlags"><span class="hs-identifier hs-var hs-var">toFlags</span></a></span></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#DEBUG"><span class="hs-identifier hs-var">DEBUG</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word16
+</span><span class="hs-number">12</span></span><span>
+</span><span id="line-121"></span><span class="annot"><a href="System.Log.Handler.Growl.html#toFlags"><span class="hs-identifier hs-var">toFlags</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#INFO"><span class="hs-identifier hs-var">INFO</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word16
+</span><span class="hs-number">10</span></span><span>
+</span><span id="line-122"></span><span class="annot"><a href="System.Log.Handler.Growl.html#toFlags"><span class="hs-identifier hs-var">toFlags</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#NOTICE"><span class="hs-identifier hs-var">NOTICE</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word16
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-123"></span><span class="annot"><a href="System.Log.Handler.Growl.html#toFlags"><span class="hs-identifier hs-var">toFlags</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#WARNING"><span class="hs-identifier hs-var">WARNING</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word16
+</span><span class="hs-number">2</span></span><span>
+</span><span id="line-124"></span><span class="annot"><a href="System.Log.Handler.Growl.html#toFlags"><span class="hs-identifier hs-var">toFlags</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#ERROR"><span class="hs-identifier hs-var">ERROR</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word16
+</span><span class="hs-number">3</span></span><span>       </span><span class="hs-comment">-- Same as WARNING, but &quot;sticky&quot; bit set</span><span>
+</span><span id="line-125"></span><span class="annot"><a href="System.Log.Handler.Growl.html#toFlags"><span class="hs-identifier hs-var">toFlags</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#CRITICAL"><span class="hs-identifier hs-var">CRITICAL</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word16
+</span><span class="hs-number">3</span></span><span>    </span><span class="hs-comment">-- Same as WARNING, but &quot;sticky&quot; bit set</span><span>
+</span><span id="line-126"></span><span class="annot"><a href="System.Log.Handler.Growl.html#toFlags"><span class="hs-identifier hs-var">toFlags</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#ALERT"><span class="hs-identifier hs-var">ALERT</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word16
+</span><span class="hs-number">4</span></span><span>
+</span><span id="line-127"></span><span class="annot"><a href="System.Log.Handler.Growl.html#toFlags"><span class="hs-identifier hs-var">toFlags</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#EMERGENCY"><span class="hs-identifier hs-var">EMERGENCY</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word16
+</span><span class="hs-number">5</span></span><span>   </span><span class="hs-comment">-- Same as ALERT, but &quot;sticky&quot; bit set</span><span>
+</span><span id="line-128"></span><span>
+</span><span id="line-129"></span><span class="hs-comment">-- Creates a network packet containing a notification record.</span><span>
+</span><span id="line-130"></span><span>
+</span><span id="line-131"></span><span class="annot"><a href="System.Log.Handler.Growl.html#buildNotification"><span class="hs-identifier hs-type">buildNotification</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="System.Log.Handler.Growl.html#GrowlHandler"><span class="hs-identifier hs-type">GrowlHandler</span></a></span><span>
+</span><span id="line-132"></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-133"></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.html#LogRecord"><span class="hs-identifier hs-type">LogRecord</span></a></span><span>
+</span><span id="line-134"></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-135"></span><span id="buildNotification"><span class="annot"><span class="annottext">buildNotification :: GrowlHandler -&gt; String -&gt; LogRecord -&gt; String
+</span><a href="System.Log.Handler.Growl.html#buildNotification"><span class="hs-identifier hs-var hs-var">buildNotification</span></a></span></span><span> </span><span id="local-6989586621679051118"><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051118"><span class="hs-identifier hs-var">gh</span></a></span></span><span> </span><span id="local-6989586621679051117"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051117"><span class="hs-identifier hs-var">nm</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679051116"><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679051116"><span class="hs-identifier hs-var">p</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679051115"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051115"><span class="hs-identifier hs-var">msg</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">concat</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679051114"><span class="hs-identifier hs-var">fields</span></a></span><span>
+</span><span id="line-136"></span><span>    </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679051114"><span class="annot"><span class="annottext">fields :: [String]
+</span><a href="#local-6989586621679051114"><span class="hs-identifier hs-var hs-var">fields</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\x1'</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\x5'</span></span><span class="hs-special">]</span><span class="hs-special">,</span><span>
+</span><span id="line-137"></span><span>                     </span><span class="annot"><span class="annottext">Word16 -&gt; String
+</span><a href="System.Log.Handler.Growl.html#emit16"><span class="hs-identifier hs-var">emit16</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Priority -&gt; Word16
+</span><a href="System.Log.Handler.Growl.html#toFlags"><span class="hs-identifier hs-var">toFlags</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679051116"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-138"></span><span>                     </span><span class="annot"><span class="annottext">String -&gt; String
+forall a. [a] -&gt; String
+</span><a href="System.Log.Handler.Growl.html#emitLen16"><span class="hs-identifier hs-var">emitLen16</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051117"><span class="hs-identifier hs-var">nm</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-139"></span><span>                     </span><span class="annot"><span class="annottext">Word16 -&gt; String
+</span><a href="System.Log.Handler.Growl.html#emit16"><span class="hs-identifier hs-var">emit16</span></a></span><span> </span><span class="annot"><span class="annottext">Word16
+</span><span class="hs-number">0</span></span><span class="hs-special">,</span><span>
+</span><span id="line-140"></span><span>                     </span><span class="annot"><span class="annottext">String -&gt; String
+forall a. [a] -&gt; String
+</span><a href="System.Log.Handler.Growl.html#emitLen16"><span class="hs-identifier hs-var">emitLen16</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051115"><span class="hs-identifier hs-var">msg</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-141"></span><span>                     </span><span class="annot"><span class="annottext">String -&gt; String
+forall a. [a] -&gt; String
+</span><a href="System.Log.Handler.Growl.html#emitLen16"><span class="hs-identifier hs-var">emitLen16</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GrowlHandler -&gt; String
+</span><a href="System.Log.Handler.Growl.html#appName"><span class="hs-identifier hs-var hs-var">appName</span></a></span><span> </span><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051118"><span class="hs-identifier hs-var">gh</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-142"></span><span>                     </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051117"><span class="hs-identifier hs-var">nm</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-143"></span><span>                     </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span>
+</span><span id="line-144"></span><span>                     </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679051115"><span class="hs-identifier hs-var">msg</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-145"></span><span>                     </span><span class="annot"><span class="annottext">GrowlHandler -&gt; String
+</span><a href="System.Log.Handler.Growl.html#appName"><span class="hs-identifier hs-var hs-var">appName</span></a></span><span> </span><span class="annot"><span class="annottext">GrowlHandler
+</span><a href="#local-6989586621679051118"><span class="hs-identifier hs-var">gh</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-146"></span></pre></body></html>

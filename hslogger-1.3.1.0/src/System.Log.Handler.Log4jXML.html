@@ -1,0 +1,480 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span class="hs-comment">{- |
+   Module     : System.Log.Handler.Log4jXML
+   Copyright  : Copyright (C) 2007-2011 John Goerzen
+   License    : BSD3
+
+   Portability: GHC only?
+
+log4j[1] XMLLayout log handlers.
+
+Written by Bjorn Buckwalter, bjorn.buckwalter\@gmail.com
+-}</span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">System.Log.Handler.Log4jXML</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Introduction</span></span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span>    </span><span class="annot"><span class="hs-comment">{- | This module provides handlers for hslogger that are
+    compatible with log4j's XMLLayout. In particular log messages
+    created by the handlers can be published directly to the GUI-based
+    log viewer Chainsaw v2[2].
+
+    The set of log levels in hslogger is richer than the basic set
+    of log4j levels. Two sets of handlers are provided with hslogger4j,
+    one which produces logs with hslogger's levels and one which
+    \&quot;demotes\&quot; them to the basic log4j levels. If full hslogger
+    levels are used some Java installation (see below) is necessary
+    to make Chainsaw aware of them.
+
+    Usage of the handlers in hslogger4j is analoguous to usage of
+    the 'System.Log.Handler.Simple.StreamHandler' and
+    'System.Log.Handler.Simple.FileHandler' in &quot;System.Log.Handler.Simple&quot;.
+    The following handlers are provided: -}</span></span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Handlers with hslogger levels</span></span><span>
+</span><span id="line-37"></span><span>    </span><span class="annot"><a href="System.Log.Handler.Log4jXML.html#log4jStreamHandler"><span class="hs-identifier">log4jStreamHandler</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-38"></span><span>    </span><span class="annot"><a href="System.Log.Handler.Log4jXML.html#log4jFileHandler"><span class="hs-identifier">log4jFileHandler</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Handlers with log4j levels</span></span><span>
+</span><span id="line-41"></span><span>    </span><span class="annot"><a href="System.Log.Handler.Log4jXML.html#log4jStreamHandler%27"><span class="hs-identifier">log4jStreamHandler'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-42"></span><span>    </span><span class="annot"><a href="System.Log.Handler.Log4jXML.html#log4jFileHandler%27"><span class="hs-identifier">log4jFileHandler'</span></a></span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Java install process</span></span><span>
+</span><span id="line-46"></span><span>
+</span><span id="line-47"></span><span>    </span><span class="annot"><span class="hs-comment">{- | This is only necessary if you want to use the hslogger levels.
+
+    Add @hslogger4j.jar@ from @contrib\/java@ to your classpath.
+    To use you will also need to have the jars @log4j-1.3alpha-7.jar@
+    and @log4j-xml-1.3alpha-7.jar@ that are distributed with Chainsaw
+    on your classpath.
+
+    (On Mac OS X I added all three jars to @~\/Library\/Java\/Extensions@.
+    It seems that it is not sufficient that Chainsaw already includes
+    its jars in the classpath when launching - perhaps the plugin
+    classloader does not inherit Chainsaw's classpath. Adding the
+    jars to @~\/.chainsaw\/plugins@ wouldn't work either.)
+
+    If for whatever reason you have to rebuild the hslogger4j jar
+    just run @ant@[3] in the @contrib\/java@ directory. The new jar
+    will be created in the @contrib\/java\/dist@ directory. The Java
+    source code is copyright The Apache Software Foundation and
+    licensed under the Apache Licence version 2.0. -}</span></span><span>
+</span><span id="line-65"></span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Chainsaw setup</span></span><span>
+</span><span id="line-68"></span><span>
+</span><span id="line-69"></span><span>    </span><span class="annot"><span class="hs-comment">{- | If you are only using the basic log4j levels just use
+    Chainsaw's regular facilities to browse logs or listen for log
+    messages (e.g. @XMLSocketReceiver@).
+
+    If you want to use the hslogger levels the easiest way to set
+    up Chainsaw is to load the plugins in @hslogger4j-plugins.xml@
+    in @contrib\/java@ when launching Chainsaw. Two receivers will
+    be defined, one that listens for logmessages and one for reading
+    log files.  Edit the properties of those receivers as needed
+    (e.g. @port@, @fileURL@) and restart them. You will also want
+    to modify Chainsaw's formatting preferences to display levels
+    as text instead of icons. -}</span></span><span>
+</span><span id="line-81"></span><span>
+</span><span id="line-82"></span><span>
+</span><span id="line-83"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Example usage</span></span><span>
+</span><span id="line-84"></span><span>
+</span><span id="line-85"></span><span>    </span><span class="annot"><span class="hs-comment">{- | In the IO monad:
+
+    &gt; lh2 &lt;- log4jFileHandler &quot;log.xml&quot; DEBUG
+    &gt; updateGlobalLogger rootLoggerName (addHandler lh2)
+
+    &gt; h  &lt;- connectTo &quot;localhost&quot; (PortNumber 4448)
+    &gt; lh &lt;- log4jStreamHandler h NOTICE
+    &gt; updateGlobalLogger rootLoggerName (addHandler lh)
+    -}</span></span><span>
+</span><span id="line-94"></span><span>
+</span><span id="line-95"></span><span>    </span><span class="annot"><span class="hs-comment">-- * References</span></span><span>
+</span><span id="line-96"></span><span>
+</span><span id="line-97"></span><span>    </span><span class="annot"><span class="hs-comment">{- |
+    (1) &lt;http://logging.apache.org/log4j/&gt;
+
+    (2) &lt;http://logging.apache.org/chainsaw/&gt;
+
+    (3) &lt;http://ant.apache.org/&gt;
+    -}</span></span><span>
+</span><span id="line-104"></span><span>
+</span><span id="line-105"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-106"></span><span>
+</span><span id="line-107"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Concurrent</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">myThreadId</span></span><span class="hs-special">)</span><span>  </span><span class="hs-comment">-- myThreadId is GHC only!</span><span>
+</span><span id="line-108"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">isPrefixOf</span></span><span class="hs-special">)</span><span>
+</span><span id="line-109"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.IO</span></span><span class="hs-cpp">
+#if MIN_VERSION_time(1,5,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Time.Format</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">defaultTimeLocale</span></span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">System.Locale</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">defaultTimeLocale</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Time</span></span><span>
+</span><span id="line-116"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="System.Log.html"><span class="hs-identifier">System.Log</span></a></span><span>
+</span><span id="line-117"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="System.Log.Handler.html"><span class="hs-identifier">System.Log.Handler</span></a></span><span>
+</span><span id="line-118"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="System.Log.Handler.Simple.html"><span class="hs-identifier">System.Log.Handler.Simple</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="System.Log.Handler.Simple.html#streamHandler"><span class="hs-identifier">streamHandler</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.Log.Handler.Simple.html#GenericHandler"><span class="hs-identifier">GenericHandler</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-119"></span><span>
+</span><span id="line-120"></span><span>
+</span><span id="line-121"></span><span class="hs-comment">-- Handler that logs to a handle rendering message priorities according</span><span>
+</span><span id="line-122"></span><span class="hs-comment">-- to the supplied function.</span><span>
+</span><span id="line-123"></span><span class="annot"><a href="System.Log.Handler.Log4jXML.html#log4jHandler"><span class="hs-identifier hs-type">log4jHandler</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="System.Log.Handler.Simple.html#GenericHandler"><span class="hs-identifier hs-type">GenericHandler</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span class="hs-special">)</span><span>
+</span><span id="line-124"></span><span id="log4jHandler"><span class="annot"><span class="annottext">log4jHandler :: (Priority -&gt; String)
+-&gt; Handle -&gt; Priority -&gt; IO (GenericHandler Handle)
+</span><a href="System.Log.Handler.Log4jXML.html#log4jHandler"><span class="hs-identifier hs-var hs-var">log4jHandler</span></a></span></span><span> </span><span id="local-6989586621679050509"><span class="annot"><span class="annottext">Priority -&gt; String
+</span><a href="#local-6989586621679050509"><span class="hs-identifier hs-var">showPrio</span></a></span></span><span> </span><span id="local-6989586621679050508"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050508"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span id="local-6989586621679050507"><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050507"><span class="hs-identifier hs-var">pri</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-125"></span><span>    </span><span id="local-6989586621679050506"><span class="annot"><span class="annottext">GenericHandler Handle
+</span><a href="#local-6989586621679050506"><span class="hs-identifier hs-var">hndlr</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; Priority -&gt; IO (GenericHandler Handle)
+</span><a href="System.Log.Handler.Simple.html#streamHandler"><span class="hs-identifier hs-var">streamHandler</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050508"><span class="hs-identifier hs-var">h</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050507"><span class="hs-identifier hs-var">pri</span></a></span><span>
+</span><span id="line-126"></span><span>    </span><span class="annot"><span class="annottext">GenericHandler Handle -&gt; IO (GenericHandler Handle)
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(GenericHandler Handle -&gt; IO (GenericHandler Handle))
+-&gt; GenericHandler Handle -&gt; IO (GenericHandler Handle)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">GenericHandler Handle
+-&gt; LogFormatter (GenericHandler Handle) -&gt; GenericHandler Handle
+forall a. LogHandler a =&gt; a -&gt; LogFormatter a -&gt; a
+</span><a href="System.Log.Handler.html#setFormatter"><span class="hs-identifier hs-var">setFormatter</span></a></span><span> </span><span class="annot"><span class="annottext">GenericHandler Handle
+</span><a href="#local-6989586621679050506"><span class="hs-identifier hs-var">hndlr</span></a></span><span> </span><span class="annot"><span class="annottext">LogFormatter (GenericHandler Handle)
+forall a. a -&gt; (Priority, String) -&gt; String -&gt; IO String
+</span><a href="#local-6989586621679050504"><span class="hs-identifier hs-var">xmlFormatter</span></a></span><span>
+</span><span id="line-127"></span><span>
+</span><span id="line-128"></span><span>   </span><span class="hs-keyword">where</span><span>
+</span><span id="line-129"></span><span>        </span><span class="hs-comment">-- A Log Formatter that creates an XML element representing a log4j event/message.</span><span>
+</span><span id="line-130"></span><span>        </span><span id="local-6989586621679050541"><span class="annot"><a href="#local-6989586621679050504"><span class="hs-identifier hs-type">xmlFormatter</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679050541"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span class="hs-special">,</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span></span><span>
+</span><span id="line-131"></span><span>        </span><span id="local-6989586621679050504"><span class="annot"><span class="annottext">xmlFormatter :: a -&gt; (Priority, String) -&gt; String -&gt; IO String
+</span><a href="#local-6989586621679050504"><span class="hs-identifier hs-var hs-var">xmlFormatter</span></a></span></span><span> </span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679050503"><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050503"><span class="hs-identifier hs-var">prio</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679050502"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050502"><span class="hs-identifier hs-var">msg</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679050501"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050501"><span class="hs-identifier hs-var">logger</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-132"></span><span>              </span><span id="local-6989586621679050500"><span class="annot"><span class="annottext">UTCTime
+</span><a href="#local-6989586621679050500"><span class="hs-identifier hs-var">time</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO UTCTime
+</span><span class="hs-identifier hs-var">getCurrentTime</span></span><span>
+</span><span id="line-133"></span><span>              </span><span id="local-6989586621679050498"><span class="annot"><span class="annottext">ThreadId
+</span><a href="#local-6989586621679050498"><span class="hs-identifier hs-var">thread</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO ThreadId
+</span><span class="hs-identifier hs-var">myThreadId</span></span><span>
+</span><span id="line-134"></span><span>              </span><span class="annot"><span class="annottext">String -&gt; IO String
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; IO String) -&gt; (XML -&gt; String) -&gt; XML -&gt; IO String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">XML -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">(XML -&gt; IO String) -&gt; XML -&gt; IO String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; [(String, String)] -&gt; Maybe XML -&gt; XML
+</span><a href="System.Log.Handler.Log4jXML.html#Elem"><span class="hs-identifier hs-var">Elem</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;log4j:event&quot;</span></span><span>
+</span><span id="line-135"></span><span>                         </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;logger&quot;</span></span><span>   </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050501"><span class="hs-identifier hs-var">logger</span></a></span><span>       </span><span class="hs-special">)</span><span>
+</span><span id="line-136"></span><span>                         </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;timestamp&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">UTCTime -&gt; String
+forall t. FormatTime t =&gt; t -&gt; String
+</span><a href="#local-6989586621679050494"><span class="hs-identifier hs-var">millis</span></a></span><span> </span><span class="annot"><span class="annottext">UTCTime
+</span><a href="#local-6989586621679050500"><span class="hs-identifier hs-var">time</span></a></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-137"></span><span>                         </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;level&quot;</span></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Priority -&gt; String
+</span><a href="#local-6989586621679050509"><span class="hs-identifier hs-var">showPrio</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050503"><span class="hs-identifier hs-var">prio</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-138"></span><span>                         </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;thread&quot;</span></span><span>   </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ThreadId -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">ThreadId
+</span><a href="#local-6989586621679050498"><span class="hs-identifier hs-var">thread</span></a></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-139"></span><span>                         </span><span class="hs-special">]</span><span>
+</span><span id="line-140"></span><span>                         </span><span class="hs-special">(</span><span class="annot"><span class="annottext">XML -&gt; Maybe XML
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">(XML -&gt; Maybe XML) -&gt; XML -&gt; Maybe XML
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; [(String, String)] -&gt; Maybe XML -&gt; XML
+</span><a href="System.Log.Handler.Log4jXML.html#Elem"><span class="hs-identifier hs-var">Elem</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;log4j:message&quot;</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">XML -&gt; Maybe XML
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">(XML -&gt; Maybe XML) -&gt; XML -&gt; Maybe XML
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; XML
+</span><a href="System.Log.Handler.Log4jXML.html#CDATA"><span class="hs-identifier hs-var">CDATA</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050502"><span class="hs-identifier hs-var">msg</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-141"></span><span>            </span><span class="hs-keyword">where</span><span>
+</span><span id="line-142"></span><span>                </span><span class="hs-comment">-- This is an ugly hack to get a unix epoch with milliseconds.</span><span>
+</span><span id="line-143"></span><span>                </span><span class="hs-comment">-- The use of &quot;take 3&quot; causes the milliseconds to always be</span><span>
+</span><span id="line-144"></span><span>                </span><span class="hs-comment">-- rounded downwards, which I suppose may be the expected</span><span>
+</span><span id="line-145"></span><span>                </span><span class="hs-comment">-- behaviour for time.</span><span>
+</span><span id="line-146"></span><span>                </span><span id="local-6989586621679050494"><span class="annot"><span class="annottext">millis :: t -&gt; String
+</span><a href="#local-6989586621679050494"><span class="hs-identifier hs-var hs-var">millis</span></a></span></span><span> </span><span id="local-6989586621679050492"><span class="annot"><span class="annottext">t
+</span><a href="#local-6989586621679050492"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">TimeLocale -&gt; String -&gt; t -&gt; String
+forall t. FormatTime t =&gt; TimeLocale -&gt; String -&gt; t -&gt; String
+</span><span class="hs-identifier hs-var">formatTime</span></span><span> </span><span class="annot"><span class="annottext">TimeLocale
+</span><span class="hs-identifier hs-var">defaultTimeLocale</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;%s&quot;</span></span><span> </span><span class="annot"><span class="annottext">t
+</span><a href="#local-6989586621679050492"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-147"></span><span>                    </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; String -&gt; String
+forall a. Int -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">take</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">3</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; String -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">TimeLocale -&gt; String -&gt; t -&gt; String
+forall t. FormatTime t =&gt; TimeLocale -&gt; String -&gt; t -&gt; String
+</span><span class="hs-identifier hs-var">formatTime</span></span><span> </span><span class="annot"><span class="annottext">TimeLocale
+</span><span class="hs-identifier hs-var">defaultTimeLocale</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;%q&quot;</span></span><span> </span><span class="annot"><span class="annottext">t
+</span><a href="#local-6989586621679050492"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-148"></span><span>
+</span><span id="line-149"></span><span>
+</span><span id="line-150"></span><span class="hs-comment">-- | Create a stream log handler that uses hslogger priorities.</span><span>
+</span><span id="line-151"></span><span class="annot"><a href="System.Log.Handler.Log4jXML.html#log4jStreamHandler"><span class="hs-identifier hs-type">log4jStreamHandler</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="System.Log.Handler.Simple.html#GenericHandler"><span class="hs-identifier hs-type">GenericHandler</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span class="hs-special">)</span><span>
+</span><span id="line-152"></span><span id="log4jStreamHandler"><span class="annot"><span class="annottext">log4jStreamHandler :: Handle -&gt; Priority -&gt; IO (GenericHandler Handle)
+</span><a href="System.Log.Handler.Log4jXML.html#log4jStreamHandler"><span class="hs-identifier hs-var hs-var">log4jStreamHandler</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Priority -&gt; String)
+-&gt; Handle -&gt; Priority -&gt; IO (GenericHandler Handle)
+</span><a href="System.Log.Handler.Log4jXML.html#log4jHandler"><span class="hs-identifier hs-var">log4jHandler</span></a></span><span> </span><span class="annot"><span class="annottext">Priority -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span>
+</span><span id="line-153"></span><span>
+</span><span id="line-154"></span><span class="hs-comment">{- | Create a stream log handler that uses log4j levels (priorities). The
+   priorities of messages are shoehorned into log4j levels as follows:
+
+@
+    DEBUG                  -&gt; DEBUG
+    INFO, NOTICE           -&gt; INFO
+    WARNING                -&gt; WARN
+    ERROR, CRITICAL, ALERT -&gt; ERROR
+    EMERGENCY              -&gt; FATAL
+@
+
+   This is useful when the log will only be consumed by log4j tools and
+   you don't want to go out of your way transforming the log or configuring
+   the tools. -}</span><span>
+</span><span id="line-168"></span><span class="annot"><a href="System.Log.Handler.Log4jXML.html#log4jStreamHandler%27"><span class="hs-identifier hs-type">log4jStreamHandler'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="System.Log.Handler.Simple.html#GenericHandler"><span class="hs-identifier hs-type">GenericHandler</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span class="hs-special">)</span><span>
+</span><span id="line-169"></span><span id="log4jStreamHandler%27"><span class="annot"><span class="annottext">log4jStreamHandler' :: Handle -&gt; Priority -&gt; IO (GenericHandler Handle)
+</span><a href="System.Log.Handler.Log4jXML.html#log4jStreamHandler%27"><span class="hs-identifier hs-var hs-var">log4jStreamHandler'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Priority -&gt; String)
+-&gt; Handle -&gt; Priority -&gt; IO (GenericHandler Handle)
+</span><a href="System.Log.Handler.Log4jXML.html#log4jHandler"><span class="hs-identifier hs-var">log4jHandler</span></a></span><span> </span><span class="annot"><span class="annottext">Priority -&gt; String
+</span><a href="#local-6989586621679050489"><span class="hs-identifier hs-var">show'</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-170"></span><span>    </span><span class="annot"><a href="#local-6989586621679050489"><span class="hs-identifier hs-type">show'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-171"></span><span>    </span><span id="local-6989586621679050489"><span class="annot"><span class="annottext">show' :: Priority -&gt; String
+</span><a href="#local-6989586621679050489"><span class="hs-identifier hs-var hs-var">show'</span></a></span></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#NOTICE"><span class="hs-identifier hs-var">NOTICE</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;INFO&quot;</span></span><span>
+</span><span id="line-172"></span><span>    </span><span class="annot"><a href="#local-6989586621679050489"><span class="hs-identifier hs-var">show'</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#WARNING"><span class="hs-identifier hs-var">WARNING</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;WARN&quot;</span></span><span>
+</span><span id="line-173"></span><span>    </span><span class="annot"><a href="#local-6989586621679050489"><span class="hs-identifier hs-var">show'</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#CRITICAL"><span class="hs-identifier hs-var">CRITICAL</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;ERROR&quot;</span></span><span>
+</span><span id="line-174"></span><span>    </span><span class="annot"><a href="#local-6989586621679050489"><span class="hs-identifier hs-var">show'</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#ALERT"><span class="hs-identifier hs-var">ALERT</span></a></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;ERROR&quot;</span></span><span>
+</span><span id="line-175"></span><span>    </span><span class="annot"><a href="#local-6989586621679050489"><span class="hs-identifier hs-var">show'</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="System.Log.html#EMERGENCY"><span class="hs-identifier hs-var">EMERGENCY</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;FATAL&quot;</span></span><span>
+</span><span id="line-176"></span><span>    </span><span class="annot"><a href="#local-6989586621679050489"><span class="hs-identifier hs-var">show'</span></a></span><span> </span><span id="local-6989586621679050483"><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050483"><span class="hs-identifier hs-var">p</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Priority -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050483"><span class="hs-identifier hs-var">p</span></a></span><span>  </span><span class="hs-comment">-- Identical for DEBUG, INFO, ERROR.</span><span>
+</span><span id="line-177"></span><span>
+</span><span id="line-178"></span><span>
+</span><span id="line-179"></span><span class="hs-comment">-- | Create a file log handler that uses hslogger priorities.</span><span>
+</span><span id="line-180"></span><span class="annot"><a href="System.Log.Handler.Log4jXML.html#log4jFileHandler"><span class="hs-identifier hs-type">log4jFileHandler</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="System.Log.Handler.Simple.html#GenericHandler"><span class="hs-identifier hs-type">GenericHandler</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span class="hs-special">)</span><span>
+</span><span id="line-181"></span><span id="log4jFileHandler"><span class="annot"><span class="annottext">log4jFileHandler :: String -&gt; Priority -&gt; IO (GenericHandler Handle)
+</span><a href="System.Log.Handler.Log4jXML.html#log4jFileHandler"><span class="hs-identifier hs-var hs-var">log4jFileHandler</span></a></span></span><span> </span><span id="local-6989586621679050481"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050481"><span class="hs-identifier hs-var">fp</span></a></span></span><span> </span><span id="local-6989586621679050480"><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050480"><span class="hs-identifier hs-var">pri</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-182"></span><span>                          </span><span id="local-6989586621679050479"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050479"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; IOMode -&gt; IO Handle
+</span><span class="hs-identifier hs-var">openFile</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050481"><span class="hs-identifier hs-var">fp</span></a></span><span> </span><span class="annot"><span class="annottext">IOMode
+</span><span class="hs-identifier hs-var">AppendMode</span></span><span>
+</span><span id="line-183"></span><span>                          </span><span id="local-6989586621679050476"><span class="annot"><span class="annottext">GenericHandler Handle
+</span><a href="#local-6989586621679050476"><span class="hs-identifier hs-var">sh</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; Priority -&gt; IO (GenericHandler Handle)
+</span><a href="System.Log.Handler.Log4jXML.html#log4jStreamHandler"><span class="hs-identifier hs-var">log4jStreamHandler</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050479"><span class="hs-identifier hs-var">h</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050480"><span class="hs-identifier hs-var">pri</span></a></span><span>
+</span><span id="line-184"></span><span>                          </span><span class="annot"><span class="annottext">GenericHandler Handle -&gt; IO (GenericHandler Handle)
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GenericHandler Handle
+</span><a href="#local-6989586621679050476"><span class="hs-identifier hs-var">sh</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">closeFunc :: Handle -&gt; IO ()
+</span><a href="System.Log.Handler.Simple.html#closeFunc"><span class="hs-identifier hs-var">closeFunc</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; IO ()
+</span><span class="hs-identifier hs-var">hClose</span></span><span class="hs-special">}</span><span class="hs-special">)</span><span>
+</span><span id="line-185"></span><span>
+</span><span id="line-186"></span><span class="hs-comment">{- | Create a file log handler that uses log4j levels (see
+   'log4jStreamHandler'' for mappings). -}</span><span>
+</span><span id="line-188"></span><span class="annot"><a href="System.Log.Handler.Log4jXML.html#log4jFileHandler%27"><span class="hs-identifier hs-type">log4jFileHandler'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="System.Log.html#Priority"><span class="hs-identifier hs-type">Priority</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="System.Log.Handler.Simple.html#GenericHandler"><span class="hs-identifier hs-type">GenericHandler</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span class="hs-special">)</span><span>
+</span><span id="line-189"></span><span id="log4jFileHandler%27"><span class="annot"><span class="annottext">log4jFileHandler' :: String -&gt; Priority -&gt; IO (GenericHandler Handle)
+</span><a href="System.Log.Handler.Log4jXML.html#log4jFileHandler%27"><span class="hs-identifier hs-var hs-var">log4jFileHandler'</span></a></span></span><span> </span><span id="local-6989586621679050473"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050473"><span class="hs-identifier hs-var">fp</span></a></span></span><span> </span><span id="local-6989586621679050472"><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050472"><span class="hs-identifier hs-var">pri</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-190"></span><span>                           </span><span id="local-6989586621679050471"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050471"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; IOMode -&gt; IO Handle
+</span><span class="hs-identifier hs-var">openFile</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050473"><span class="hs-identifier hs-var">fp</span></a></span><span> </span><span class="annot"><span class="annottext">IOMode
+</span><span class="hs-identifier hs-var">AppendMode</span></span><span>
+</span><span id="line-191"></span><span>                           </span><span id="local-6989586621679050470"><span class="annot"><span class="annottext">GenericHandler Handle
+</span><a href="#local-6989586621679050470"><span class="hs-identifier hs-var">sh</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; Priority -&gt; IO (GenericHandler Handle)
+</span><a href="System.Log.Handler.Log4jXML.html#log4jStreamHandler%27"><span class="hs-identifier hs-var">log4jStreamHandler'</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050471"><span class="hs-identifier hs-var">h</span></a></span><span> </span><span class="annot"><span class="annottext">Priority
+</span><a href="#local-6989586621679050472"><span class="hs-identifier hs-var">pri</span></a></span><span>
+</span><span id="line-192"></span><span>                           </span><span class="annot"><span class="annottext">GenericHandler Handle -&gt; IO (GenericHandler Handle)
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GenericHandler Handle
+</span><a href="#local-6989586621679050470"><span class="hs-identifier hs-var">sh</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">closeFunc :: Handle -&gt; IO ()
+</span><a href="System.Log.Handler.Simple.html#closeFunc"><span class="hs-identifier hs-var">closeFunc</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; IO ()
+</span><span class="hs-identifier hs-var">hClose</span></span><span class="hs-special">}</span><span class="hs-special">)</span><span>
+</span><span id="line-193"></span><span>
+</span><span id="line-194"></span><span>
+</span><span id="line-195"></span><span class="hs-comment">-- A type for building and showing XML elements. Could use a fancy XML</span><span>
+</span><span id="line-196"></span><span class="hs-comment">-- library but am reluctant to introduce dependencies.</span><span>
+</span><span id="line-197"></span><span class="hs-keyword">data</span><span> </span><span id="XML"><span class="annot"><a href="System.Log.Handler.Log4jXML.html#XML"><span class="hs-identifier hs-var">XML</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Elem"><span class="annot"><a href="System.Log.Handler.Log4jXML.html#Elem"><span class="hs-identifier hs-var">Elem</span></a></span></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="System.Log.Handler.Log4jXML.html#XML"><span class="hs-identifier hs-type">XML</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-198"></span><span>         </span><span class="hs-glyph">|</span><span> </span><span id="CDATA"><span class="annot"><a href="System.Log.Handler.Log4jXML.html#CDATA"><span class="hs-identifier hs-var">CDATA</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-199"></span><span>
+</span><span id="line-200"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679050465"><span id="local-6989586621679050468"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="System.Log.Handler.Log4jXML.html#XML"><span class="hs-identifier hs-type">XML</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-201"></span><span>    </span><span id="local-6989586621679050463"><span class="annot"><span class="annottext">show :: XML -&gt; String
+</span><a href="#local-6989586621679050463"><span class="hs-identifier hs-var hs-var hs-var hs-var">show</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="System.Log.Handler.Log4jXML.html#CDATA"><span class="hs-identifier hs-type">CDATA</span></a></span><span> </span><span id="local-6989586621679050462"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050462"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&lt;![CDATA[&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679050461"><span class="hs-identifier hs-var">escapeCDATA</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050462"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;]]&gt;&quot;</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-202"></span><span>        </span><span id="local-6989586621679050461"><span class="annot"><span class="annottext">escapeCDATA :: String -&gt; String
+</span><a href="#local-6989586621679050461"><span class="hs-identifier hs-var hs-var">escapeCDATA</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String -&gt; String
+forall a. Eq a =&gt; [a] -&gt; [a] -&gt; [a] -&gt; [a]
+</span><a href="System.Log.Handler.Log4jXML.html#replace"><span class="hs-identifier hs-var">replace</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;]]&gt;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;]]&amp;lt;&quot;</span></span><span>  </span><span class="hs-comment">-- The best we can do, I guess.</span><span>
+</span><span id="line-203"></span><span>    </span><span class="annot"><span class="hs-identifier hs-var">show</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="System.Log.Handler.Log4jXML.html#Elem"><span class="hs-identifier hs-type">Elem</span></a></span><span> </span><span id="local-6989586621679050459"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050459"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span id="local-6989586621679050458"><span class="annot"><span class="annottext">[(String, String)]
+</span><a href="#local-6989586621679050458"><span class="hs-identifier hs-var">attrs</span></a></span></span><span> </span><span id="local-6989586621679050457"><span class="annot"><span class="annottext">Maybe XML
+</span><a href="#local-6989586621679050457"><span class="hs-identifier hs-var">child</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&lt;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050459"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[(String, String)] -&gt; String
+</span><a href="#local-6989586621679050456"><span class="hs-identifier hs-var">showAttrs</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, String)]
+</span><a href="#local-6989586621679050458"><span class="hs-identifier hs-var">attrs</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Maybe XML -&gt; String
+forall a. Show a =&gt; Maybe a -&gt; String
+</span><a href="#local-6989586621679050455"><span class="hs-identifier hs-var">showChild</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe XML
+</span><a href="#local-6989586621679050457"><span class="hs-identifier hs-var">child</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-204"></span><span>        </span><span id="local-6989586621679050456"><span class="annot"><span class="annottext">showAttrs :: [(String, String)] -&gt; String
+</span><a href="#local-6989586621679050456"><span class="hs-identifier hs-var hs-var">showAttrs</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-205"></span><span>        </span><span class="annot"><a href="#local-6989586621679050456"><span class="hs-identifier hs-var">showAttrs</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span id="local-6989586621679050454"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050454"><span class="hs-identifier hs-var">k</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679050453"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050453"><span class="hs-identifier hs-var">v</span></a></span></span><span class="hs-special">)</span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679050452"><span class="annot"><span class="annottext">[(String, String)]
+</span><a href="#local-6989586621679050452"><span class="hs-keyword hs-var">as</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050454"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;=\&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679050451"><span class="hs-identifier hs-var">escapeAttr</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050453"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\&quot;&quot;</span></span><span>
+</span><span id="line-206"></span><span>                             </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[(String, String)] -&gt; String
+</span><a href="#local-6989586621679050456"><span class="hs-identifier hs-var">showAttrs</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, String)]
+</span><a href="#local-6989586621679050452"><span class="hs-keyword hs-var">as</span></a></span><span>
+</span><span id="line-207"></span><span>            </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679050451"><span class="annot"><span class="annottext">escapeAttr :: String -&gt; String
+</span><a href="#local-6989586621679050451"><span class="hs-identifier hs-var hs-var">escapeAttr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String -&gt; String
+forall a. Eq a =&gt; [a] -&gt; [a] -&gt; [a] -&gt; [a]
+</span><a href="System.Log.Handler.Log4jXML.html#replace"><span class="hs-identifier hs-var">replace</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&amp;quot;&quot;</span></span><span>
+</span><span id="line-208"></span><span>                             </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; (String -&gt; String) -&gt; String -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String -&gt; String
+forall a. Eq a =&gt; [a] -&gt; [a] -&gt; [a] -&gt; [a]
+</span><a href="System.Log.Handler.Log4jXML.html#replace"><span class="hs-identifier hs-var">replace</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&lt;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&amp;lt;&quot;</span></span><span>
+</span><span id="line-209"></span><span>                             </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; (String -&gt; String) -&gt; String -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String -&gt; String
+forall a. Eq a =&gt; [a] -&gt; [a] -&gt; [a] -&gt; [a]
+</span><a href="System.Log.Handler.Log4jXML.html#replace"><span class="hs-identifier hs-var">replace</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&amp;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&amp;amp;&quot;</span></span><span>
+</span><span id="line-210"></span><span>        </span><span id="local-6989586621679050455"><span class="annot"><span class="annottext">showChild :: Maybe a -&gt; String
+</span><a href="#local-6989586621679050455"><span class="hs-identifier hs-var hs-var">showChild</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;/&gt;&quot;</span></span><span>
+</span><span id="line-211"></span><span>        </span><span class="annot"><a href="#local-6989586621679050455"><span class="hs-identifier hs-var">showChild</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679050450"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050450"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&gt;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050450"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&lt;/&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050459"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&gt;&quot;</span></span><span>
+</span><span id="line-212"></span><span>
+</span><span id="line-213"></span><span>
+</span><span id="line-214"></span><span class="hs-comment">-- Replaces instances of first list by second list in third list.</span><span>
+</span><span id="line-215"></span><span class="hs-comment">-- Definition blatantly stoled from jethr0's comment at</span><span>
+</span><span id="line-216"></span><span class="hs-comment">-- http://bluebones.net/2007/01/replace-in-haskell/. Can be swapped</span><span>
+</span><span id="line-217"></span><span class="hs-comment">-- with definition (or import) from MissingH.</span><span>
+</span><span id="line-218"></span><span id="local-6989586621679050524"><span class="annot"><a href="System.Log.Handler.Log4jXML.html#replace"><span class="hs-identifier hs-type">replace</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="annot"><a href="#local-6989586621679050524"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679050524"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679050524"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679050524"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679050524"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-219"></span><span id="replace"><span class="annot"><span class="annottext">replace :: [a] -&gt; [a] -&gt; [a] -&gt; [a]
+</span><a href="System.Log.Handler.Log4jXML.html#replace"><span class="hs-identifier hs-var hs-var">replace</span></a></span></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><span class="hs-identifier">_</span></span><span>    </span><span class="annot"><span class="annottext">[a]
+</span><span class="hs-identifier">_</span></span><span>  </span><span class="hs-special">[</span><span>       </span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-220"></span><span class="annot"><a href="System.Log.Handler.Log4jXML.html#replace"><span class="hs-identifier hs-var">replace</span></a></span><span> </span><span id="local-6989586621679050449"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050449"><span class="hs-identifier hs-var">from</span></a></span></span><span> </span><span id="local-6989586621679050448"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050448"><span class="hs-identifier hs-var">to</span></a></span></span><span> </span><span id="local-6989586621679050447"><span class="annot"><span class="annottext">xs :: [a]
+</span><a href="#local-6989586621679050447"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span id="local-6989586621679050446"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050446"><span class="hs-identifier hs-var">a</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679050445"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050445"><span class="hs-keyword hs-var">as</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [a] -&gt; Bool
+forall a. Eq a =&gt; [a] -&gt; [a] -&gt; Bool
+</span><span class="hs-identifier hs-var">isPrefixOf</span></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050449"><span class="hs-identifier hs-var">from</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050447"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-221"></span><span>    </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050448"><span class="hs-identifier hs-var">to</span></a></span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [a] -&gt; [a]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; [a] -&gt; [a]
+forall a. Int -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">drop</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050449"><span class="hs-identifier hs-var">from</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050447"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679050446"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; [a] -&gt; [a]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [a] -&gt; [a] -&gt; [a]
+forall a. Eq a =&gt; [a] -&gt; [a] -&gt; [a] -&gt; [a]
+</span><a href="System.Log.Handler.Log4jXML.html#replace"><span class="hs-identifier hs-var">replace</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050449"><span class="hs-identifier hs-var">from</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050448"><span class="hs-identifier hs-var">to</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679050445"><span class="hs-keyword hs-var">as</span></a></span><span>
+</span><span id="line-222"></span></pre></body></html>

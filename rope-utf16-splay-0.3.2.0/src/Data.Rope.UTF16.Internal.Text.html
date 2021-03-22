@@ -1,0 +1,138 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | Helpers for working with 'Text' in UTF-16 code units</span><span>
+</span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.Rope.UTF16.Internal.Text</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Array</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Array</span></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Internal</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Text</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Unsafe</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Unsafe</span></span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="annot"><a href="Data.Rope.UTF16.Internal.Text.html#clamp16"><span class="hs-identifier hs-type">clamp16</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-10"></span><span id="clamp16"><span class="annot"><span class="annottext">clamp16 :: Int -&gt; Text -&gt; Int
+</span><a href="Data.Rope.UTF16.Internal.Text.html#clamp16"><span class="hs-identifier hs-var hs-var">clamp16</span></a></span></span><span> </span><span id="local-6989586621679040650"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040650"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span id="local-6989586621679040649"><span class="annot"><span class="annottext">t :: Text
+</span><a href="#local-6989586621679040649"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Text.Text</span></span><span> </span><span id="local-6989586621679040647"><span class="annot"><span class="annottext">Array
+</span><a href="#local-6989586621679040647"><span class="hs-identifier hs-var">arr</span></a></span></span><span> </span><span id="local-6989586621679040646"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040646"><span class="hs-identifier hs-var">off</span></a></span></span><span> </span><span id="local-6989586621679040645"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040645"><span class="hs-identifier hs-var">_len</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-11"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040650"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;=</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-12"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040650"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040643"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040643"><span class="hs-identifier hs-var">len</span></a></span><span>
+</span><span id="line-13"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679040642"><span class="hs-identifier hs-var">isLowSurrogate</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040650"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-14"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040650"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-15"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-16"></span><span>    </span><span id="local-6989586621679040641"><span class="annot"><span class="annottext">cp :: Word16
+</span><a href="#local-6989586621679040641"><span class="hs-identifier hs-var hs-var">cp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Array -&gt; Int -&gt; Word16
+</span><span class="hs-identifier hs-var">Array.unsafeIndex</span></span><span> </span><span class="annot"><span class="annottext">Array
+</span><a href="#local-6989586621679040647"><span class="hs-identifier hs-var">arr</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040646"><span class="hs-identifier hs-var">off</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040650"><span class="hs-identifier hs-var">i</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span>    </span><span id="local-6989586621679040642"><span class="annot"><span class="annottext">isLowSurrogate :: Bool
+</span><a href="#local-6989586621679040642"><span class="hs-identifier hs-var hs-var">isLowSurrogate</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word16
+</span><span class="hs-number">0xDC00</span></span><span> </span><span class="annot"><span class="annottext">Word16 -&gt; Word16 -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;=</span></span><span> </span><span class="annot"><span class="annottext">Word16
+</span><a href="#local-6989586621679040641"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Word16
+</span><a href="#local-6989586621679040641"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="annottext">Word16 -&gt; Word16 -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;=</span></span><span> </span><span class="annot"><span class="annottext">Word16
+</span><span class="hs-number">0xDFFF</span></span><span>
+</span><span id="line-18"></span><span>    </span><span id="local-6989586621679040643"><span class="annot"><span class="annottext">len :: Int
+</span><a href="#local-6989586621679040643"><span class="hs-identifier hs-var hs-var">len</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Int
+</span><span class="hs-identifier hs-var">Unsafe.lengthWord16</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040649"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="annot"><a href="Data.Rope.UTF16.Internal.Text.html#take16"><span class="hs-identifier hs-type">take16</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-21"></span><span id="take16"><span class="annot"><span class="annottext">take16 :: Int -&gt; Text -&gt; Text
+</span><a href="Data.Rope.UTF16.Internal.Text.html#take16"><span class="hs-identifier hs-var hs-var">take16</span></a></span></span><span> </span><span id="local-6989586621679040635"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040635"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679040634"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040634"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Text
+</span><span class="hs-identifier hs-var">Unsafe.takeWord16</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Int
+</span><a href="Data.Rope.UTF16.Internal.Text.html#clamp16"><span class="hs-identifier hs-var">clamp16</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040635"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040634"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040634"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="annot"><a href="Data.Rope.UTF16.Internal.Text.html#drop16"><span class="hs-identifier hs-type">drop16</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-24"></span><span id="drop16"><span class="annot"><span class="annottext">drop16 :: Int -&gt; Text -&gt; Text
+</span><a href="Data.Rope.UTF16.Internal.Text.html#drop16"><span class="hs-identifier hs-var hs-var">drop16</span></a></span></span><span> </span><span id="local-6989586621679040631"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040631"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679040630"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040630"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Text
+</span><span class="hs-identifier hs-var">Unsafe.dropWord16</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Int
+</span><a href="Data.Rope.UTF16.Internal.Text.html#clamp16"><span class="hs-identifier hs-var">clamp16</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040631"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040630"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040630"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span class="annot"><a href="Data.Rope.UTF16.Internal.Text.html#split16At"><span class="hs-identifier hs-type">split16At</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span id="split16At"><span class="annot"><span class="annottext">split16At :: Int -&gt; Text -&gt; (Text, Text)
+</span><a href="Data.Rope.UTF16.Internal.Text.html#split16At"><span class="hs-identifier hs-var hs-var">split16At</span></a></span></span><span> </span><span id="local-6989586621679040627"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040627"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679040626"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040626"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Text
+</span><span class="hs-identifier hs-var">Unsafe.takeWord16</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040625"><span class="hs-identifier hs-var">n'</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040626"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Text
+</span><span class="hs-identifier hs-var">Unsafe.dropWord16</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040625"><span class="hs-identifier hs-var">n'</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040626"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-29"></span><span>    </span><span id="local-6989586621679040625"><span class="annot"><span class="annottext">n' :: Int
+</span><a href="#local-6989586621679040625"><span class="hs-identifier hs-var hs-var">n'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Int
+</span><a href="Data.Rope.UTF16.Internal.Text.html#clamp16"><span class="hs-identifier hs-var">clamp16</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040627"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040626"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-30"></span><span>
+</span><span id="line-31"></span><span class="annot"><a href="Data.Rope.UTF16.Internal.Text.html#chunks16Of"><span class="hs-identifier hs-type">chunks16Of</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">]</span><span>
+</span><span id="line-32"></span><span id="chunks16Of"><span class="annot"><span class="annottext">chunks16Of :: Int -&gt; Text -&gt; [Text]
+</span><a href="Data.Rope.UTF16.Internal.Text.html#chunks16Of"><span class="hs-identifier hs-var hs-var">chunks16Of</span></a></span></span><span> </span><span id="local-6989586621679040623"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040623"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679040622"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040622"><span class="hs-identifier hs-var">t</span></a></span></span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040621"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-34"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040621"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;=</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040623"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040622"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040620"><span class="hs-identifier hs-var">pre</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; [Text] -&gt; [Text]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; [Text]
+</span><a href="Data.Rope.UTF16.Internal.Text.html#chunks16Of"><span class="hs-identifier hs-var">chunks16Of</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040623"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040619"><span class="hs-identifier hs-var">post</span></a></span><span>
+</span><span id="line-36"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-37"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679040620"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040620"><span class="hs-identifier hs-var">pre</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679040619"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040619"><span class="hs-identifier hs-var">post</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; (Text, Text)
+</span><a href="Data.Rope.UTF16.Internal.Text.html#split16At"><span class="hs-identifier hs-var">split16At</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679040623"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040622"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-38"></span><span>    </span><span id="local-6989586621679040621"><span class="annot"><span class="annottext">len :: Int
+</span><a href="#local-6989586621679040621"><span class="hs-identifier hs-var hs-var">len</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Int
+</span><span class="hs-identifier hs-var">Unsafe.lengthWord16</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040622"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-39"></span></pre></body></html>

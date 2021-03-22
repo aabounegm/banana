@@ -1,0 +1,626 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields      #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE OverloadedStrings          #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell            #-}</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.CodeAction</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Aeson.Types</span></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Default</span></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span>                      </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">Text</span></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Command.html"><span class="hs-identifier">Language.LSP.Types.Command</span></a></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html"><span class="hs-identifier">Language.LSP.Types.Diagnostic</span></a></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Common.html"><span class="hs-identifier">Language.LSP.Types.Common</span></a></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Location.html"><span class="hs-identifier">Language.LSP.Types.Location</span></a></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Progress.html"><span class="hs-identifier">Language.LSP.Types.Progress</span></a></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.TextDocument.html"><span class="hs-identifier">Language.LSP.Types.TextDocument</span></a></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.WorkspaceEdit.html"><span class="hs-identifier">Language.LSP.Types.WorkspaceEdit</span></a></span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">data</span><span> </span><span id="CodeActionKind"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionKind"><span class="hs-identifier hs-var">CodeActionKind</span></a></span></span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-comment">-- | Empty kind.</span><span>
+</span><span id="line-22"></span><span>    </span><span id="CodeActionEmpty"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionEmpty"><span class="hs-identifier hs-var">CodeActionEmpty</span></a></span></span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | Base kind for quickfix actions: @quickfix@.</span><span>
+</span><span id="line-24"></span><span>    </span><span id="CodeActionQuickFix"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionQuickFix"><span class="hs-identifier hs-var">CodeActionQuickFix</span></a></span></span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | Base kind for refactoring actions: @refactor@.</span><span>
+</span><span id="line-26"></span><span>    </span><span id="CodeActionRefactor"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionRefactor"><span class="hs-identifier hs-var">CodeActionRefactor</span></a></span></span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | Base kind for refactoring extraction actions: @refactor.extract@.</span><span>
+</span><span id="line-28"></span><span>    </span><span class="hs-comment">-- Example extract actions:</span><span>
+</span><span id="line-29"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-30"></span><span>    </span><span class="hs-comment">-- - Extract method</span><span>
+</span><span id="line-31"></span><span>    </span><span class="hs-comment">-- - Extract function</span><span>
+</span><span id="line-32"></span><span>    </span><span class="hs-comment">-- - Extract variable</span><span>
+</span><span id="line-33"></span><span>    </span><span class="hs-comment">-- - Extract interface from class</span><span>
+</span><span id="line-34"></span><span>    </span><span class="hs-comment">-- - ...</span><span>
+</span><span id="line-35"></span><span>    </span><span id="CodeActionRefactorExtract"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionRefactorExtract"><span class="hs-identifier hs-var">CodeActionRefactorExtract</span></a></span></span><span>
+</span><span id="line-36"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | Base kind for refactoring inline actions: @refactor.inline@.</span><span>
+</span><span id="line-37"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-38"></span><span>    </span><span class="hs-comment">-- Example inline actions:</span><span>
+</span><span id="line-39"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-40"></span><span>    </span><span class="hs-comment">-- - Inline function</span><span>
+</span><span id="line-41"></span><span>    </span><span class="hs-comment">-- - Inline variable</span><span>
+</span><span id="line-42"></span><span>    </span><span class="hs-comment">-- - Inline constant</span><span>
+</span><span id="line-43"></span><span>    </span><span class="hs-comment">-- - ...</span><span>
+</span><span id="line-44"></span><span>    </span><span id="CodeActionRefactorInline"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionRefactorInline"><span class="hs-identifier hs-var">CodeActionRefactorInline</span></a></span></span><span>
+</span><span id="line-45"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | Base kind for refactoring rewrite actions: @refactor.rewrite@.</span><span>
+</span><span id="line-46"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-47"></span><span>    </span><span class="hs-comment">-- Example rewrite actions:</span><span>
+</span><span id="line-48"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-49"></span><span>    </span><span class="hs-comment">-- - Convert JavaScript function to class</span><span>
+</span><span id="line-50"></span><span>    </span><span class="hs-comment">-- - Add or remove parameter</span><span>
+</span><span id="line-51"></span><span>    </span><span class="hs-comment">-- - Encapsulate field</span><span>
+</span><span id="line-52"></span><span>    </span><span class="hs-comment">-- - Make method static</span><span>
+</span><span id="line-53"></span><span>    </span><span class="hs-comment">-- - Move method to base class</span><span>
+</span><span id="line-54"></span><span>    </span><span class="hs-comment">-- - ...</span><span>
+</span><span id="line-55"></span><span>    </span><span id="CodeActionRefactorRewrite"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionRefactorRewrite"><span class="hs-identifier hs-var">CodeActionRefactorRewrite</span></a></span></span><span>
+</span><span id="line-56"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | Base kind for source actions: @source@.</span><span>
+</span><span id="line-57"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-58"></span><span>    </span><span class="hs-comment">-- Source code actions apply to the entire file.</span><span>
+</span><span id="line-59"></span><span>    </span><span id="CodeActionSource"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionSource"><span class="hs-identifier hs-var">CodeActionSource</span></a></span></span><span>
+</span><span id="line-60"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | Base kind for an organize imports source action: @source.organizeImports@.</span><span>
+</span><span id="line-61"></span><span>    </span><span id="CodeActionSourceOrganizeImports"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionSourceOrganizeImports"><span class="hs-identifier hs-var">CodeActionSourceOrganizeImports</span></a></span></span><span>
+</span><span id="line-62"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="CodeActionUnknown"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionUnknown"><span class="hs-identifier hs-var">CodeActionUnknown</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-63"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680444613"><span id="local-6989586621680444615"><span id="local-6989586621680444617"><span id="local-6989586621680444619"><span class="annot"><span class="annottext">ReadPrec [CodeActionKind]
+ReadPrec CodeActionKind
+Int -&gt; ReadS CodeActionKind
+ReadS [CodeActionKind]
+(Int -&gt; ReadS CodeActionKind)
+-&gt; ReadS [CodeActionKind]
+-&gt; ReadPrec CodeActionKind
+-&gt; ReadPrec [CodeActionKind]
+-&gt; Read CodeActionKind
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CodeActionKind]
+$creadListPrec :: ReadPrec [CodeActionKind]
+readPrec :: ReadPrec CodeActionKind
+$creadPrec :: ReadPrec CodeActionKind
+readList :: ReadS [CodeActionKind]
+$creadList :: ReadS [CodeActionKind]
+readsPrec :: Int -&gt; ReadS CodeActionKind
+$creadsPrec :: Int -&gt; ReadS CodeActionKind
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444606"><span id="local-6989586621680444608"><span id="local-6989586621680444610"><span class="annot"><span class="annottext">Int -&gt; CodeActionKind -&gt; ShowS
+[CodeActionKind] -&gt; ShowS
+CodeActionKind -&gt; String
+(Int -&gt; CodeActionKind -&gt; ShowS)
+-&gt; (CodeActionKind -&gt; String)
+-&gt; ([CodeActionKind] -&gt; ShowS)
+-&gt; Show CodeActionKind
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CodeActionKind] -&gt; ShowS
+$cshowList :: [CodeActionKind] -&gt; ShowS
+show :: CodeActionKind -&gt; String
+$cshow :: CodeActionKind -&gt; String
+showsPrec :: Int -&gt; CodeActionKind -&gt; ShowS
+$cshowsPrec :: Int -&gt; CodeActionKind -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444601"><span id="local-6989586621680444603"><span class="annot"><span class="annottext">CodeActionKind -&gt; CodeActionKind -&gt; Bool
+(CodeActionKind -&gt; CodeActionKind -&gt; Bool)
+-&gt; (CodeActionKind -&gt; CodeActionKind -&gt; Bool) -&gt; Eq CodeActionKind
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CodeActionKind -&gt; CodeActionKind -&gt; Bool
+$c/= :: CodeActionKind -&gt; CodeActionKind -&gt; Bool
+== :: CodeActionKind -&gt; CodeActionKind -&gt; Bool
+$c== :: CodeActionKind -&gt; CodeActionKind -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680444593"><span id="local-6989586621680444595"><span id="local-6989586621680444597"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionKind"><span class="hs-identifier hs-type">CodeActionKind</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-66"></span><span>  </span><span id="local-6989586621680444591"><span class="annot"><span class="annottext">toJSON :: CodeActionKind -&gt; Value
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></span></span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionEmpty"><span class="hs-identifier hs-var">CodeActionEmpty</span></a></span><span>                      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span class="hs-identifier hs-var">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-67"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionQuickFix"><span class="hs-identifier hs-var">CodeActionQuickFix</span></a></span><span>                   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span class="hs-identifier hs-var">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;quickfix&quot;</span></span><span>
+</span><span id="line-68"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionRefactor"><span class="hs-identifier hs-var">CodeActionRefactor</span></a></span><span>                   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span class="hs-identifier hs-var">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;refactor&quot;</span></span><span>
+</span><span id="line-69"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionRefactorExtract"><span class="hs-identifier hs-var">CodeActionRefactorExtract</span></a></span><span>            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span class="hs-identifier hs-var">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;refactor.extract&quot;</span></span><span>
+</span><span id="line-70"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionRefactorInline"><span class="hs-identifier hs-var">CodeActionRefactorInline</span></a></span><span>             </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span class="hs-identifier hs-var">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;refactor.inline&quot;</span></span><span>
+</span><span id="line-71"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionRefactorRewrite"><span class="hs-identifier hs-var">CodeActionRefactorRewrite</span></a></span><span>            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span class="hs-identifier hs-var">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;refactor.rewrite&quot;</span></span><span>
+</span><span id="line-72"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionSource"><span class="hs-identifier hs-var">CodeActionSource</span></a></span><span>                     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span class="hs-identifier hs-var">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;source&quot;</span></span><span>
+</span><span id="line-73"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionSourceOrganizeImports"><span class="hs-identifier hs-var">CodeActionSourceOrganizeImports</span></a></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span class="hs-identifier hs-var">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;source.organizeImports&quot;</span></span><span>
+</span><span id="line-74"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionUnknown"><span class="hs-identifier hs-type">CodeActionUnknown</span></a></span><span> </span><span id="local-6989586621680444588"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680444588"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span>                </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span class="hs-identifier hs-var">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680444588"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-75"></span><span>
+</span><span id="line-76"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680444585"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionKind"><span class="hs-identifier hs-type">CodeActionKind</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-77"></span><span>  </span><span id="local-6989586621680444583"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser CodeActionKind
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">)</span><span>                       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CodeActionKind -&gt; Parser CodeActionKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionEmpty"><span class="hs-identifier hs-var">CodeActionEmpty</span></a></span><span>
+</span><span id="line-78"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;quickfix&quot;</span></span><span class="hs-special">)</span><span>               </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CodeActionKind -&gt; Parser CodeActionKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionQuickFix"><span class="hs-identifier hs-var">CodeActionQuickFix</span></a></span><span>
+</span><span id="line-79"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;refactor&quot;</span></span><span class="hs-special">)</span><span>               </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CodeActionKind -&gt; Parser CodeActionKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionRefactor"><span class="hs-identifier hs-var">CodeActionRefactor</span></a></span><span>
+</span><span id="line-80"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;refactor.extract&quot;</span></span><span class="hs-special">)</span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CodeActionKind -&gt; Parser CodeActionKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionRefactorExtract"><span class="hs-identifier hs-var">CodeActionRefactorExtract</span></a></span><span>
+</span><span id="line-81"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;refactor.inline&quot;</span></span><span class="hs-special">)</span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CodeActionKind -&gt; Parser CodeActionKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionRefactorInline"><span class="hs-identifier hs-var">CodeActionRefactorInline</span></a></span><span>
+</span><span id="line-82"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;refactor.rewrite&quot;</span></span><span class="hs-special">)</span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CodeActionKind -&gt; Parser CodeActionKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionRefactorRewrite"><span class="hs-identifier hs-var">CodeActionRefactorRewrite</span></a></span><span>
+</span><span id="line-83"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;source&quot;</span></span><span class="hs-special">)</span><span>                 </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CodeActionKind -&gt; Parser CodeActionKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionSource"><span class="hs-identifier hs-var">CodeActionSource</span></a></span><span>
+</span><span id="line-84"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;source.organizeImports&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CodeActionKind -&gt; Parser CodeActionKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionSourceOrganizeImports"><span class="hs-identifier hs-var">CodeActionSourceOrganizeImports</span></a></span><span>
+</span><span id="line-85"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span id="local-6989586621680444581"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680444581"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span>                        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CodeActionKind -&gt; Parser CodeActionKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionUnknown"><span class="hs-identifier hs-var">CodeActionUnknown</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680444581"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-86"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><span class="hs-identifier">_</span></span><span>                                 </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser CodeActionKind
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-87"></span><span>  </span><span>
+</span><span id="line-88"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-89"></span><span>
+</span><span id="line-90"></span><span class="hs-keyword">data</span><span> </span><span id="CodeActionKindClientCapabilities"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionKindClientCapabilities"><span class="hs-identifier hs-var">CodeActionKindClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-91"></span><span>  </span><span id="CodeActionKindClientCapabilities"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionKindClientCapabilities"><span class="hs-identifier hs-var">CodeActionKindClientCapabilities</span></a></span></span><span>
+</span><span id="line-92"></span><span>   </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The code action kind values the client supports. When this</span><span>
+</span><span id="line-93"></span><span>     </span><span class="hs-comment">-- property exists the client also guarantees that it will</span><span>
+</span><span id="line-94"></span><span>     </span><span class="hs-comment">-- handle values outside its set gracefully and falls back</span><span>
+</span><span id="line-95"></span><span>     </span><span class="hs-comment">-- to a default value when unknown.</span><span>
+</span><span id="line-96"></span><span>      </span><span id="%24sel%3A_valueSet%3ACodeActionKindClientCapabilities"><span class="annot"><span class="annottext">CodeActionKindClientCapabilities -&gt; List CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#%24sel%3A_valueSet%3ACodeActionKindClientCapabilities"><span class="hs-identifier hs-var hs-var">_valueSet</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionKind"><span class="hs-identifier hs-type">CodeActionKind</span></a></span><span>
+</span><span id="line-97"></span><span>   </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680444573"><span id="local-6989586621680444575"><span id="local-6989586621680444577"><span class="annot"><span class="annottext">Int -&gt; CodeActionKindClientCapabilities -&gt; ShowS
+[CodeActionKindClientCapabilities] -&gt; ShowS
+CodeActionKindClientCapabilities -&gt; String
+(Int -&gt; CodeActionKindClientCapabilities -&gt; ShowS)
+-&gt; (CodeActionKindClientCapabilities -&gt; String)
+-&gt; ([CodeActionKindClientCapabilities] -&gt; ShowS)
+-&gt; Show CodeActionKindClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CodeActionKindClientCapabilities] -&gt; ShowS
+$cshowList :: [CodeActionKindClientCapabilities] -&gt; ShowS
+show :: CodeActionKindClientCapabilities -&gt; String
+$cshow :: CodeActionKindClientCapabilities -&gt; String
+showsPrec :: Int -&gt; CodeActionKindClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; CodeActionKindClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444565"><span id="local-6989586621680444567"><span id="local-6989586621680444569"><span id="local-6989586621680444571"><span class="annot"><span class="annottext">ReadPrec [CodeActionKindClientCapabilities]
+ReadPrec CodeActionKindClientCapabilities
+Int -&gt; ReadS CodeActionKindClientCapabilities
+ReadS [CodeActionKindClientCapabilities]
+(Int -&gt; ReadS CodeActionKindClientCapabilities)
+-&gt; ReadS [CodeActionKindClientCapabilities]
+-&gt; ReadPrec CodeActionKindClientCapabilities
+-&gt; ReadPrec [CodeActionKindClientCapabilities]
+-&gt; Read CodeActionKindClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CodeActionKindClientCapabilities]
+$creadListPrec :: ReadPrec [CodeActionKindClientCapabilities]
+readPrec :: ReadPrec CodeActionKindClientCapabilities
+$creadPrec :: ReadPrec CodeActionKindClientCapabilities
+readList :: ReadS [CodeActionKindClientCapabilities]
+$creadList :: ReadS [CodeActionKindClientCapabilities]
+readsPrec :: Int -&gt; ReadS CodeActionKindClientCapabilities
+$creadsPrec :: Int -&gt; ReadS CodeActionKindClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444561"><span id="local-6989586621680444563"><span class="annot"><span class="annottext">CodeActionKindClientCapabilities
+-&gt; CodeActionKindClientCapabilities -&gt; Bool
+(CodeActionKindClientCapabilities
+ -&gt; CodeActionKindClientCapabilities -&gt; Bool)
+-&gt; (CodeActionKindClientCapabilities
+    -&gt; CodeActionKindClientCapabilities -&gt; Bool)
+-&gt; Eq CodeActionKindClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CodeActionKindClientCapabilities
+-&gt; CodeActionKindClientCapabilities -&gt; Bool
+$c/= :: CodeActionKindClientCapabilities
+-&gt; CodeActionKindClientCapabilities -&gt; Bool
+== :: CodeActionKindClientCapabilities
+-&gt; CodeActionKindClientCapabilities -&gt; Bool
+$c== :: CodeActionKindClientCapabilities
+-&gt; CodeActionKindClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-98"></span><span>
+</span><span id="line-99"></span><span id="local-6989586621680444549"><span id="local-6989586621680444551"><span id="local-6989586621680444553"><span id="local-6989586621680444555"><span id="local-6989586621680444557"><span id="local-6989586621680444559"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CodeActionKindClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-100"></span><span>
+</span><span id="line-101"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Default</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionKindClientCapabilities"><span class="hs-identifier hs-type">CodeActionKindClientCapabilities</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-102"></span><span>  </span><span id="local-6989586621680444545"><span class="annot"><span class="annottext">def :: CodeActionKindClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">def</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">List CodeActionKind -&gt; CodeActionKindClientCapabilities
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionKindClientCapabilities"><span class="hs-identifier hs-var">CodeActionKindClientCapabilities</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[CodeActionKind] -&gt; List CodeActionKind
+forall a. [a] -&gt; List a
+</span><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-var">List</span></a></span><span> </span><span class="annot"><span class="annottext">[CodeActionKind]
+</span><a href="#local-6989586621680444542"><span class="hs-identifier hs-var">allKinds</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-103"></span><span>    </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621680444542"><span class="annot"><span class="annottext">allKinds :: [CodeActionKind]
+</span><a href="#local-6989586621680444542"><span class="hs-identifier hs-var hs-var">allKinds</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionQuickFix"><span class="hs-identifier hs-var">CodeActionQuickFix</span></a></span><span>
+</span><span id="line-104"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionRefactor"><span class="hs-identifier hs-var">CodeActionRefactor</span></a></span><span>
+</span><span id="line-105"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionRefactorExtract"><span class="hs-identifier hs-var">CodeActionRefactorExtract</span></a></span><span>
+</span><span id="line-106"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionRefactorInline"><span class="hs-identifier hs-var">CodeActionRefactorInline</span></a></span><span>
+</span><span id="line-107"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionRefactorRewrite"><span class="hs-identifier hs-var">CodeActionRefactorRewrite</span></a></span><span>
+</span><span id="line-108"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionSource"><span class="hs-identifier hs-var">CodeActionSource</span></a></span><span>
+</span><span id="line-109"></span><span>                     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#CodeActionSourceOrganizeImports"><span class="hs-identifier hs-var">CodeActionSourceOrganizeImports</span></a></span><span>
+</span><span id="line-110"></span><span>                     </span><span class="hs-special">]</span><span>
+</span><span id="line-111"></span><span>
+</span><span id="line-112"></span><span class="hs-keyword">data</span><span> </span><span id="CodeActionLiteralSupport"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionLiteralSupport"><span class="hs-identifier hs-var">CodeActionLiteralSupport</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-113"></span><span>  </span><span id="CodeActionLiteralSupport"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionLiteralSupport"><span class="hs-identifier hs-var">CodeActionLiteralSupport</span></a></span></span><span>
+</span><span id="line-114"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_codeActionKind%3ACodeActionLiteralSupport"><span class="annot"><span class="annottext">CodeActionLiteralSupport -&gt; CodeActionKindClientCapabilities
+</span><a href="Language.LSP.Types.CodeAction.html#%24sel%3A_codeActionKind%3ACodeActionLiteralSupport"><span class="hs-identifier hs-var hs-var">_codeActionKind</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionKindClientCapabilities"><span class="hs-identifier hs-type">CodeActionKindClientCapabilities</span></a></span><span> </span><span class="hs-comment">-- ^ The code action kind is support with the following value set.</span><span>
+</span><span id="line-115"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680444534"><span id="local-6989586621680444536"><span id="local-6989586621680444538"><span class="annot"><span class="annottext">Int -&gt; CodeActionLiteralSupport -&gt; ShowS
+[CodeActionLiteralSupport] -&gt; ShowS
+CodeActionLiteralSupport -&gt; String
+(Int -&gt; CodeActionLiteralSupport -&gt; ShowS)
+-&gt; (CodeActionLiteralSupport -&gt; String)
+-&gt; ([CodeActionLiteralSupport] -&gt; ShowS)
+-&gt; Show CodeActionLiteralSupport
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CodeActionLiteralSupport] -&gt; ShowS
+$cshowList :: [CodeActionLiteralSupport] -&gt; ShowS
+show :: CodeActionLiteralSupport -&gt; String
+$cshow :: CodeActionLiteralSupport -&gt; String
+showsPrec :: Int -&gt; CodeActionLiteralSupport -&gt; ShowS
+$cshowsPrec :: Int -&gt; CodeActionLiteralSupport -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444526"><span id="local-6989586621680444528"><span id="local-6989586621680444530"><span id="local-6989586621680444532"><span class="annot"><span class="annottext">ReadPrec [CodeActionLiteralSupport]
+ReadPrec CodeActionLiteralSupport
+Int -&gt; ReadS CodeActionLiteralSupport
+ReadS [CodeActionLiteralSupport]
+(Int -&gt; ReadS CodeActionLiteralSupport)
+-&gt; ReadS [CodeActionLiteralSupport]
+-&gt; ReadPrec CodeActionLiteralSupport
+-&gt; ReadPrec [CodeActionLiteralSupport]
+-&gt; Read CodeActionLiteralSupport
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CodeActionLiteralSupport]
+$creadListPrec :: ReadPrec [CodeActionLiteralSupport]
+readPrec :: ReadPrec CodeActionLiteralSupport
+$creadPrec :: ReadPrec CodeActionLiteralSupport
+readList :: ReadS [CodeActionLiteralSupport]
+$creadList :: ReadS [CodeActionLiteralSupport]
+readsPrec :: Int -&gt; ReadS CodeActionLiteralSupport
+$creadsPrec :: Int -&gt; ReadS CodeActionLiteralSupport
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444522"><span id="local-6989586621680444524"><span class="annot"><span class="annottext">CodeActionLiteralSupport -&gt; CodeActionLiteralSupport -&gt; Bool
+(CodeActionLiteralSupport -&gt; CodeActionLiteralSupport -&gt; Bool)
+-&gt; (CodeActionLiteralSupport -&gt; CodeActionLiteralSupport -&gt; Bool)
+-&gt; Eq CodeActionLiteralSupport
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CodeActionLiteralSupport -&gt; CodeActionLiteralSupport -&gt; Bool
+$c/= :: CodeActionLiteralSupport -&gt; CodeActionLiteralSupport -&gt; Bool
+== :: CodeActionLiteralSupport -&gt; CodeActionLiteralSupport -&gt; Bool
+$c== :: CodeActionLiteralSupport -&gt; CodeActionLiteralSupport -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-116"></span><span>
+</span><span id="line-117"></span><span id="local-6989586621680444510"><span id="local-6989586621680444512"><span id="local-6989586621680444514"><span id="local-6989586621680444516"><span id="local-6989586621680444518"><span id="local-6989586621680444520"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CodeActionLiteralSupport</span></span></span></span></span></span></span><span>
+</span><span id="line-118"></span><span>
+</span><span id="line-119"></span><span class="hs-keyword">data</span><span> </span><span id="CodeActionClientCapabilities"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionClientCapabilities"><span class="hs-identifier hs-var">CodeActionClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="CodeActionClientCapabilities"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionClientCapabilities"><span class="hs-identifier hs-var">CodeActionClientCapabilities</span></a></span></span><span>
+</span><span id="line-120"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Whether code action supports dynamic registration.</span><span>
+</span><span id="line-121"></span><span>    </span><span id="%24sel%3A_dynamicRegistration%3ACodeActionClientCapabilities"><span class="annot"><span class="annottext">CodeActionClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.CodeAction.html#%24sel%3A_dynamicRegistration%3ACodeActionClientCapabilities"><span class="hs-identifier hs-var hs-var">_dynamicRegistration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span>
+</span><span id="line-122"></span><span>    </span><span class="hs-comment">-- | The client support code action literals as a valid response</span><span>
+</span><span id="line-123"></span><span>    </span><span class="hs-comment">-- of the `textDocument/codeAction` request.</span><span>
+</span><span id="line-124"></span><span>    </span><span class="hs-comment">-- Since 3.8.0</span><span>
+</span><span id="line-125"></span><span>    </span><span id="%24sel%3A_codeActionLiteralSupport%3ACodeActionClientCapabilities"><span class="annot"><span class="annottext">CodeActionClientCapabilities -&gt; Maybe CodeActionLiteralSupport
+</span><a href="Language.LSP.Types.CodeAction.html#%24sel%3A_codeActionLiteralSupport%3ACodeActionClientCapabilities"><span class="hs-identifier hs-var hs-var">_codeActionLiteralSupport</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionLiteralSupport"><span class="hs-identifier hs-type">CodeActionLiteralSupport</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-126"></span><span>    </span><span class="hs-comment">-- | Whether code action supports the `isPreferred` property. Since LSP 3.15.0</span><span>
+</span><span id="line-127"></span><span>    </span><span id="%24sel%3A_isPreferredSupport%3ACodeActionClientCapabilities"><span class="annot"><span class="annottext">CodeActionClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.CodeAction.html#%24sel%3A_isPreferredSupport%3ACodeActionClientCapabilities"><span class="hs-identifier hs-var hs-var">_isPreferredSupport</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-128"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-129"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680444500"><span id="local-6989586621680444502"><span id="local-6989586621680444504"><span class="annot"><span class="annottext">Int -&gt; CodeActionClientCapabilities -&gt; ShowS
+[CodeActionClientCapabilities] -&gt; ShowS
+CodeActionClientCapabilities -&gt; String
+(Int -&gt; CodeActionClientCapabilities -&gt; ShowS)
+-&gt; (CodeActionClientCapabilities -&gt; String)
+-&gt; ([CodeActionClientCapabilities] -&gt; ShowS)
+-&gt; Show CodeActionClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CodeActionClientCapabilities] -&gt; ShowS
+$cshowList :: [CodeActionClientCapabilities] -&gt; ShowS
+show :: CodeActionClientCapabilities -&gt; String
+$cshow :: CodeActionClientCapabilities -&gt; String
+showsPrec :: Int -&gt; CodeActionClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; CodeActionClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444492"><span id="local-6989586621680444494"><span id="local-6989586621680444496"><span id="local-6989586621680444498"><span class="annot"><span class="annottext">ReadPrec [CodeActionClientCapabilities]
+ReadPrec CodeActionClientCapabilities
+Int -&gt; ReadS CodeActionClientCapabilities
+ReadS [CodeActionClientCapabilities]
+(Int -&gt; ReadS CodeActionClientCapabilities)
+-&gt; ReadS [CodeActionClientCapabilities]
+-&gt; ReadPrec CodeActionClientCapabilities
+-&gt; ReadPrec [CodeActionClientCapabilities]
+-&gt; Read CodeActionClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CodeActionClientCapabilities]
+$creadListPrec :: ReadPrec [CodeActionClientCapabilities]
+readPrec :: ReadPrec CodeActionClientCapabilities
+$creadPrec :: ReadPrec CodeActionClientCapabilities
+readList :: ReadS [CodeActionClientCapabilities]
+$creadList :: ReadS [CodeActionClientCapabilities]
+readsPrec :: Int -&gt; ReadS CodeActionClientCapabilities
+$creadsPrec :: Int -&gt; ReadS CodeActionClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444488"><span id="local-6989586621680444490"><span class="annot"><span class="annottext">CodeActionClientCapabilities
+-&gt; CodeActionClientCapabilities -&gt; Bool
+(CodeActionClientCapabilities
+ -&gt; CodeActionClientCapabilities -&gt; Bool)
+-&gt; (CodeActionClientCapabilities
+    -&gt; CodeActionClientCapabilities -&gt; Bool)
+-&gt; Eq CodeActionClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CodeActionClientCapabilities
+-&gt; CodeActionClientCapabilities -&gt; Bool
+$c/= :: CodeActionClientCapabilities
+-&gt; CodeActionClientCapabilities -&gt; Bool
+== :: CodeActionClientCapabilities
+-&gt; CodeActionClientCapabilities -&gt; Bool
+$c== :: CodeActionClientCapabilities
+-&gt; CodeActionClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-130"></span><span>
+</span><span id="line-131"></span><span id="local-6989586621680444476"><span id="local-6989586621680444478"><span id="local-6989586621680444480"><span id="local-6989586621680444482"><span id="local-6989586621680444484"><span id="local-6989586621680444486"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CodeActionClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-132"></span><span>
+</span><span id="line-133"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-134"></span><span>
+</span><span id="line-135"></span><span id="%24sel%3A_codeActionKinds%3ACodeActionOptions"><span id="%24sel%3A_workDoneProgress%3ACodeActionOptions"><span id="CodeActionOptions"><span id="local-6989586621680444458"><span id="local-6989586621680444460"><span id="local-6989586621680444462"><span id="local-6989586621680444464"><span id="local-6989586621680444466"><span id="local-6989586621680444468"><span id="local-6989586621680444470"><span id="local-6989586621680444472"><span id="local-6989586621680444474"><span id="CodeActionOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;CodeActionOptions&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressOptions</span><span class="hs-special">]</span><span>
+</span><span id="line-136"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="hs-string">&quot;_codeActionKinds&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">Maybe</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">List</span><span> </span><span class="hs-identifier">CodeActionKind</span><span class="hs-special">)</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-137"></span><span id="local-6989586621680444443"><span id="local-6989586621680444445"><span id="local-6989586621680444447"><span id="local-6989586621680444449"><span id="local-6989586621680444451"><span id="local-6989586621680444453"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CodeActionOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-138"></span><span>
+</span><span id="line-139"></span><span id="%24sel%3A_codeActionKinds%3ACodeActionRegistrationOptions"><span id="%24sel%3A_workDoneProgress%3ACodeActionRegistrationOptions"><span id="%24sel%3A_documentSelector%3ACodeActionRegistrationOptions"><span id="CodeActionRegistrationOptions"><span id="local-6989586621680444425"><span id="local-6989586621680444427"><span id="local-6989586621680444429"><span id="local-6989586621680444431"><span id="local-6989586621680444433"><span id="local-6989586621680444435"><span id="local-6989586621680444437"><span id="local-6989586621680444439"><span id="local-6989586621680444441"><span id="CodeActionRegistrationOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;CodeActionRegistrationOptions&quot;</span><span>
+</span><span id="line-140"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentRegistrationOptions</span><span>
+</span><span id="line-141"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CodeActionOptions</span><span>
+</span><span id="line-142"></span><span>  </span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-143"></span><span id="local-6989586621680444409"><span id="local-6989586621680444411"><span id="local-6989586621680444413"><span id="local-6989586621680444415"><span id="local-6989586621680444417"><span id="local-6989586621680444419"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CodeActionRegistrationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-144"></span><span>
+</span><span id="line-145"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-146"></span><span>
+</span><span id="line-147"></span><span class="hs-comment">-- | Contains additional diagnostic information about the context in which a</span><span>
+</span><span id="line-148"></span><span class="hs-comment">-- code action is run.</span><span>
+</span><span id="line-149"></span><span class="hs-keyword">data</span><span> </span><span id="CodeActionContext"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionContext"><span class="hs-identifier hs-var">CodeActionContext</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="CodeActionContext"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionContext"><span class="hs-identifier hs-var">CodeActionContext</span></a></span></span><span>
+</span><span id="line-150"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | An array of diagnostics known on the client side overlapping the range provided to the</span><span>
+</span><span id="line-151"></span><span>    </span><span class="hs-comment">-- @textDocument/codeAction@ request. They are provided so that the server knows which</span><span>
+</span><span id="line-152"></span><span>    </span><span class="hs-comment">-- errors are currently presented to the user for the given range. There is no guarantee</span><span>
+</span><span id="line-153"></span><span>    </span><span class="hs-comment">-- that these accurately reflect the error state of the resource. The primary parameter</span><span>
+</span><span id="line-154"></span><span>    </span><span class="hs-comment">-- to compute code actions is the provided range.</span><span>
+</span><span id="line-155"></span><span>    </span><span id="%24sel%3A_diagnostics%3ACodeActionContext"><span class="annot"><span class="annottext">CodeActionContext -&gt; List Diagnostic
+</span><a href="Language.LSP.Types.CodeAction.html#%24sel%3A_diagnostics%3ACodeActionContext"><span class="hs-identifier hs-var hs-var">_diagnostics</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#Diagnostic"><span class="hs-identifier hs-type">Diagnostic</span></a></span><span>
+</span><span id="line-156"></span><span>    </span><span class="hs-comment">-- | Requested kind of actions to return.</span><span>
+</span><span id="line-157"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-158"></span><span>    </span><span class="hs-comment">-- Actions not of this kind are filtered out by the client before being shown. So servers</span><span>
+</span><span id="line-159"></span><span>    </span><span class="hs-comment">-- can omit computing them.</span><span>
+</span><span id="line-160"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_only%3ACodeActionContext"><span class="annot"><span class="annottext">CodeActionContext -&gt; Maybe (List CodeActionKind)
+</span><a href="Language.LSP.Types.CodeAction.html#%24sel%3A_only%3ACodeActionContext"><span class="hs-identifier hs-var hs-var">_only</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionKind"><span class="hs-identifier hs-type">CodeActionKind</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-161"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-162"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680444398"><span id="local-6989586621680444400"><span id="local-6989586621680444402"><span id="local-6989586621680444404"><span class="annot"><span class="annottext">ReadPrec [CodeActionContext]
+ReadPrec CodeActionContext
+Int -&gt; ReadS CodeActionContext
+ReadS [CodeActionContext]
+(Int -&gt; ReadS CodeActionContext)
+-&gt; ReadS [CodeActionContext]
+-&gt; ReadPrec CodeActionContext
+-&gt; ReadPrec [CodeActionContext]
+-&gt; Read CodeActionContext
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CodeActionContext]
+$creadListPrec :: ReadPrec [CodeActionContext]
+readPrec :: ReadPrec CodeActionContext
+$creadPrec :: ReadPrec CodeActionContext
+readList :: ReadS [CodeActionContext]
+$creadList :: ReadS [CodeActionContext]
+readsPrec :: Int -&gt; ReadS CodeActionContext
+$creadsPrec :: Int -&gt; ReadS CodeActionContext
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444392"><span id="local-6989586621680444394"><span id="local-6989586621680444396"><span class="annot"><span class="annottext">Int -&gt; CodeActionContext -&gt; ShowS
+[CodeActionContext] -&gt; ShowS
+CodeActionContext -&gt; String
+(Int -&gt; CodeActionContext -&gt; ShowS)
+-&gt; (CodeActionContext -&gt; String)
+-&gt; ([CodeActionContext] -&gt; ShowS)
+-&gt; Show CodeActionContext
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CodeActionContext] -&gt; ShowS
+$cshowList :: [CodeActionContext] -&gt; ShowS
+show :: CodeActionContext -&gt; String
+$cshow :: CodeActionContext -&gt; String
+showsPrec :: Int -&gt; CodeActionContext -&gt; ShowS
+$cshowsPrec :: Int -&gt; CodeActionContext -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444388"><span id="local-6989586621680444390"><span class="annot"><span class="annottext">CodeActionContext -&gt; CodeActionContext -&gt; Bool
+(CodeActionContext -&gt; CodeActionContext -&gt; Bool)
+-&gt; (CodeActionContext -&gt; CodeActionContext -&gt; Bool)
+-&gt; Eq CodeActionContext
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CodeActionContext -&gt; CodeActionContext -&gt; Bool
+$c/= :: CodeActionContext -&gt; CodeActionContext -&gt; Bool
+== :: CodeActionContext -&gt; CodeActionContext -&gt; Bool
+$c== :: CodeActionContext -&gt; CodeActionContext -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-163"></span><span>
+</span><span id="line-164"></span><span id="local-6989586621680444376"><span id="local-6989586621680444378"><span id="local-6989586621680444380"><span id="local-6989586621680444382"><span id="local-6989586621680444384"><span id="local-6989586621680444386"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CodeActionContext</span></span></span></span></span></span></span><span>
+</span><span id="line-165"></span><span>
+</span><span id="line-166"></span><span id="%24sel%3A_context%3ACodeActionParams"><span id="%24sel%3A_range%3ACodeActionParams"><span id="%24sel%3A_textDocument%3ACodeActionParams"><span id="%24sel%3A_partialResultToken%3ACodeActionParams"><span id="%24sel%3A_workDoneToken%3ACodeActionParams"><span id="CodeActionParams"><span id="local-6989586621680444358"><span id="local-6989586621680444360"><span id="local-6989586621680444362"><span id="local-6989586621680444364"><span id="local-6989586621680444366"><span id="local-6989586621680444368"><span id="local-6989586621680444370"><span id="local-6989586621680444372"><span id="local-6989586621680444374"><span id="CodeActionParams"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;CodeActionParams&quot;</span><span>
+</span><span id="line-167"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressParams</span><span>
+</span><span id="line-168"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">PartialResultParams</span><span>
+</span><span id="line-169"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-170"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;_textDocument&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span class="hs-identifier">TextDocumentIdentifier</span><span class="hs-special">|]</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-171"></span><span>    </span><span class="hs-special">(</span><span class="hs-string">&quot;_range&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span class="hs-identifier">Range</span><span class="hs-special">|]</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-172"></span><span>    </span><span class="hs-special">(</span><span class="hs-string">&quot;_context&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span class="hs-identifier">CodeActionContext</span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><span id="line-173"></span><span>  </span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-174"></span><span id="local-6989586621680444340"><span id="local-6989586621680444342"><span id="local-6989586621680444344"><span id="local-6989586621680444346"><span id="local-6989586621680444348"><span id="local-6989586621680444350"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CodeActionParams</span></span></span></span></span></span></span><span>
+</span><span id="line-175"></span><span>
+</span><span id="line-176"></span><span class="hs-keyword">newtype</span><span> </span><span id="Reason"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#Reason"><span class="hs-identifier hs-var">Reason</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Reason"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#Reason"><span class="hs-identifier hs-var">Reason</span></a></span></span><span> </span><span class="hs-special">{</span><span id="%24sel%3A_reason%3AReason"><span class="annot"><span class="annottext">Reason -&gt; Text
+</span><a href="Language.LSP.Types.CodeAction.html#%24sel%3A_reason%3AReason"><span class="hs-identifier hs-var hs-var">_reason</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">}</span><span>
+</span><span id="line-177"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680444330"><span id="local-6989586621680444332"><span id="local-6989586621680444334"><span id="local-6989586621680444336"><span class="annot"><span class="annottext">ReadPrec [Reason]
+ReadPrec Reason
+Int -&gt; ReadS Reason
+ReadS [Reason]
+(Int -&gt; ReadS Reason)
+-&gt; ReadS [Reason]
+-&gt; ReadPrec Reason
+-&gt; ReadPrec [Reason]
+-&gt; Read Reason
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [Reason]
+$creadListPrec :: ReadPrec [Reason]
+readPrec :: ReadPrec Reason
+$creadPrec :: ReadPrec Reason
+readList :: ReadS [Reason]
+$creadList :: ReadS [Reason]
+readsPrec :: Int -&gt; ReadS Reason
+$creadsPrec :: Int -&gt; ReadS Reason
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444324"><span id="local-6989586621680444326"><span id="local-6989586621680444328"><span class="annot"><span class="annottext">Int -&gt; Reason -&gt; ShowS
+[Reason] -&gt; ShowS
+Reason -&gt; String
+(Int -&gt; Reason -&gt; ShowS)
+-&gt; (Reason -&gt; String) -&gt; ([Reason] -&gt; ShowS) -&gt; Show Reason
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Reason] -&gt; ShowS
+$cshowList :: [Reason] -&gt; ShowS
+show :: Reason -&gt; String
+$cshow :: Reason -&gt; String
+showsPrec :: Int -&gt; Reason -&gt; ShowS
+$cshowsPrec :: Int -&gt; Reason -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444320"><span id="local-6989586621680444322"><span class="annot"><span class="annottext">Reason -&gt; Reason -&gt; Bool
+(Reason -&gt; Reason -&gt; Bool)
+-&gt; (Reason -&gt; Reason -&gt; Bool) -&gt; Eq Reason
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Reason -&gt; Reason -&gt; Bool
+$c/= :: Reason -&gt; Reason -&gt; Bool
+== :: Reason -&gt; Reason -&gt; Bool
+$c== :: Reason -&gt; Reason -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-178"></span><span>
+</span><span id="line-179"></span><span id="local-6989586621680444308"><span id="local-6989586621680444310"><span id="local-6989586621680444312"><span id="local-6989586621680444314"><span id="local-6989586621680444316"><span id="local-6989586621680444318"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">Reason</span></span></span></span></span></span></span><span>
+</span><span id="line-180"></span><span>
+</span><span id="line-181"></span><span class="hs-comment">-- | A code action represents a change that can be performed in code, e.g. to fix a problem or</span><span>
+</span><span id="line-182"></span><span class="hs-comment">-- to refactor code.</span><span>
+</span><span id="line-183"></span><span class="hs-comment">--</span><span>
+</span><span id="line-184"></span><span class="hs-comment">-- A CodeAction must set either '_edit' and/or a '_command'. If both are supplied,</span><span>
+</span><span id="line-185"></span><span class="hs-comment">-- the '_edit' is applied first, then the '_command' is executed.</span><span>
+</span><span id="line-186"></span><span class="hs-keyword">data</span><span> </span><span id="CodeAction"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeAction"><span class="hs-identifier hs-var">CodeAction</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-187"></span><span>  </span><span id="CodeAction"><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeAction"><span class="hs-identifier hs-var">CodeAction</span></a></span></span><span>
+</span><span id="line-188"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | A short, human-readable, title for this code action.</span><span>
+</span><span id="line-189"></span><span>    </span><span id="%24sel%3A_title%3ACodeAction"><span class="annot"><span class="annottext">CodeAction -&gt; Text
+</span><a href="Language.LSP.Types.CodeAction.html#%24sel%3A_title%3ACodeAction"><span class="hs-identifier hs-var hs-var">_title</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">,</span><span>
+</span><span id="line-190"></span><span>    </span><span class="hs-comment">-- | The kind of the code action. Used to filter code actions.</span><span>
+</span><span id="line-191"></span><span>    </span><span id="%24sel%3A_kind%3ACodeAction"><span class="annot"><span class="annottext">CodeAction -&gt; Maybe CodeActionKind
+</span><a href="Language.LSP.Types.CodeAction.html#%24sel%3A_kind%3ACodeAction"><span class="hs-identifier hs-var hs-var">_kind</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionKind"><span class="hs-identifier hs-type">CodeActionKind</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-192"></span><span>    </span><span class="hs-comment">-- | The diagnostics that this code action resolves.</span><span>
+</span><span id="line-193"></span><span>    </span><span id="%24sel%3A_diagnostics%3ACodeAction"><span class="annot"><span class="annottext">CodeAction -&gt; Maybe (List Diagnostic)
+</span><a href="Language.LSP.Types.CodeAction.html#%24sel%3A_diagnostics%3ACodeAction"><span class="hs-identifier hs-var hs-var">_diagnostics</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#Diagnostic"><span class="hs-identifier hs-type">Diagnostic</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-194"></span><span>    </span><span class="hs-comment">-- | Marks this as a preferred action. Preferred actions are used by the `auto fix` command and can be targeted</span><span>
+</span><span id="line-195"></span><span>    </span><span class="hs-comment">-- by keybindings.</span><span>
+</span><span id="line-196"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-197"></span><span>    </span><span class="hs-comment">-- A quick fix should be marked preferred if it properly addresses the underlying error.</span><span>
+</span><span id="line-198"></span><span>    </span><span class="hs-comment">-- A refactoring should be marked preferred if it is the most reasonable choice of actions to take.</span><span>
+</span><span id="line-199"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-200"></span><span>    </span><span class="hs-comment">-- Since LSP 3.15.0</span><span>
+</span><span id="line-201"></span><span>    </span><span id="%24sel%3A_isPreferred%3ACodeAction"><span class="annot"><span class="annottext">CodeAction -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.CodeAction.html#%24sel%3A_isPreferred%3ACodeAction"><span class="hs-identifier hs-var hs-var">_isPreferred</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span>
+</span><span id="line-202"></span><span>    </span><span id="%24sel%3A_disabled%3ACodeAction"><span class="annot"><span class="annottext">CodeAction -&gt; Maybe Reason
+</span><a href="Language.LSP.Types.CodeAction.html#%24sel%3A_disabled%3ACodeAction"><span class="hs-identifier hs-var hs-var">_disabled</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.CodeAction.html#Reason"><span class="hs-identifier hs-type">Reason</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-comment">-- ^ Marks that the code action cannot currently be applied.</span><span>
+</span><span id="line-203"></span><span>    </span><span class="hs-comment">-- | The workspace edit this code action performs.</span><span>
+</span><span id="line-204"></span><span>    </span><span id="%24sel%3A_edit%3ACodeAction"><span class="annot"><span class="annottext">CodeAction -&gt; Maybe WorkspaceEdit
+</span><a href="Language.LSP.Types.CodeAction.html#%24sel%3A_edit%3ACodeAction"><span class="hs-identifier hs-var hs-var">_edit</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.WorkspaceEdit.html#WorkspaceEdit"><span class="hs-identifier hs-type">WorkspaceEdit</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-205"></span><span>    </span><span class="hs-comment">-- | A command this code action executes. If a code action</span><span>
+</span><span id="line-206"></span><span>    </span><span class="hs-comment">-- provides an edit and a command, first the edit is</span><span>
+</span><span id="line-207"></span><span>    </span><span class="hs-comment">-- executed and then the command.</span><span>
+</span><span id="line-208"></span><span>    </span><span id="%24sel%3A_command%3ACodeAction"><span class="annot"><span class="annottext">CodeAction -&gt; Maybe Command
+</span><a href="Language.LSP.Types.CodeAction.html#%24sel%3A_command%3ACodeAction"><span class="hs-identifier hs-var hs-var">_command</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Command.html#Command"><span class="hs-identifier hs-type">Command</span></a></span><span>
+</span><span id="line-209"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-210"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680444292"><span id="local-6989586621680444294"><span id="local-6989586621680444296"><span id="local-6989586621680444298"><span class="annot"><span class="annottext">ReadPrec [CodeAction]
+ReadPrec CodeAction
+Int -&gt; ReadS CodeAction
+ReadS [CodeAction]
+(Int -&gt; ReadS CodeAction)
+-&gt; ReadS [CodeAction]
+-&gt; ReadPrec CodeAction
+-&gt; ReadPrec [CodeAction]
+-&gt; Read CodeAction
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CodeAction]
+$creadListPrec :: ReadPrec [CodeAction]
+readPrec :: ReadPrec CodeAction
+$creadPrec :: ReadPrec CodeAction
+readList :: ReadS [CodeAction]
+$creadList :: ReadS [CodeAction]
+readsPrec :: Int -&gt; ReadS CodeAction
+$creadsPrec :: Int -&gt; ReadS CodeAction
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444286"><span id="local-6989586621680444288"><span id="local-6989586621680444290"><span class="annot"><span class="annottext">Int -&gt; CodeAction -&gt; ShowS
+[CodeAction] -&gt; ShowS
+CodeAction -&gt; String
+(Int -&gt; CodeAction -&gt; ShowS)
+-&gt; (CodeAction -&gt; String)
+-&gt; ([CodeAction] -&gt; ShowS)
+-&gt; Show CodeAction
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CodeAction] -&gt; ShowS
+$cshowList :: [CodeAction] -&gt; ShowS
+show :: CodeAction -&gt; String
+$cshow :: CodeAction -&gt; String
+showsPrec :: Int -&gt; CodeAction -&gt; ShowS
+$cshowsPrec :: Int -&gt; CodeAction -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444282"><span id="local-6989586621680444284"><span class="annot"><span class="annottext">CodeAction -&gt; CodeAction -&gt; Bool
+(CodeAction -&gt; CodeAction -&gt; Bool)
+-&gt; (CodeAction -&gt; CodeAction -&gt; Bool) -&gt; Eq CodeAction
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CodeAction -&gt; CodeAction -&gt; Bool
+$c/= :: CodeAction -&gt; CodeAction -&gt; Bool
+== :: CodeAction -&gt; CodeAction -&gt; Bool
+$c== :: CodeAction -&gt; CodeAction -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-211"></span><span id="local-6989586621680444270"><span id="local-6989586621680444272"><span id="local-6989586621680444274"><span id="local-6989586621680444276"><span id="local-6989586621680444278"><span id="local-6989586621680444280"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CodeAction</span></span></span></span></span></span></span><span>
+</span><span id="line-212"></span></pre></body></html>

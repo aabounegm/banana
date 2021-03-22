@@ -1,0 +1,667 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# language BangPatterns          #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# language CPP                   #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# language DeriveDataTypeable    #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# language DeriveGeneric         #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# language FlexibleInstances     #-}</span><span>
+</span><span id="line-6"></span><span class="hs-pragma">{-# language MultiParamTypeClasses #-}</span><span>
+</span><span id="line-7"></span><span class="hs-pragma">{-# language TypeFamilies          #-}</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Copyright   :  (C) 2011-2019 Edward Kmett</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- License     :  BSD-style (see the file LICENSE)</span><span>
+</span><span id="line-12"></span><span class="hs-comment">--</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- Stability   :  experimental</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- Portability :  non-portable</span><span>
+</span><span id="line-16"></span><span class="hs-comment">--</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- A rope is a data strucure to efficiently store and manipulate long strings.</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- Wikipedia provides a nice overview:</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- &lt;https://en.wikipedia.org/wiki/Rope_(data_structure)&gt;</span><span>
+</span><span id="line-20"></span><span class="hs-comment">----------------------------------------------------------------------------</span><span>
+</span><span id="line-21"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.Trifecta.Rope</span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier">Rope</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#rope"><span class="hs-identifier">rope</span></a></span><span>
+</span><span id="line-24"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#ropeBS"><span class="hs-identifier">ropeBS</span></a></span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier">Strand</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#strand"><span class="hs-identifier">strand</span></a></span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#strands"><span class="hs-identifier">strands</span></a></span><span>
+</span><span id="line-28"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#grabRest"><span class="hs-identifier">grabRest</span></a></span><span>
+</span><span id="line-29"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#grabLine"><span class="hs-identifier">grabLine</span></a></span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.ByteString</span></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ByteString</span></span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString</span></span><span>        </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Strict</span></span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString.Lazy</span></span><span>   </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Lazy</span></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString.UTF8</span></span><span>   </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">UTF8</span></span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Data</span></span><span>
+</span><span id="line-37"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.FingerTree</span></span><span>        </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">FingerTree</span></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Foldable</span></span><span>          </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">toList</span></span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Hashable</span></span><span class="hs-cpp">
+#if !(MIN_VERSION_base(4,11,0))
+</span><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data.Semigroup</span><span class="hs-cpp">
+#endif
+</span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Semigroup.Reducer</span></span><span>
+</span><span id="line-44"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">GHC.Generics</span></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html"><span class="hs-identifier">Text.Trifecta.Delta</span></a></span><span>
+</span><span id="line-47"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.Combinators.html"><span class="hs-identifier">Text.Trifecta.Util.Combinators</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Util</span></span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- $setup</span><span>
+</span><span id="line-50"></span><span class="hs-comment">--</span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- &gt;&gt;&gt; :set -XOverloadedStrings</span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- &gt;&gt;&gt; import Data.Monoid ((&lt;&gt;))</span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- &gt;&gt;&gt; import Data.ByteString (ByteString)</span><span>
+</span><span id="line-54"></span><span class="hs-comment">-- &gt;&gt;&gt; import qualified Data.ByteString.UTF8 as Strict</span><span>
+</span><span id="line-55"></span><span class="hs-comment">-- &gt;&gt;&gt; import qualified Data.ByteString.Lazy.UTF8 as Lazy</span><span>
+</span><span id="line-56"></span><span class="hs-comment">-- &gt;&gt;&gt; import Text.Trifecta.Delta</span><span>
+</span><span id="line-57"></span><span>
+</span><span id="line-58"></span><span class="hs-comment">-- A 'Strand' is a chunk of data; many 'Strand's together make a 'Rope'.</span><span>
+</span><span id="line-59"></span><span id="local-6989586621679236640"><span id="local-6989586621679236641"></span></span><span class="hs-keyword">data</span><span> </span><span id="Strand"><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-var">Strand</span></a></span></span><span>
+</span><span id="line-60"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="Strand"><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-var">Strand</span></a></span></span><span> </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span> </span><span class="hs-glyph">!</span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="hs-comment">-- ^ Data of a certain length</span><span>
+</span><span id="line-61"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="Skipping"><span class="annot"><a href="Text.Trifecta.Rope.html#Skipping"><span class="hs-identifier hs-var">Skipping</span></a></span></span><span> </span><span class="hs-glyph">!</span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span>                          </span><span class="hs-comment">-- ^ Absence of data of a certain length</span><span>
+</span><span id="line-62"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679236632"><span id="local-6989586621679236634"><span id="local-6989586621679236636"><span class="annot"><span class="annottext">Int -&gt; Strand -&gt; ShowS
+[Strand] -&gt; ShowS
+Strand -&gt; String
+(Int -&gt; Strand -&gt; ShowS)
+-&gt; (Strand -&gt; String) -&gt; ([Strand] -&gt; ShowS) -&gt; Show Strand
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Strand] -&gt; ShowS
+$cshowList :: [Strand] -&gt; ShowS
+show :: Strand -&gt; String
+$cshow :: Strand -&gt; String
+showsPrec :: Int -&gt; Strand -&gt; ShowS
+$cshowsPrec :: Int -&gt; Strand -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="%24cSkipping"><span id="%24cStrand"><span id="%24tStrand"><span id="local-6989586621679236602"><span id="local-6989586621679236604"><span id="local-6989586621679236606"><span id="local-6989586621679236608"><span id="local-6989586621679236610"><span id="local-6989586621679236612"><span id="local-6989586621679236614"><span id="local-6989586621679236616"><span id="local-6989586621679236618"><span id="local-6989586621679236620"><span id="local-6989586621679236622"><span id="local-6989586621679236624"><span id="local-6989586621679236626"><span id="local-6989586621679236628"><span class="annot"><span class="annottext">Typeable Strand
+DataType
+Constr
+Typeable Strand
+-&gt; (forall (c :: * -&gt; *).
+    (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+    -&gt; (forall g. g -&gt; c g) -&gt; Strand -&gt; c Strand)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Strand)
+-&gt; (Strand -&gt; Constr)
+-&gt; (Strand -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Strand))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Strand))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; Strand -&gt; Strand)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Strand -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Strand -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; Strand -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Strand -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; Strand -&gt; m Strand)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; Strand -&gt; m Strand)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; Strand -&gt; m Strand)
+-&gt; Data Strand
+Strand -&gt; DataType
+Strand -&gt; Constr
+(forall b. Data b =&gt; b -&gt; b) -&gt; Strand -&gt; Strand
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Strand -&gt; c Strand
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Strand
+forall a.
+Typeable a
+-&gt; (forall (c :: * -&gt; *).
+    (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+    -&gt; (forall g. g -&gt; c g) -&gt; a -&gt; c a)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c a)
+-&gt; (a -&gt; Constr)
+-&gt; (a -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c a))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c a))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; a -&gt; a)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; Data a
+forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Strand -&gt; u
+forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; Strand -&gt; [u]
+forall r r'.
+(r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Strand -&gt; r
+forall r r'.
+(r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Strand -&gt; r
+forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Strand -&gt; m Strand
+forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Strand -&gt; m Strand
+forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Strand
+forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Strand -&gt; c Strand
+forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Strand)
+forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Strand)
+$cSkipping :: Constr
+$cStrand :: Constr
+$tStrand :: DataType
+gmapMo :: (forall d. Data d =&gt; d -&gt; m d) -&gt; Strand -&gt; m Strand
+$cgmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Strand -&gt; m Strand
+gmapMp :: (forall d. Data d =&gt; d -&gt; m d) -&gt; Strand -&gt; m Strand
+$cgmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Strand -&gt; m Strand
+gmapM :: (forall d. Data d =&gt; d -&gt; m d) -&gt; Strand -&gt; m Strand
+$cgmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Strand -&gt; m Strand
+gmapQi :: Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Strand -&gt; u
+$cgmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Strand -&gt; u
+gmapQ :: (forall d. Data d =&gt; d -&gt; u) -&gt; Strand -&gt; [u]
+$cgmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; Strand -&gt; [u]
+gmapQr :: (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Strand -&gt; r
+$cgmapQr :: forall r r'.
+(r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Strand -&gt; r
+gmapQl :: (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Strand -&gt; r
+$cgmapQl :: forall r r'.
+(r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Strand -&gt; r
+gmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; Strand -&gt; Strand
+$cgmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; Strand -&gt; Strand
+dataCast2 :: (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Strand)
+$cdataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Strand)
+dataCast1 :: (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Strand)
+$cdataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Strand)
+dataTypeOf :: Strand -&gt; DataType
+$cdataTypeOf :: Strand -&gt; DataType
+toConstr :: Strand -&gt; Constr
+$ctoConstr :: Strand -&gt; Constr
+gunfold :: (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Strand
+$cgunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Strand
+gfoldl :: (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Strand -&gt; c Strand
+$cgfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Strand -&gt; c Strand
+$cp1Data :: Typeable Strand
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Data</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Typeable</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. Strand -&gt; Rep Strand x)
+-&gt; (forall x. Rep Strand x -&gt; Strand) -&gt; Generic Strand
+forall x. Rep Strand x -&gt; Strand
+forall x. Strand -&gt; Rep Strand x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep Strand x -&gt; Strand
+$cfrom :: forall x. Strand -&gt; Rep Strand x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- | Construct a single 'Strand' out of a 'ByteString'.</span><span>
+</span><span id="line-65"></span><span class="annot"><a href="Text.Trifecta.Rope.html#strand"><span class="hs-identifier hs-type">strand</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-type">Strand</span></a></span><span>
+</span><span id="line-66"></span><span id="strand"><span class="annot"><span class="annottext">strand :: ByteString -&gt; Strand
+</span><a href="Text.Trifecta.Rope.html#strand"><span class="hs-identifier hs-var hs-var">strand</span></a></span></span><span> </span><span id="local-6989586621679236594"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236594"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Delta -&gt; Strand
+</span><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-var">Strand</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236594"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ByteString -&gt; Delta
+forall t. HasDelta t =&gt; t -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236594"><span class="hs-identifier hs-var">bs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-67"></span><span>
+</span><span id="line-68"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Measured</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-type">Strand</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-69"></span><span>  </span><span id="local-6989586621679236589"><span class="annot"><span class="annottext">measure :: Strand -&gt; Delta
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">measure</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-type">Strand</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236587"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236587"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Delta
+forall t. HasDelta t =&gt; t -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236587"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-70"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">measure</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Rope.html#Skipping"><span class="hs-identifier hs-type">Skipping</span></a></span><span> </span><span id="local-6989586621679236586"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236586"><span class="hs-identifier hs-var">d</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236586"><span class="hs-identifier hs-var">d</span></a></span><span>
+</span><span id="line-71"></span><span>
+</span><span id="line-72"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679236582"><span id="local-6989586621679236584"><span class="annot"><span class="hs-identifier hs-type">Hashable</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-type">Strand</span></a></span></span></span><span>
+</span><span id="line-73"></span><span>
+</span><span id="line-74"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasDelta"><span class="hs-identifier hs-type">HasDelta</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-type">Strand</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-75"></span><span>  </span><span id="local-6989586621679236578"><span class="annot"><span class="annottext">delta :: Strand -&gt; Delta
+</span><a href="#local-6989586621679236578"><span class="hs-identifier hs-var hs-var hs-var hs-var">delta</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Strand -&gt; Delta
+forall v a. Measured v a =&gt; a -&gt; v
+</span><span class="hs-identifier hs-var">measure</span></span><span>
+</span><span id="line-76"></span><span>
+</span><span id="line-77"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasBytes"><span class="hs-identifier hs-type">HasBytes</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-type">Strand</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-78"></span><span>  </span><span id="local-6989586621679236575"><span class="annot"><span class="annottext">bytes :: Strand -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#bytes"><span class="hs-identifier hs-var hs-var hs-var hs-var">bytes</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-type">Strand</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236573"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236573"><span class="hs-identifier hs-var">d</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Int64
+forall t. HasBytes t =&gt; t -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#bytes"><span class="hs-identifier hs-var">bytes</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236573"><span class="hs-identifier hs-var">d</span></a></span><span>
+</span><span id="line-79"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Delta.html#bytes"><span class="hs-identifier hs-var">bytes</span></a></span><span> </span><span class="annot"><span class="annottext">Strand
+</span><span class="hs-identifier">_</span></span><span>            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-80"></span><span>
+</span><span id="line-81"></span><span class="hs-keyword">data</span><span> </span><span id="Rope"><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-var">Rope</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Rope"><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-var">Rope</span></a></span></span><span> </span><span class="hs-glyph">!</span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="hs-glyph">!</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">FingerTree</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-type">Strand</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679236566"><span id="local-6989586621679236568"><span id="local-6989586621679236570"><span class="annot"><span class="annottext">Int -&gt; Rope -&gt; ShowS
+[Rope] -&gt; ShowS
+Rope -&gt; String
+(Int -&gt; Rope -&gt; ShowS)
+-&gt; (Rope -&gt; String) -&gt; ([Rope] -&gt; ShowS) -&gt; Show Rope
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Rope] -&gt; ShowS
+$cshowList :: [Rope] -&gt; ShowS
+show :: Rope -&gt; String
+$cshow :: Rope -&gt; String
+showsPrec :: Int -&gt; Rope -&gt; ShowS
+$cshowsPrec :: Int -&gt; Rope -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-82"></span><span>
+</span><span id="line-83"></span><span class="annot"><a href="Text.Trifecta.Rope.html#rope"><span class="hs-identifier hs-type">rope</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FingerTree</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-type">Strand</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span>
+</span><span id="line-84"></span><span id="rope"><span class="annot"><span class="annottext">rope :: FingerTree Delta Strand -&gt; Rope
+</span><a href="Text.Trifecta.Rope.html#rope"><span class="hs-identifier hs-var hs-var">rope</span></a></span></span><span> </span><span id="local-6989586621679236565"><span class="annot"><span class="annottext">FingerTree Delta Strand
+</span><a href="#local-6989586621679236565"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; FingerTree Delta Strand -&gt; Rope
+</span><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-var">Rope</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FingerTree Delta Strand -&gt; Delta
+forall v a. Measured v a =&gt; a -&gt; v
+</span><span class="hs-identifier hs-var">measure</span></span><span> </span><span class="annot"><span class="annottext">FingerTree Delta Strand
+</span><a href="#local-6989586621679236565"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">FingerTree Delta Strand
+</span><a href="#local-6989586621679236565"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-85"></span><span>
+</span><span id="line-86"></span><span class="hs-comment">-- | Construct a 'Rope' out of a single 'ByteString' strand.</span><span>
+</span><span id="line-87"></span><span class="annot"><a href="Text.Trifecta.Rope.html#ropeBS"><span class="hs-identifier hs-type">ropeBS</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span>
+</span><span id="line-88"></span><span id="ropeBS"><span class="annot"><span class="annottext">ropeBS :: ByteString -&gt; Rope
+</span><a href="Text.Trifecta.Rope.html#ropeBS"><span class="hs-identifier hs-var hs-var">ropeBS</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FingerTree Delta Strand -&gt; Rope
+</span><a href="Text.Trifecta.Rope.html#rope"><span class="hs-identifier hs-var">rope</span></a></span><span> </span><span class="annot"><span class="annottext">(FingerTree Delta Strand -&gt; Rope)
+-&gt; (ByteString -&gt; FingerTree Delta Strand) -&gt; ByteString -&gt; Rope
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Strand -&gt; FingerTree Delta Strand
+forall v a. Measured v a =&gt; a -&gt; FingerTree v a
+</span><span class="hs-identifier hs-var">singleton</span></span><span> </span><span class="annot"><span class="annottext">(Strand -&gt; FingerTree Delta Strand)
+-&gt; (ByteString -&gt; Strand) -&gt; ByteString -&gt; FingerTree Delta Strand
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Strand
+</span><a href="Text.Trifecta.Rope.html#strand"><span class="hs-identifier hs-var">strand</span></a></span><span>
+</span><span id="line-89"></span><span>
+</span><span id="line-90"></span><span class="annot"><a href="Text.Trifecta.Rope.html#strands"><span class="hs-identifier hs-type">strands</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FingerTree</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-type">Strand</span></a></span><span>
+</span><span id="line-91"></span><span id="strands"><span class="annot"><span class="annottext">strands :: Rope -&gt; FingerTree Delta Strand
+</span><a href="Text.Trifecta.Rope.html#strands"><span class="hs-identifier hs-var hs-var">strands</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679236562"><span class="annot"><span class="annottext">FingerTree Delta Strand
+</span><a href="#local-6989586621679236562"><span class="hs-identifier hs-var">r</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FingerTree Delta Strand
+</span><a href="#local-6989586621679236562"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-92"></span><span>
+</span><span id="line-93"></span><span class="hs-comment">-- | Grab the entire rest of the input 'Rope', starting at an initial offset, or</span><span>
+</span><span id="line-94"></span><span class="hs-comment">-- return a default if we&#8217;re already at or beyond the end. Also see 'grabLine'.</span><span>
+</span><span id="line-95"></span><span class="hs-comment">--</span><span>
+</span><span id="line-96"></span><span class="hs-comment">-- Extract a suffix of a certain length from the input:</span><span>
+</span><span id="line-97"></span><span class="hs-comment">--</span><span>
+</span><span id="line-98"></span><span class="hs-comment">-- &gt;&gt;&gt; grabRest (delta (&quot;Hello &quot; :: ByteString)) (ropeBS &quot;Hello World\nLorem&quot;) Nothing (\x y -&gt; Just (x, Lazy.toString y))</span><span>
+</span><span id="line-99"></span><span class="hs-comment">-- Just (Columns 6 6,&quot;World\nLorem&quot;)</span><span>
+</span><span id="line-100"></span><span class="hs-comment">--</span><span>
+</span><span id="line-101"></span><span class="hs-comment">-- Same deal, but over multiple strands:</span><span>
+</span><span id="line-102"></span><span class="hs-comment">--</span><span>
+</span><span id="line-103"></span><span class="hs-comment">-- &gt;&gt;&gt; grabRest (delta (&quot;Hel&quot; :: ByteString)) (ropeBS &quot;Hello&quot; &lt;&gt; ropeBS &quot;World&quot;) Nothing (\x y -&gt; Just (x, Lazy.toString y))</span><span>
+</span><span id="line-104"></span><span class="hs-comment">-- Just (Columns 3 3,&quot;loWorld&quot;)</span><span>
+</span><span id="line-105"></span><span class="hs-comment">--</span><span>
+</span><span id="line-106"></span><span class="hs-comment">-- When the offset is too long, fall back to a default:</span><span>
+</span><span id="line-107"></span><span class="hs-comment">--</span><span>
+</span><span id="line-108"></span><span class="hs-comment">-- &gt;&gt;&gt; grabRest (delta (&quot;OffetTooLong&quot; :: ByteString)) (ropeBS &quot;Hello&quot;) Nothing (\x y -&gt; Just (x, Lazy.toString y))</span><span>
+</span><span id="line-109"></span><span class="hs-comment">-- Nothing</span><span>
+</span><span id="line-110"></span><span id="local-6989586621679236661"><span class="annot"><a href="Text.Trifecta.Rope.html#grabRest"><span class="hs-identifier hs-type">grabRest</span></a></span><span>
+</span><span id="line-111"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="hs-comment">-- ^ Initial offset</span><span>
+</span><span id="line-112"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span>  </span><span class="hs-comment">-- ^ Input</span><span>
+</span><span id="line-113"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679236661"><span class="hs-identifier hs-type">r</span></a></span><span>     </span><span class="hs-comment">-- ^ Default value if there is no input left</span><span>
+</span><span id="line-114"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Lazy.ByteString</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679236661"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-115"></span><span>        </span><span class="hs-comment">-- ^ If there is some input left, create an @r@ out of the data from the</span><span>
+</span><span id="line-116"></span><span>        </span><span class="hs-comment">-- initial offset until the end</span><span>
+</span><span id="line-117"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679236661"><span class="hs-identifier hs-type">r</span></a></span></span><span>
+</span><span id="line-118"></span><span id="grabRest"><span class="annot"><span class="annottext">grabRest :: Delta -&gt; Rope -&gt; r -&gt; (Delta -&gt; ByteString -&gt; r) -&gt; r
+</span><a href="Text.Trifecta.Rope.html#grabRest"><span class="hs-identifier hs-var hs-var">grabRest</span></a></span></span><span> </span><span id="local-6989586621679236561"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236561"><span class="hs-identifier hs-var">offset</span></a></span></span><span> </span><span id="local-6989586621679236560"><span class="annot"><span class="annottext">Rope
+</span><a href="#local-6989586621679236560"><span class="hs-identifier hs-var">input</span></a></span></span><span> </span><span id="local-6989586621679236559"><span class="annot"><span class="annottext">r
+</span><a href="#local-6989586621679236559"><span class="hs-identifier hs-var">failure</span></a></span></span><span> </span><span id="local-6989586621679236558"><span class="annot"><span class="annottext">Delta -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679236558"><span class="hs-identifier hs-var">success</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Int64 -&gt; [Strand] -&gt; r
+</span><a href="#local-6989586621679236557"><span class="hs-identifier hs-var">trim</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FingerTree Delta Strand -&gt; Delta
+forall t. HasDelta t =&gt; t -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span><span> </span><span class="annot"><span class="annottext">FingerTree Delta Strand
+</span><a href="#local-6989586621679236556"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Delta -&gt; Int64
+forall t. HasBytes t =&gt; t -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#bytes"><span class="hs-identifier hs-var">bytes</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236561"><span class="hs-identifier hs-var">offset</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">FingerTree Delta Strand -&gt; Int64
+forall t. HasBytes t =&gt; t -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#bytes"><span class="hs-identifier hs-var">bytes</span></a></span><span> </span><span class="annot"><span class="annottext">FingerTree Delta Strand
+</span><a href="#local-6989586621679236556"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FingerTree Delta Strand -&gt; [Strand]
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; [a]
+</span><span class="hs-identifier hs-var">toList</span></span><span> </span><span class="annot"><span class="annottext">FingerTree Delta Strand
+</span><a href="#local-6989586621679236555"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-119"></span><span>  </span><span id="local-6989586621679236557"><span class="annot"><span class="annottext">trim :: Delta -&gt; Int64 -&gt; [Strand] -&gt; r
+</span><a href="#local-6989586621679236557"><span class="hs-identifier hs-var hs-var">trim</span></a></span></span><span> </span><span id="local-6989586621679236554"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236554"><span class="hs-identifier hs-var">offset'</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-type">Strand</span></a></span><span> </span><span id="local-6989586621679236553"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236553"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679236552"><span class="annot"><span class="annottext">[Strand]
+</span><a href="#local-6989586621679236552"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; ByteString -&gt; [Strand] -&gt; r
+</span><a href="#local-6989586621679236551"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236554"><span class="hs-identifier hs-var">offset'</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236553"><span class="hs-identifier hs-var">str</span></a></span><span> </span><span class="annot"><span class="annottext">[Strand]
+</span><a href="#local-6989586621679236552"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-120"></span><span>  </span><span class="annot"><a href="#local-6989586621679236557"><span class="hs-identifier hs-var">trim</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><span class="hs-identifier">_</span></span><span>       </span><span id="local-6989586621679236550"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236550"><span class="hs-identifier hs-var">k</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-type">Strand</span></a></span><span> </span><span id="local-6989586621679236549"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236549"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679236548"><span class="annot"><span class="annottext">[Strand]
+</span><a href="#local-6989586621679236548"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; ByteString -&gt; [Strand] -&gt; r
+</span><a href="#local-6989586621679236551"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236561"><span class="hs-identifier hs-var">offset</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; ByteString -&gt; ByteString
+</span><span class="hs-identifier hs-var">Strict.drop</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64 -&gt; Int
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236550"><span class="hs-identifier hs-var">k</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236549"><span class="hs-identifier hs-var">str</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Strand]
+</span><a href="#local-6989586621679236548"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-121"></span><span>  </span><span class="annot"><a href="#local-6989586621679236557"><span class="hs-identifier hs-var">trim</span></a></span><span> </span><span id="local-6989586621679236546"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236546"><span class="hs-identifier hs-var">offset'</span></a></span></span><span> </span><span id="local-6989586621679236545"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236545"><span class="hs-identifier hs-var">k</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Rope.html#Skipping"><span class="hs-identifier hs-type">Skipping</span></a></span><span> </span><span id="local-6989586621679236544"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236544"><span class="hs-identifier hs-var">p</span></a></span></span><span>   </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679236543"><span class="annot"><span class="annottext">[Strand]
+</span><a href="#local-6989586621679236543"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Int64 -&gt; [Strand] -&gt; r
+</span><a href="#local-6989586621679236557"><span class="hs-identifier hs-var">trim</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236546"><span class="hs-identifier hs-var">offset'</span></a></span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Delta -&gt; Delta
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236544"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679236545"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">[Strand]
+</span><a href="#local-6989586621679236543"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-122"></span><span>  </span><span class="annot"><a href="#local-6989586621679236557"><span class="hs-identifier hs-var">trim</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><span class="hs-identifier">_</span></span><span>       </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>                  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">r
+</span><a href="#local-6989586621679236559"><span class="hs-identifier hs-var">failure</span></a></span><span>
+</span><span id="line-123"></span><span>
+</span><span id="line-124"></span><span>  </span><span id="local-6989586621679236551"><span class="annot"><span class="annottext">go :: Delta -&gt; ByteString -&gt; [Strand] -&gt; r
+</span><a href="#local-6989586621679236551"><span class="hs-identifier hs-var hs-var">go</span></a></span></span><span> </span><span id="local-6989586621679236542"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236542"><span class="hs-identifier hs-var">offset'</span></a></span></span><span> </span><span id="local-6989586621679236541"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236541"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span id="local-6989586621679236540"><span class="annot"><span class="annottext">[Strand]
+</span><a href="#local-6989586621679236540"><span class="hs-identifier hs-var">strands'</span></a></span></span><span>
+</span><span id="line-125"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679236558"><span class="hs-identifier hs-var">success</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236542"><span class="hs-identifier hs-var">offset'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[ByteString] -&gt; ByteString
+</span><span class="hs-identifier hs-var">Lazy.fromChunks</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236541"><span class="hs-identifier hs-var">str</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; [ByteString] -&gt; [ByteString]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236538"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-type">Strand</span></a></span><span> </span><span id="local-6989586621679236538"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679236538"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Strand]
+</span><a href="#local-6989586621679236540"><span class="hs-identifier hs-var">strands'</span></a></span><span> </span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-126"></span><span>
+</span><span id="line-127"></span><span>  </span><span class="hs-special">(</span><span id="local-6989586621679236556"><span class="annot"><span class="annottext">FingerTree Delta Strand
+</span><a href="#local-6989586621679236556"><span class="hs-identifier hs-var">l</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679236555"><span class="annot"><span class="annottext">FingerTree Delta Strand
+</span><a href="#local-6989586621679236555"><span class="hs-identifier hs-var">r</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Rope -&gt; (FingerTree Delta Strand, FingerTree Delta Strand)
+</span><a href="Text.Trifecta.Rope.html#splitRopeAt"><span class="hs-identifier hs-var">splitRopeAt</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236561"><span class="hs-identifier hs-var">offset</span></a></span><span> </span><span class="annot"><span class="annottext">Rope
+</span><a href="#local-6989586621679236560"><span class="hs-identifier hs-var">input</span></a></span><span>
+</span><span id="line-128"></span><span>
+</span><span id="line-129"></span><span class="hs-comment">-- | Split the rope in two halves, given a 'Delta' offset from the beginning.</span><span>
+</span><span id="line-130"></span><span class="annot"><a href="Text.Trifecta.Rope.html#splitRopeAt"><span class="hs-identifier hs-type">splitRopeAt</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">FingerTree</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-type">Strand</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FingerTree</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-type">Strand</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-131"></span><span id="splitRopeAt"><span class="annot"><span class="annottext">splitRopeAt :: Delta -&gt; Rope -&gt; (FingerTree Delta Strand, FingerTree Delta Strand)
+</span><a href="Text.Trifecta.Rope.html#splitRopeAt"><span class="hs-identifier hs-var hs-var">splitRopeAt</span></a></span></span><span> </span><span id="local-6989586621679236536"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236536"><span class="hs-identifier hs-var">splitPos</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Delta -&gt; Bool)
+-&gt; FingerTree Delta Strand
+-&gt; (FingerTree Delta Strand, FingerTree Delta Strand)
+forall v a.
+Measured v a =&gt;
+(v -&gt; Bool) -&gt; FingerTree v a -&gt; (FingerTree v a, FingerTree v a)
+</span><span class="hs-identifier hs-var">FingerTree.split</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679236534"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236534"><span class="hs-identifier hs-var">pos</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Int64
+forall t. HasBytes t =&gt; t -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#bytes"><span class="hs-identifier hs-var">bytes</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236534"><span class="hs-identifier hs-var">pos</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;</span></span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Int64
+forall t. HasBytes t =&gt; t -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#bytes"><span class="hs-identifier hs-var">bytes</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236536"><span class="hs-identifier hs-var">splitPos</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(FingerTree Delta Strand
+ -&gt; (FingerTree Delta Strand, FingerTree Delta Strand))
+-&gt; (Rope -&gt; FingerTree Delta Strand)
+-&gt; Rope
+-&gt; (FingerTree Delta Strand, FingerTree Delta Strand)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Rope -&gt; FingerTree Delta Strand
+</span><a href="Text.Trifecta.Rope.html#strands"><span class="hs-identifier hs-var">strands</span></a></span><span>
+</span><span id="line-132"></span><span>
+</span><span id="line-133"></span><span class="hs-comment">-- | Grab the rest of the line at a certain offset in the input 'Rope', or</span><span>
+</span><span id="line-134"></span><span class="hs-comment">-- return a default if there is no newline left in the input. Also see</span><span>
+</span><span id="line-135"></span><span class="hs-comment">-- 'grabRest'.</span><span>
+</span><span id="line-136"></span><span class="hs-comment">--</span><span>
+</span><span id="line-137"></span><span class="hs-comment">-- &gt;&gt;&gt; grabLine (delta (&quot;Hello &quot; :: ByteString)) (ropeBS &quot;Hello&quot; &lt;&gt; ropeBS &quot; World\nLorem&quot;) Nothing (\x y -&gt; Just (x, Strict.toString y))</span><span>
+</span><span id="line-138"></span><span class="hs-comment">-- Just (Columns 6 6,&quot;World\n&quot;)</span><span>
+</span><span id="line-139"></span><span id="local-6989586621679236532"><span class="annot"><a href="Text.Trifecta.Rope.html#grabLine"><span class="hs-identifier hs-type">grabLine</span></a></span><span>
+</span><span id="line-140"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="hs-comment">-- ^ Initial offset</span><span>
+</span><span id="line-141"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span>  </span><span class="hs-comment">-- ^ Input</span><span>
+</span><span id="line-142"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679236532"><span class="hs-identifier hs-type">r</span></a></span><span>     </span><span class="hs-comment">-- ^ Default value if there is no input left</span><span>
+</span><span id="line-143"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Strict.ByteString</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679236532"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-144"></span><span>        </span><span class="hs-comment">-- ^ If there is some input left, create an @r@ out of the data from the</span><span>
+</span><span id="line-145"></span><span>        </span><span class="hs-comment">-- initial offset until the end of the line</span><span>
+</span><span id="line-146"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679236532"><span class="hs-identifier hs-type">r</span></a></span></span><span>
+</span><span id="line-147"></span><span id="grabLine"><span class="annot"><span class="annottext">grabLine :: Delta -&gt; Rope -&gt; r -&gt; (Delta -&gt; ByteString -&gt; r) -&gt; r
+</span><a href="Text.Trifecta.Rope.html#grabLine"><span class="hs-identifier hs-var hs-var">grabLine</span></a></span></span><span> </span><span id="local-6989586621679236531"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236531"><span class="hs-identifier hs-var">offset</span></a></span></span><span> </span><span id="local-6989586621679236530"><span class="annot"><span class="annottext">Rope
+</span><a href="#local-6989586621679236530"><span class="hs-identifier hs-var">input</span></a></span></span><span> </span><span id="local-6989586621679236529"><span class="annot"><span class="annottext">r
+</span><a href="#local-6989586621679236529"><span class="hs-identifier hs-var">failure</span></a></span></span><span> </span><span id="local-6989586621679236528"><span class="annot"><span class="annottext">Delta -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679236528"><span class="hs-identifier hs-var">success</span></a></span></span><span>
+</span><span id="line-148"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Rope -&gt; r -&gt; (Delta -&gt; ByteString -&gt; r) -&gt; r
+forall r. Delta -&gt; Rope -&gt; r -&gt; (Delta -&gt; ByteString -&gt; r) -&gt; r
+</span><a href="Text.Trifecta.Rope.html#grabRest"><span class="hs-identifier hs-var">grabRest</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236531"><span class="hs-identifier hs-var">offset</span></a></span><span> </span><span class="annot"><span class="annottext">Rope
+</span><a href="#local-6989586621679236530"><span class="hs-identifier hs-var">input</span></a></span><span> </span><span class="annot"><span class="annottext">r
+</span><a href="#local-6989586621679236529"><span class="hs-identifier hs-var">failure</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679236527"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236527"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679236528"><span class="hs-identifier hs-var">success</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236527"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; r) -&gt; (ByteString -&gt; ByteString) -&gt; ByteString -&gt; r
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; ByteString
+</span><a href="Text.Trifecta.Util.Combinators.html#fromLazy"><span class="hs-identifier hs-var">Util.fromLazy</span></a></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; ByteString)
+-&gt; (ByteString -&gt; ByteString) -&gt; ByteString -&gt; ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; ByteString
+</span><a href="Text.Trifecta.Util.Combinators.html#takeLine"><span class="hs-identifier hs-var">Util.takeLine</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-149"></span><span>
+</span><span id="line-150"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasBytes"><span class="hs-identifier hs-type">HasBytes</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-151"></span><span>  </span><span id="local-6989586621679236523"><span class="annot"><span class="annottext">bytes :: Rope -&gt; Int64
+</span><a href="#local-6989586621679236523"><span class="hs-identifier hs-var hs-var hs-var hs-var">bytes</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Int64
+forall t. HasBytes t =&gt; t -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#bytes"><span class="hs-identifier hs-var">bytes</span></a></span><span> </span><span class="annot"><span class="annottext">(Delta -&gt; Int64) -&gt; (Rope -&gt; Delta) -&gt; Rope -&gt; Int64
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Rope -&gt; Delta
+forall v a. Measured v a =&gt; a -&gt; v
+</span><span class="hs-identifier hs-var">measure</span></span><span>
+</span><span id="line-152"></span><span>
+</span><span id="line-153"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasDelta"><span class="hs-identifier hs-type">HasDelta</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-154"></span><span>  </span><span id="local-6989586621679236521"><span class="annot"><span class="annottext">delta :: Rope -&gt; Delta
+</span><a href="#local-6989586621679236521"><span class="hs-identifier hs-var hs-var hs-var hs-var">delta</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope -&gt; Delta
+forall v a. Measured v a =&gt; a -&gt; v
+</span><span class="hs-identifier hs-var">measure</span></span><span>
+</span><span id="line-155"></span><span>
+</span><span id="line-156"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Measured</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-157"></span><span>  </span><span id="local-6989586621679236518"><span class="annot"><span class="annottext">measure :: Rope -&gt; Delta
+</span><a href="#local-6989586621679236518"><span class="hs-identifier hs-var hs-var hs-var hs-var">measure</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span> </span><span id="local-6989586621679236517"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236517"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="annot"><span class="annottext">FingerTree Delta Strand
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236517"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-158"></span><span>
+</span><span id="line-159"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679236512"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-160"></span><span>  </span><span id="local-6989586621679236510"><span class="annot"><span class="annottext">mempty :: Rope
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; FingerTree Delta Strand -&gt; Rope
+</span><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-var">Rope</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="annot"><span class="annottext">FingerTree Delta Strand
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-161"></span><span>  </span><span id="local-6989586621679236509"><span class="annot"><span class="annottext">mappend :: Rope -&gt; Rope -&gt; Rope
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mappend</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope -&gt; Rope -&gt; Rope
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(&lt;&gt;)</span></span><span>
+</span><span id="line-162"></span><span>
+</span><span id="line-163"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679236504"><span id="local-6989586621679236506"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-164"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span> </span><span id="local-6989586621679236502"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236502"><span class="hs-identifier hs-var">mx</span></a></span></span><span> </span><span id="local-6989586621679236501"><span class="annot"><span class="annottext">FingerTree Delta Strand
+</span><a href="#local-6989586621679236501"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679236500"><span class="annot"><span class="annottext">&lt;&gt; :: Rope -&gt; Rope -&gt; Rope
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></span></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span> </span><span id="local-6989586621679236499"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236499"><span class="hs-identifier hs-var">my</span></a></span></span><span> </span><span id="local-6989586621679236498"><span class="annot"><span class="annottext">FingerTree Delta Strand
+</span><a href="#local-6989586621679236498"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; FingerTree Delta Strand -&gt; Rope
+</span><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-var">Rope</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236502"><span class="hs-identifier hs-var">mx</span></a></span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Delta -&gt; Delta
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236499"><span class="hs-identifier hs-var">my</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FingerTree Delta Strand
+</span><a href="#local-6989586621679236501"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">FingerTree Delta Strand
+-&gt; FingerTree Delta Strand -&gt; FingerTree Delta Strand
+forall a. Monoid a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">`mappend`</span></span><span> </span><span class="annot"><span class="annottext">FingerTree Delta Strand
+</span><a href="#local-6989586621679236498"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-165"></span><span>
+</span><span id="line-166"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679236492"><span id="local-6989586621679236494"><span class="annot"><span class="hs-identifier hs-type">Reducer</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-167"></span><span>  </span><span id="local-6989586621679236490"><span class="annot"><span class="annottext">unit :: Rope -&gt; Rope
+</span><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope -&gt; Rope
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span>
+</span><span id="line-168"></span><span>
+</span><span id="line-169"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reducer</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-type">Strand</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-170"></span><span>  </span><span id="local-6989586621679236483"><span class="annot"><span class="annottext">unit :: Strand -&gt; Rope
+</span><a href="#local-6989586621679236483"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span id="local-6989586621679236482"><span class="annot"><span class="annottext">Strand
+</span><a href="#local-6989586621679236482"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FingerTree Delta Strand -&gt; Rope
+</span><a href="Text.Trifecta.Rope.html#rope"><span class="hs-identifier hs-var">rope</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Strand -&gt; FingerTree Delta Strand
+forall v a. Measured v a =&gt; a -&gt; FingerTree v a
+</span><span class="hs-identifier hs-var">FingerTree.singleton</span></span><span> </span><span class="annot"><span class="annottext">Strand
+</span><a href="#local-6989586621679236482"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-171"></span><span>  </span><span id="local-6989586621679236481"><span class="annot"><span class="annottext">cons :: Strand -&gt; Rope -&gt; Rope
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">cons</span></span></span><span> </span><span id="local-6989586621679236479"><span class="annot"><span class="annottext">Strand
+</span><a href="#local-6989586621679236479"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span> </span><span id="local-6989586621679236478"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236478"><span class="hs-identifier hs-var">mt</span></a></span></span><span> </span><span id="local-6989586621679236477"><span class="annot"><span class="annottext">FingerTree Delta Strand
+</span><a href="#local-6989586621679236477"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; FingerTree Delta Strand -&gt; Rope
+</span><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-var">Rope</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Strand -&gt; Delta
+forall t. HasDelta t =&gt; t -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span><span> </span><span class="annot"><span class="annottext">Strand
+</span><a href="#local-6989586621679236479"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Delta -&gt; Delta
+forall a. Monoid a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">`mappend`</span></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236478"><span class="hs-identifier hs-var">mt</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Strand
+</span><a href="#local-6989586621679236479"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Strand -&gt; FingerTree Delta Strand -&gt; FingerTree Delta Strand
+forall v a. Measured v a =&gt; a -&gt; FingerTree v a -&gt; FingerTree v a
+</span><span class="hs-operator hs-var">&lt;|</span></span><span> </span><span class="annot"><span class="annottext">FingerTree Delta Strand
+</span><a href="#local-6989586621679236477"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-172"></span><span>  </span><span id="local-6989586621679236475"><span class="annot"><span class="annottext">snoc :: Rope -&gt; Strand -&gt; Rope
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">snoc</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span> </span><span id="local-6989586621679236473"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236473"><span class="hs-identifier hs-var">mt</span></a></span></span><span> </span><span id="local-6989586621679236472"><span class="annot"><span class="annottext">FingerTree Delta Strand
+</span><a href="#local-6989586621679236472"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">!</span><span id="local-6989586621679236471"><span class="annot"><span class="annottext">Strand
+</span><a href="#local-6989586621679236471"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; FingerTree Delta Strand -&gt; Rope
+</span><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-var">Rope</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679236473"><span class="hs-identifier hs-var">mt</span></a></span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Delta -&gt; Delta
+forall a. Monoid a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">`mappend`</span></span><span> </span><span class="annot"><span class="annottext">Strand -&gt; Delta
+forall t. HasDelta t =&gt; t -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span><span> </span><span class="annot"><span class="annottext">Strand
+</span><a href="#local-6989586621679236471"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FingerTree Delta Strand
+</span><a href="#local-6989586621679236472"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">FingerTree Delta Strand -&gt; Strand -&gt; FingerTree Delta Strand
+forall v a. Measured v a =&gt; FingerTree v a -&gt; a -&gt; FingerTree v a
+</span><span class="hs-operator hs-var">|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Strand
+</span><a href="#local-6989586621679236471"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-173"></span><span>
+</span><span id="line-174"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reducer</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Strict.ByteString</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-175"></span><span>  </span><span id="local-6989586621679236465"><span class="annot"><span class="annottext">unit :: ByteString -&gt; Rope
+</span><a href="#local-6989586621679236465"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Strand -&gt; Rope
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><span class="hs-keyword hs-var">unit</span></span><span> </span><span class="annot"><span class="annottext">(Strand -&gt; Rope) -&gt; (ByteString -&gt; Strand) -&gt; ByteString -&gt; Rope
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Strand
+</span><a href="Text.Trifecta.Rope.html#strand"><span class="hs-identifier hs-var">strand</span></a></span><span>
+</span><span id="line-176"></span><span>  </span><span id="local-6989586621679236464"><span class="annot"><span class="annottext">cons :: ByteString -&gt; Rope -&gt; Rope
+</span><a href="#local-6989586621679236464"><span class="hs-identifier hs-var hs-var hs-var hs-var">cons</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Strand -&gt; Rope -&gt; Rope
+forall c m. Reducer c m =&gt; c -&gt; m -&gt; m
+</span><span class="hs-identifier hs-var">cons</span></span><span> </span><span class="annot"><span class="annottext">(Strand -&gt; Rope -&gt; Rope)
+-&gt; (ByteString -&gt; Strand) -&gt; ByteString -&gt; Rope -&gt; Rope
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Strand
+</span><a href="Text.Trifecta.Rope.html#strand"><span class="hs-identifier hs-var">strand</span></a></span><span>
+</span><span id="line-177"></span><span>  </span><span id="local-6989586621679236463"><span class="annot"><span class="annottext">snoc :: Rope -&gt; ByteString -&gt; Rope
+</span><a href="#local-6989586621679236463"><span class="hs-identifier hs-var hs-var hs-var hs-var">snoc</span></a></span></span><span> </span><span id="local-6989586621679236462"><span class="annot"><span class="annottext">Rope
+</span><a href="#local-6989586621679236462"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope -&gt; Strand -&gt; Rope
+forall c m. Reducer c m =&gt; m -&gt; c -&gt; m
+</span><span class="hs-identifier hs-var">snoc</span></span><span> </span><span class="annot"><span class="annottext">Rope
+</span><a href="#local-6989586621679236462"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">(Strand -&gt; Rope) -&gt; (ByteString -&gt; Strand) -&gt; ByteString -&gt; Rope
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Strand
+</span><a href="Text.Trifecta.Rope.html#strand"><span class="hs-identifier hs-var">strand</span></a></span><span>
+</span><span id="line-178"></span><span>
+</span><span id="line-179"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reducer</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">]</span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-180"></span><span>  </span><span id="local-6989586621679236457"><span class="annot"><span class="annottext">unit :: String -&gt; Rope
+</span><a href="#local-6989586621679236457"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Strand -&gt; Rope
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><span class="hs-keyword hs-var">unit</span></span><span> </span><span class="annot"><span class="annottext">(Strand -&gt; Rope) -&gt; (String -&gt; Strand) -&gt; String -&gt; Rope
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Strand
+</span><a href="Text.Trifecta.Rope.html#strand"><span class="hs-identifier hs-var">strand</span></a></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; Strand)
+-&gt; (String -&gt; ByteString) -&gt; String -&gt; Strand
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ByteString
+</span><span class="hs-identifier hs-var">UTF8.fromString</span></span><span>
+</span><span id="line-181"></span><span>  </span><span id="local-6989586621679236455"><span class="annot"><span class="annottext">cons :: String -&gt; Rope -&gt; Rope
+</span><a href="#local-6989586621679236455"><span class="hs-identifier hs-var hs-var hs-var hs-var">cons</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Strand -&gt; Rope -&gt; Rope
+forall c m. Reducer c m =&gt; c -&gt; m -&gt; m
+</span><span class="hs-identifier hs-var">cons</span></span><span> </span><span class="annot"><span class="annottext">(Strand -&gt; Rope -&gt; Rope)
+-&gt; (String -&gt; Strand) -&gt; String -&gt; Rope -&gt; Rope
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Strand
+</span><a href="Text.Trifecta.Rope.html#strand"><span class="hs-identifier hs-var">strand</span></a></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; Strand)
+-&gt; (String -&gt; ByteString) -&gt; String -&gt; Strand
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ByteString
+</span><span class="hs-identifier hs-var">UTF8.fromString</span></span><span>
+</span><span id="line-182"></span><span>  </span><span id="local-6989586621679236454"><span class="annot"><span class="annottext">snoc :: Rope -&gt; String -&gt; Rope
+</span><a href="#local-6989586621679236454"><span class="hs-identifier hs-var hs-var hs-var hs-var">snoc</span></a></span></span><span> </span><span id="local-6989586621679236453"><span class="annot"><span class="annottext">Rope
+</span><a href="#local-6989586621679236453"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope -&gt; Strand -&gt; Rope
+forall c m. Reducer c m =&gt; m -&gt; c -&gt; m
+</span><span class="hs-identifier hs-var">snoc</span></span><span> </span><span class="annot"><span class="annottext">Rope
+</span><a href="#local-6989586621679236453"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">(Strand -&gt; Rope) -&gt; (String -&gt; Strand) -&gt; String -&gt; Rope
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Strand
+</span><a href="Text.Trifecta.Rope.html#strand"><span class="hs-identifier hs-var">strand</span></a></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; Strand)
+-&gt; (String -&gt; ByteString) -&gt; String -&gt; Strand
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ByteString
+</span><span class="hs-identifier hs-var">UTF8.fromString</span></span><span>
+</span><span id="line-183"></span></pre></body></html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell            #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric              #-}</span><span>
+</span><span id="line-3"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.Location</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.DeepSeq</span></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">GHC.Generics</span></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Uri.html"><span class="hs-identifier">Language.LSP.Types.Uri</span></a></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span id="local-6989586621680436879"><span id="local-6989586621680436880"></span></span><span class="hs-keyword">data</span><span> </span><span id="Position"><span class="annot"><a href="Language.LSP.Types.Location.html#Position"><span class="hs-identifier hs-var">Position</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-14"></span><span>  </span><span id="Position"><span class="annot"><a href="Language.LSP.Types.Location.html#Position"><span class="hs-identifier hs-var">Position</span></a></span></span><span>
+</span><span id="line-15"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Line position in a document (zero-based).</span><span>
+</span><span id="line-16"></span><span>      </span><span id="_line"><span class="annot"><span class="annottext">Position -&gt; Int
+</span><a href="Language.LSP.Types.Location.html#_line"><span class="hs-identifier hs-var hs-var">_line</span></a></span></span><span>      </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-17"></span><span>      </span><span class="hs-comment">-- | Character offset on a line in a document (zero-based). Assuming that</span><span>
+</span><span id="line-18"></span><span>      </span><span class="hs-comment">-- the line is represented as a string, the @character@ value represents the</span><span>
+</span><span id="line-19"></span><span>      </span><span class="hs-comment">-- gap between the @character@ and @character + 1@.</span><span>
+</span><span id="line-20"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="_character"><span class="annot"><span class="annottext">Position -&gt; Int
+</span><a href="Language.LSP.Types.Location.html#_character"><span class="hs-identifier hs-var hs-var">_character</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-21"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680436870"><span id="local-6989586621680436872"><span id="local-6989586621680436874"><span class="annot"><span class="annottext">Int -&gt; Position -&gt; ShowS
+[Position] -&gt; ShowS
+Position -&gt; String
+(Int -&gt; Position -&gt; ShowS)
+-&gt; (Position -&gt; String) -&gt; ([Position] -&gt; ShowS) -&gt; Show Position
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Position] -&gt; ShowS
+$cshowList :: [Position] -&gt; ShowS
+show :: Position -&gt; String
+$cshow :: Position -&gt; String
+showsPrec :: Int -&gt; Position -&gt; ShowS
+$cshowsPrec :: Int -&gt; Position -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680436861"><span id="local-6989586621680436863"><span id="local-6989586621680436865"><span id="local-6989586621680436867"><span class="annot"><span class="annottext">ReadPrec [Position]
+ReadPrec Position
+Int -&gt; ReadS Position
+ReadS [Position]
+(Int -&gt; ReadS Position)
+-&gt; ReadS [Position]
+-&gt; ReadPrec Position
+-&gt; ReadPrec [Position]
+-&gt; Read Position
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [Position]
+$creadListPrec :: ReadPrec [Position]
+readPrec :: ReadPrec Position
+$creadPrec :: ReadPrec Position
+readList :: ReadS [Position]
+$creadList :: ReadS [Position]
+readsPrec :: Int -&gt; ReadS Position
+$creadsPrec :: Int -&gt; ReadS Position
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680436856"><span id="local-6989586621680436858"><span class="annot"><span class="annottext">Position -&gt; Position -&gt; Bool
+(Position -&gt; Position -&gt; Bool)
+-&gt; (Position -&gt; Position -&gt; Bool) -&gt; Eq Position
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Position -&gt; Position -&gt; Bool
+$c/= :: Position -&gt; Position -&gt; Bool
+== :: Position -&gt; Position -&gt; Bool
+$c== :: Position -&gt; Position -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680436840"><span id="local-6989586621680436842"><span id="local-6989586621680436844"><span id="local-6989586621680436846"><span id="local-6989586621680436848"><span id="local-6989586621680436850"><span id="local-6989586621680436852"><span class="annot"><span class="annottext">Eq Position
+Eq Position
+-&gt; (Position -&gt; Position -&gt; Ordering)
+-&gt; (Position -&gt; Position -&gt; Bool)
+-&gt; (Position -&gt; Position -&gt; Bool)
+-&gt; (Position -&gt; Position -&gt; Bool)
+-&gt; (Position -&gt; Position -&gt; Bool)
+-&gt; (Position -&gt; Position -&gt; Position)
+-&gt; (Position -&gt; Position -&gt; Position)
+-&gt; Ord Position
+Position -&gt; Position -&gt; Bool
+Position -&gt; Position -&gt; Ordering
+Position -&gt; Position -&gt; Position
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: Position -&gt; Position -&gt; Position
+$cmin :: Position -&gt; Position -&gt; Position
+max :: Position -&gt; Position -&gt; Position
+$cmax :: Position -&gt; Position -&gt; Position
+&gt;= :: Position -&gt; Position -&gt; Bool
+$c&gt;= :: Position -&gt; Position -&gt; Bool
+&gt; :: Position -&gt; Position -&gt; Bool
+$c&gt; :: Position -&gt; Position -&gt; Bool
+&lt;= :: Position -&gt; Position -&gt; Bool
+$c&lt;= :: Position -&gt; Position -&gt; Bool
+&lt; :: Position -&gt; Position -&gt; Bool
+$c&lt; :: Position -&gt; Position -&gt; Bool
+compare :: Position -&gt; Position -&gt; Ordering
+$ccompare :: Position -&gt; Position -&gt; Ordering
+$cp1Ord :: Eq Position
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. Position -&gt; Rep Position x)
+-&gt; (forall x. Rep Position x -&gt; Position) -&gt; Generic Position
+forall x. Rep Position x -&gt; Position
+forall x. Position -&gt; Rep Position x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep Position x -&gt; Position
+$cfrom :: forall x. Position -&gt; Rep Position x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680436834"><span class="annot"><span class="hs-identifier hs-type">NFData</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html#Position"><span class="hs-identifier hs-type">Position</span></a></span></span><span>
+</span><span id="line-24"></span><span id="local-6989586621680436821"><span id="local-6989586621680436823"><span id="local-6989586621680436825"><span id="local-6989586621680436827"><span id="local-6989586621680436829"><span id="local-6989586621680436831"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">Position</span></span></span></span></span></span></span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span id="local-6989586621680436814"><span id="local-6989586621680436815"></span></span><span class="hs-keyword">data</span><span> </span><span id="Range"><span class="annot"><a href="Language.LSP.Types.Location.html#Range"><span class="hs-identifier hs-var">Range</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-29"></span><span>  </span><span id="Range"><span class="annot"><a href="Language.LSP.Types.Location.html#Range"><span class="hs-identifier hs-var">Range</span></a></span></span><span>
+</span><span id="line-30"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="_start"><span class="annot"><span class="annottext">Range -&gt; Position
+</span><a href="Language.LSP.Types.Location.html#_start"><span class="hs-identifier hs-var hs-var">_start</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html#Position"><span class="hs-identifier hs-type">Position</span></a></span><span> </span><span class="hs-comment">-- ^ The range's start position.</span><span>
+</span><span id="line-31"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="_end"><span class="annot"><span class="annottext">Range -&gt; Position
+</span><a href="Language.LSP.Types.Location.html#_end"><span class="hs-identifier hs-var hs-var">_end</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html#Position"><span class="hs-identifier hs-type">Position</span></a></span><span> </span><span class="hs-comment">-- ^ The range's end position.</span><span>
+</span><span id="line-32"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680436805"><span id="local-6989586621680436807"><span id="local-6989586621680436809"><span class="annot"><span class="annottext">Int -&gt; Range -&gt; ShowS
+[Range] -&gt; ShowS
+Range -&gt; String
+(Int -&gt; Range -&gt; ShowS)
+-&gt; (Range -&gt; String) -&gt; ([Range] -&gt; ShowS) -&gt; Show Range
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Range] -&gt; ShowS
+$cshowList :: [Range] -&gt; ShowS
+show :: Range -&gt; String
+$cshow :: Range -&gt; String
+showsPrec :: Int -&gt; Range -&gt; ShowS
+$cshowsPrec :: Int -&gt; Range -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680436797"><span id="local-6989586621680436799"><span id="local-6989586621680436801"><span id="local-6989586621680436803"><span class="annot"><span class="annottext">ReadPrec [Range]
+ReadPrec Range
+Int -&gt; ReadS Range
+ReadS [Range]
+(Int -&gt; ReadS Range)
+-&gt; ReadS [Range]
+-&gt; ReadPrec Range
+-&gt; ReadPrec [Range]
+-&gt; Read Range
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [Range]
+$creadListPrec :: ReadPrec [Range]
+readPrec :: ReadPrec Range
+$creadPrec :: ReadPrec Range
+readList :: ReadS [Range]
+$creadList :: ReadS [Range]
+readsPrec :: Int -&gt; ReadS Range
+$creadsPrec :: Int -&gt; ReadS Range
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680436793"><span id="local-6989586621680436795"><span class="annot"><span class="annottext">Range -&gt; Range -&gt; Bool
+(Range -&gt; Range -&gt; Bool) -&gt; (Range -&gt; Range -&gt; Bool) -&gt; Eq Range
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Range -&gt; Range -&gt; Bool
+$c/= :: Range -&gt; Range -&gt; Bool
+== :: Range -&gt; Range -&gt; Bool
+$c== :: Range -&gt; Range -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680436778"><span id="local-6989586621680436780"><span id="local-6989586621680436782"><span id="local-6989586621680436784"><span id="local-6989586621680436786"><span id="local-6989586621680436788"><span id="local-6989586621680436790"><span class="annot"><span class="annottext">Eq Range
+Eq Range
+-&gt; (Range -&gt; Range -&gt; Ordering)
+-&gt; (Range -&gt; Range -&gt; Bool)
+-&gt; (Range -&gt; Range -&gt; Bool)
+-&gt; (Range -&gt; Range -&gt; Bool)
+-&gt; (Range -&gt; Range -&gt; Bool)
+-&gt; (Range -&gt; Range -&gt; Range)
+-&gt; (Range -&gt; Range -&gt; Range)
+-&gt; Ord Range
+Range -&gt; Range -&gt; Bool
+Range -&gt; Range -&gt; Ordering
+Range -&gt; Range -&gt; Range
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: Range -&gt; Range -&gt; Range
+$cmin :: Range -&gt; Range -&gt; Range
+max :: Range -&gt; Range -&gt; Range
+$cmax :: Range -&gt; Range -&gt; Range
+&gt;= :: Range -&gt; Range -&gt; Bool
+$c&gt;= :: Range -&gt; Range -&gt; Bool
+&gt; :: Range -&gt; Range -&gt; Bool
+$c&gt; :: Range -&gt; Range -&gt; Bool
+&lt;= :: Range -&gt; Range -&gt; Bool
+$c&lt;= :: Range -&gt; Range -&gt; Bool
+&lt; :: Range -&gt; Range -&gt; Bool
+$c&lt; :: Range -&gt; Range -&gt; Bool
+compare :: Range -&gt; Range -&gt; Ordering
+$ccompare :: Range -&gt; Range -&gt; Ordering
+$cp1Ord :: Eq Range
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. Range -&gt; Rep Range x)
+-&gt; (forall x. Rep Range x -&gt; Range) -&gt; Generic Range
+forall x. Rep Range x -&gt; Range
+forall x. Range -&gt; Rep Range x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep Range x -&gt; Range
+$cfrom :: forall x. Range -&gt; Rep Range x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680436774"><span class="annot"><span class="hs-identifier hs-type">NFData</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html#Range"><span class="hs-identifier hs-type">Range</span></a></span></span><span>
+</span><span id="line-35"></span><span id="local-6989586621680436762"><span id="local-6989586621680436764"><span id="local-6989586621680436766"><span id="local-6989586621680436768"><span id="local-6989586621680436770"><span id="local-6989586621680436772"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">Range</span></span></span></span></span></span></span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span id="local-6989586621680436760"><span id="local-6989586621680436761"></span></span><span class="hs-keyword">data</span><span> </span><span id="Location"><span class="annot"><a href="Language.LSP.Types.Location.html#Location"><span class="hs-identifier hs-var">Location</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-40"></span><span>  </span><span id="Location"><span class="annot"><a href="Language.LSP.Types.Location.html#Location"><span class="hs-identifier hs-var">Location</span></a></span></span><span>
+</span><span id="line-41"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="_uri"><span class="annot"><span class="annottext">Location -&gt; Uri
+</span><a href="Language.LSP.Types.Location.html#_uri"><span class="hs-identifier hs-var hs-var">_uri</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Uri.html#Uri"><span class="hs-identifier hs-type">Uri</span></a></span><span>
+</span><span id="line-42"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="_range"><span class="annot"><span class="annottext">Location -&gt; Range
+</span><a href="Language.LSP.Types.Location.html#_range"><span class="hs-identifier hs-var hs-var">_range</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html#Range"><span class="hs-identifier hs-type">Range</span></a></span><span>
+</span><span id="line-43"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680436751"><span id="local-6989586621680436753"><span id="local-6989586621680436755"><span class="annot"><span class="annottext">Int -&gt; Location -&gt; ShowS
+[Location] -&gt; ShowS
+Location -&gt; String
+(Int -&gt; Location -&gt; ShowS)
+-&gt; (Location -&gt; String) -&gt; ([Location] -&gt; ShowS) -&gt; Show Location
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Location] -&gt; ShowS
+$cshowList :: [Location] -&gt; ShowS
+show :: Location -&gt; String
+$cshow :: Location -&gt; String
+showsPrec :: Int -&gt; Location -&gt; ShowS
+$cshowsPrec :: Int -&gt; Location -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680436743"><span id="local-6989586621680436745"><span id="local-6989586621680436747"><span id="local-6989586621680436749"><span class="annot"><span class="annottext">ReadPrec [Location]
+ReadPrec Location
+Int -&gt; ReadS Location
+ReadS [Location]
+(Int -&gt; ReadS Location)
+-&gt; ReadS [Location]
+-&gt; ReadPrec Location
+-&gt; ReadPrec [Location]
+-&gt; Read Location
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [Location]
+$creadListPrec :: ReadPrec [Location]
+readPrec :: ReadPrec Location
+$creadPrec :: ReadPrec Location
+readList :: ReadS [Location]
+$creadList :: ReadS [Location]
+readsPrec :: Int -&gt; ReadS Location
+$creadsPrec :: Int -&gt; ReadS Location
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680436739"><span id="local-6989586621680436741"><span class="annot"><span class="annottext">Location -&gt; Location -&gt; Bool
+(Location -&gt; Location -&gt; Bool)
+-&gt; (Location -&gt; Location -&gt; Bool) -&gt; Eq Location
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Location -&gt; Location -&gt; Bool
+$c/= :: Location -&gt; Location -&gt; Bool
+== :: Location -&gt; Location -&gt; Bool
+$c== :: Location -&gt; Location -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680436724"><span id="local-6989586621680436726"><span id="local-6989586621680436728"><span id="local-6989586621680436730"><span id="local-6989586621680436732"><span id="local-6989586621680436734"><span id="local-6989586621680436736"><span class="annot"><span class="annottext">Eq Location
+Eq Location
+-&gt; (Location -&gt; Location -&gt; Ordering)
+-&gt; (Location -&gt; Location -&gt; Bool)
+-&gt; (Location -&gt; Location -&gt; Bool)
+-&gt; (Location -&gt; Location -&gt; Bool)
+-&gt; (Location -&gt; Location -&gt; Bool)
+-&gt; (Location -&gt; Location -&gt; Location)
+-&gt; (Location -&gt; Location -&gt; Location)
+-&gt; Ord Location
+Location -&gt; Location -&gt; Bool
+Location -&gt; Location -&gt; Ordering
+Location -&gt; Location -&gt; Location
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: Location -&gt; Location -&gt; Location
+$cmin :: Location -&gt; Location -&gt; Location
+max :: Location -&gt; Location -&gt; Location
+$cmax :: Location -&gt; Location -&gt; Location
+&gt;= :: Location -&gt; Location -&gt; Bool
+$c&gt;= :: Location -&gt; Location -&gt; Bool
+&gt; :: Location -&gt; Location -&gt; Bool
+$c&gt; :: Location -&gt; Location -&gt; Bool
+&lt;= :: Location -&gt; Location -&gt; Bool
+$c&lt;= :: Location -&gt; Location -&gt; Bool
+&lt; :: Location -&gt; Location -&gt; Bool
+$c&lt; :: Location -&gt; Location -&gt; Bool
+compare :: Location -&gt; Location -&gt; Ordering
+$ccompare :: Location -&gt; Location -&gt; Ordering
+$cp1Ord :: Eq Location
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. Location -&gt; Rep Location x)
+-&gt; (forall x. Rep Location x -&gt; Location) -&gt; Generic Location
+forall x. Rep Location x -&gt; Location
+forall x. Location -&gt; Rep Location x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep Location x -&gt; Location
+$cfrom :: forall x. Location -&gt; Rep Location x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680436720"><span class="annot"><span class="hs-identifier hs-type">NFData</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html#Location"><span class="hs-identifier hs-type">Location</span></a></span></span><span>
+</span><span id="line-46"></span><span id="local-6989586621680436708"><span id="local-6989586621680436710"><span id="local-6989586621680436712"><span id="local-6989586621680436714"><span id="local-6989586621680436716"><span id="local-6989586621680436718"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">Location</span></span></span></span></span></span></span><span>
+</span><span id="line-47"></span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-49"></span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- | Represents a link between a source and a target location.</span><span>
+</span><span id="line-51"></span><span class="hs-keyword">data</span><span> </span><span id="LocationLink"><span class="annot"><a href="Language.LSP.Types.Location.html#LocationLink"><span class="hs-identifier hs-var">LocationLink</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-52"></span><span>  </span><span id="LocationLink"><span class="annot"><a href="Language.LSP.Types.Location.html#LocationLink"><span class="hs-identifier hs-var">LocationLink</span></a></span></span><span>
+</span><span id="line-53"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Span of the origin of this link.</span><span>
+</span><span id="line-54"></span><span>    </span><span class="hs-comment">-- Used as the underlined span for mouse interaction. Defaults to the word</span><span>
+</span><span id="line-55"></span><span>    </span><span class="hs-comment">-- range at the mouse position.</span><span>
+</span><span id="line-56"></span><span>    </span><span id="_originSelectionRange"><span class="annot"><span class="annottext">LocationLink -&gt; Maybe Range
+</span><a href="Language.LSP.Types.Location.html#_originSelectionRange"><span class="hs-identifier hs-var hs-var">_originSelectionRange</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html#Range"><span class="hs-identifier hs-type">Range</span></a></span><span>
+</span><span id="line-57"></span><span>    </span><span class="hs-comment">-- | The target resource identifier of this link.</span><span>
+</span><span id="line-58"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_targetUri"><span class="annot"><span class="annottext">LocationLink -&gt; Uri
+</span><a href="Language.LSP.Types.Location.html#_targetUri"><span class="hs-identifier hs-var hs-var">_targetUri</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Uri.html#Uri"><span class="hs-identifier hs-type">Uri</span></a></span><span>
+</span><span id="line-59"></span><span>    </span><span class="hs-comment">-- | The full target range of this link. If the target for example is a</span><span>
+</span><span id="line-60"></span><span>    </span><span class="hs-comment">-- symbol then target range is the range enclosing this symbol not including</span><span>
+</span><span id="line-61"></span><span>    </span><span class="hs-comment">-- leading/trailing whitespace but everything else like comments. This</span><span>
+</span><span id="line-62"></span><span>    </span><span class="hs-comment">-- information is typically used to highlight the range in the editor.</span><span>
+</span><span id="line-63"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_targetRange"><span class="annot"><span class="annottext">LocationLink -&gt; Range
+</span><a href="Language.LSP.Types.Location.html#_targetRange"><span class="hs-identifier hs-var hs-var">_targetRange</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html#Range"><span class="hs-identifier hs-type">Range</span></a></span><span>
+</span><span id="line-64"></span><span>    </span><span class="hs-comment">-- | The range that should be selected and revealed when this link is being</span><span>
+</span><span id="line-65"></span><span>    </span><span class="hs-comment">-- followed, e.g the name of a function. Must be contained by the the</span><span>
+</span><span id="line-66"></span><span>    </span><span class="hs-comment">-- 'targetRange'. See also @DocumentSymbol._range@</span><span>
+</span><span id="line-67"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_targetSelectionRange"><span class="annot"><span class="annottext">LocationLink -&gt; Range
+</span><a href="Language.LSP.Types.Location.html#_targetSelectionRange"><span class="hs-identifier hs-var hs-var">_targetSelectionRange</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html#Range"><span class="hs-identifier hs-type">Range</span></a></span><span>
+</span><span id="line-68"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680436695"><span id="local-6989586621680436697"><span id="local-6989586621680436699"><span id="local-6989586621680436701"><span class="annot"><span class="annottext">ReadPrec [LocationLink]
+ReadPrec LocationLink
+Int -&gt; ReadS LocationLink
+ReadS [LocationLink]
+(Int -&gt; ReadS LocationLink)
+-&gt; ReadS [LocationLink]
+-&gt; ReadPrec LocationLink
+-&gt; ReadPrec [LocationLink]
+-&gt; Read LocationLink
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [LocationLink]
+$creadListPrec :: ReadPrec [LocationLink]
+readPrec :: ReadPrec LocationLink
+$creadPrec :: ReadPrec LocationLink
+readList :: ReadS [LocationLink]
+$creadList :: ReadS [LocationLink]
+readsPrec :: Int -&gt; ReadS LocationLink
+$creadsPrec :: Int -&gt; ReadS LocationLink
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680436689"><span id="local-6989586621680436691"><span id="local-6989586621680436693"><span class="annot"><span class="annottext">Int -&gt; LocationLink -&gt; ShowS
+[LocationLink] -&gt; ShowS
+LocationLink -&gt; String
+(Int -&gt; LocationLink -&gt; ShowS)
+-&gt; (LocationLink -&gt; String)
+-&gt; ([LocationLink] -&gt; ShowS)
+-&gt; Show LocationLink
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [LocationLink] -&gt; ShowS
+$cshowList :: [LocationLink] -&gt; ShowS
+show :: LocationLink -&gt; String
+$cshow :: LocationLink -&gt; String
+showsPrec :: Int -&gt; LocationLink -&gt; ShowS
+$cshowsPrec :: Int -&gt; LocationLink -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680436685"><span id="local-6989586621680436687"><span class="annot"><span class="annottext">LocationLink -&gt; LocationLink -&gt; Bool
+(LocationLink -&gt; LocationLink -&gt; Bool)
+-&gt; (LocationLink -&gt; LocationLink -&gt; Bool) -&gt; Eq LocationLink
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: LocationLink -&gt; LocationLink -&gt; Bool
+$c/= :: LocationLink -&gt; LocationLink -&gt; Bool
+== :: LocationLink -&gt; LocationLink -&gt; Bool
+$c== :: LocationLink -&gt; LocationLink -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-69"></span><span id="local-6989586621680436673"><span id="local-6989586621680436675"><span id="local-6989586621680436677"><span id="local-6989586621680436679"><span id="local-6989586621680436681"><span id="local-6989586621680436683"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">LocationLink</span></span></span></span></span></span></span><span>
+</span><span id="line-70"></span><span>
+</span><span id="line-71"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-72"></span><span>
+</span><span id="line-73"></span><span class="hs-comment">-- | A helper function for creating ranges.</span><span>
+</span><span id="line-74"></span><span class="hs-comment">-- prop&gt; mkRange l c l' c' = Range (Position l c) (Position l' c')</span><span>
+</span><span id="line-75"></span><span class="annot"><a href="Language.LSP.Types.Location.html#mkRange"><span class="hs-identifier hs-type">mkRange</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html#Range"><span class="hs-identifier hs-type">Range</span></a></span><span>
+</span><span id="line-76"></span><span id="mkRange"><span class="annot"><span class="annottext">mkRange :: Int -&gt; Int -&gt; Int -&gt; Int -&gt; Range
+</span><a href="Language.LSP.Types.Location.html#mkRange"><span class="hs-identifier hs-var hs-var">mkRange</span></a></span></span><span> </span><span id="local-6989586621680436671"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680436671"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621680436670"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680436670"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621680436669"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680436669"><span class="hs-identifier hs-var">l'</span></a></span></span><span> </span><span id="local-6989586621680436668"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680436668"><span class="hs-identifier hs-var">c'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Position -&gt; Position -&gt; Range
+</span><a href="Language.LSP.Types.Location.html#Range"><span class="hs-identifier hs-var">Range</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Position
+</span><a href="Language.LSP.Types.Location.html#Position"><span class="hs-identifier hs-var">Position</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680436671"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680436670"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Position
+</span><a href="Language.LSP.Types.Location.html#Position"><span class="hs-identifier hs-var">Position</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680436669"><span class="hs-identifier hs-var">l'</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680436668"><span class="hs-identifier hs-var">c'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-77"></span></pre></body></html>

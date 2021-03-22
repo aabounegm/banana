@@ -1,0 +1,798 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="%24maxtag_5RhNSD1pHjZ3HJ4xx80guN"><span id="%24tag2con_5RhNSD1pHjZ3HJ4xx80guN"><span id="%24con2tag_5RhNSD1pHjZ3HJ4xx80guN"></span></span></span><span class="hs-pragma">{-# LANGUAGE DeriveDataTypeable #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE ScopedTypeVariables #-}</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- Module      :  Text.Parser.Expression</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- Copyright   :  (c) Edward Kmett 2011-2012</span><span>
+</span><span id="line-7"></span><span class="hs-comment">--                (c) Paolo Martini 2007</span><span>
+</span><span id="line-8"></span><span class="hs-comment">--                (c) Daan Leijen 1999-2001,</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- License     :  BSD-style (see the LICENSE file)</span><span>
+</span><span id="line-10"></span><span class="hs-comment">--</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- Maintainer  :  ekmett@gmail.com</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- Stability   :  experimental</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- Portability :  non-portable</span><span>
+</span><span id="line-14"></span><span class="hs-comment">--</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- A helper module to parse \&quot;expressions\&quot;.</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- Builds a parser given a table of operators and associativities.</span><span>
+</span><span id="line-17"></span><span class="hs-comment">--</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.Parser.Expression</span><span>
+</span><span id="line-21"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Text.Parser.Expression.html#Assoc"><span class="hs-identifier">Assoc</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Parser.Expression.html#Operator"><span class="hs-identifier">Operator</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Parser.Expression.html#OperatorTable"><span class="hs-identifier">OperatorTable</span></a></span><span>
+</span><span id="line-22"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Parser.Expression.html#buildExpressionParser"><span class="hs-identifier">buildExpressionParser</span></a></span><span>
+</span><span id="line-23"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Applicative</span></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Parser.Combinators.html"><span class="hs-identifier">Text.Parser.Combinators</span></a></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Data</span></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Infix</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">Prefix</span></span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Ix</span></span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="hs-comment">-----------------------------------------------------------</span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- Assoc and OperatorTable</span><span>
+</span><span id="line-32"></span><span class="hs-comment">-----------------------------------------------------------</span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- |  This data type specifies the associativity of operators: left, right</span><span>
+</span><span id="line-35"></span><span class="hs-comment">-- or none.</span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span class="hs-keyword">data</span><span> </span><span id="Assoc"><span class="annot"><a href="Text.Parser.Expression.html#Assoc"><span class="hs-identifier hs-var">Assoc</span></a></span></span><span>
+</span><span id="line-38"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="AssocNone"><span class="annot"><a href="Text.Parser.Expression.html#AssocNone"><span class="hs-identifier hs-var">AssocNone</span></a></span></span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="AssocLeft"><span class="annot"><a href="Text.Parser.Expression.html#AssocLeft"><span class="hs-identifier hs-var">AssocLeft</span></a></span></span><span>
+</span><span id="line-40"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="AssocRight"><span class="annot"><a href="Text.Parser.Expression.html#AssocRight"><span class="hs-identifier hs-var">AssocRight</span></a></span></span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679070709"><span id="local-6989586621679070711"><span class="annot"><span class="annottext">Assoc -&gt; Assoc -&gt; Bool
+(Assoc -&gt; Assoc -&gt; Bool) -&gt; (Assoc -&gt; Assoc -&gt; Bool) -&gt; Eq Assoc
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Assoc -&gt; Assoc -&gt; Bool
+$c/= :: Assoc -&gt; Assoc -&gt; Bool
+== :: Assoc -&gt; Assoc -&gt; Bool
+$c== :: Assoc -&gt; Assoc -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679070693"><span id="local-6989586621679070695"><span id="local-6989586621679070697"><span id="local-6989586621679070699"><span id="local-6989586621679070701"><span id="local-6989586621679070703"><span id="local-6989586621679070705"><span class="annot"><span class="annottext">Eq Assoc
+Eq Assoc
+-&gt; (Assoc -&gt; Assoc -&gt; Ordering)
+-&gt; (Assoc -&gt; Assoc -&gt; Bool)
+-&gt; (Assoc -&gt; Assoc -&gt; Bool)
+-&gt; (Assoc -&gt; Assoc -&gt; Bool)
+-&gt; (Assoc -&gt; Assoc -&gt; Bool)
+-&gt; (Assoc -&gt; Assoc -&gt; Assoc)
+-&gt; (Assoc -&gt; Assoc -&gt; Assoc)
+-&gt; Ord Assoc
+Assoc -&gt; Assoc -&gt; Bool
+Assoc -&gt; Assoc -&gt; Ordering
+Assoc -&gt; Assoc -&gt; Assoc
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: Assoc -&gt; Assoc -&gt; Assoc
+$cmin :: Assoc -&gt; Assoc -&gt; Assoc
+max :: Assoc -&gt; Assoc -&gt; Assoc
+$cmax :: Assoc -&gt; Assoc -&gt; Assoc
+&gt;= :: Assoc -&gt; Assoc -&gt; Bool
+$c&gt;= :: Assoc -&gt; Assoc -&gt; Bool
+&gt; :: Assoc -&gt; Assoc -&gt; Bool
+$c&gt; :: Assoc -&gt; Assoc -&gt; Bool
+&lt;= :: Assoc -&gt; Assoc -&gt; Bool
+$c&lt;= :: Assoc -&gt; Assoc -&gt; Bool
+&lt; :: Assoc -&gt; Assoc -&gt; Bool
+$c&lt; :: Assoc -&gt; Assoc -&gt; Bool
+compare :: Assoc -&gt; Assoc -&gt; Ordering
+$ccompare :: Assoc -&gt; Assoc -&gt; Ordering
+$cp1Ord :: Eq Assoc
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679070686"><span id="local-6989586621679070688"><span id="local-6989586621679070690"><span class="annot"><span class="annottext">Int -&gt; Assoc -&gt; ShowS
+[Assoc] -&gt; ShowS
+Assoc -&gt; String
+(Int -&gt; Assoc -&gt; ShowS)
+-&gt; (Assoc -&gt; String) -&gt; ([Assoc] -&gt; ShowS) -&gt; Show Assoc
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Assoc] -&gt; ShowS
+$cshowList :: [Assoc] -&gt; ShowS
+show :: Assoc -&gt; String
+$cshow :: Assoc -&gt; String
+showsPrec :: Int -&gt; Assoc -&gt; ShowS
+$cshowsPrec :: Int -&gt; Assoc -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679070677"><span id="local-6989586621679070679"><span id="local-6989586621679070681"><span id="local-6989586621679070683"><span class="annot"><span class="annottext">ReadPrec [Assoc]
+ReadPrec Assoc
+Int -&gt; ReadS Assoc
+ReadS [Assoc]
+(Int -&gt; ReadS Assoc)
+-&gt; ReadS [Assoc]
+-&gt; ReadPrec Assoc
+-&gt; ReadPrec [Assoc]
+-&gt; Read Assoc
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [Assoc]
+$creadListPrec :: ReadPrec [Assoc]
+readPrec :: ReadPrec Assoc
+$creadPrec :: ReadPrec Assoc
+readList :: ReadS [Assoc]
+$creadList :: ReadS [Assoc]
+readsPrec :: Int -&gt; ReadS Assoc
+$creadsPrec :: Int -&gt; ReadS Assoc
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679070663"><span id="local-6989586621679070665"><span id="local-6989586621679070667"><span id="local-6989586621679070669"><span id="local-6989586621679070671"><span id="local-6989586621679070673"><span class="annot"><span class="annottext">Ord Assoc
+Ord Assoc
+-&gt; ((Assoc, Assoc) -&gt; [Assoc])
+-&gt; ((Assoc, Assoc) -&gt; Assoc -&gt; Int)
+-&gt; ((Assoc, Assoc) -&gt; Assoc -&gt; Int)
+-&gt; ((Assoc, Assoc) -&gt; Assoc -&gt; Bool)
+-&gt; ((Assoc, Assoc) -&gt; Int)
+-&gt; ((Assoc, Assoc) -&gt; Int)
+-&gt; Ix Assoc
+(Assoc, Assoc) -&gt; Int
+(Assoc, Assoc) -&gt; [Assoc]
+(Assoc, Assoc) -&gt; Assoc -&gt; Bool
+(Assoc, Assoc) -&gt; Assoc -&gt; Int
+forall a.
+Ord a
+-&gt; ((a, a) -&gt; [a])
+-&gt; ((a, a) -&gt; a -&gt; Int)
+-&gt; ((a, a) -&gt; a -&gt; Int)
+-&gt; ((a, a) -&gt; a -&gt; Bool)
+-&gt; ((a, a) -&gt; Int)
+-&gt; ((a, a) -&gt; Int)
+-&gt; Ix a
+unsafeRangeSize :: (Assoc, Assoc) -&gt; Int
+$cunsafeRangeSize :: (Assoc, Assoc) -&gt; Int
+rangeSize :: (Assoc, Assoc) -&gt; Int
+$crangeSize :: (Assoc, Assoc) -&gt; Int
+inRange :: (Assoc, Assoc) -&gt; Assoc -&gt; Bool
+$cinRange :: (Assoc, Assoc) -&gt; Assoc -&gt; Bool
+unsafeIndex :: (Assoc, Assoc) -&gt; Assoc -&gt; Int
+$cunsafeIndex :: (Assoc, Assoc) -&gt; Assoc -&gt; Int
+index :: (Assoc, Assoc) -&gt; Assoc -&gt; Int
+$cindex :: (Assoc, Assoc) -&gt; Assoc -&gt; Int
+range :: (Assoc, Assoc) -&gt; [Assoc]
+$crange :: (Assoc, Assoc) -&gt; [Assoc]
+$cp1Ix :: Ord Assoc
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ix</span></span></span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679070646"><span id="local-6989586621679070648"><span id="local-6989586621679070650"><span id="local-6989586621679070652"><span id="local-6989586621679070654"><span id="local-6989586621679070656"><span id="local-6989586621679070658"><span id="local-6989586621679070660"><span class="annot"><span class="annottext">Int -&gt; Assoc
+Assoc -&gt; Int
+Assoc -&gt; [Assoc]
+Assoc -&gt; Assoc
+Assoc -&gt; Assoc -&gt; [Assoc]
+Assoc -&gt; Assoc -&gt; Assoc -&gt; [Assoc]
+(Assoc -&gt; Assoc)
+-&gt; (Assoc -&gt; Assoc)
+-&gt; (Int -&gt; Assoc)
+-&gt; (Assoc -&gt; Int)
+-&gt; (Assoc -&gt; [Assoc])
+-&gt; (Assoc -&gt; Assoc -&gt; [Assoc])
+-&gt; (Assoc -&gt; Assoc -&gt; [Assoc])
+-&gt; (Assoc -&gt; Assoc -&gt; Assoc -&gt; [Assoc])
+-&gt; Enum Assoc
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+enumFromThenTo :: Assoc -&gt; Assoc -&gt; Assoc -&gt; [Assoc]
+$cenumFromThenTo :: Assoc -&gt; Assoc -&gt; Assoc -&gt; [Assoc]
+enumFromTo :: Assoc -&gt; Assoc -&gt; [Assoc]
+$cenumFromTo :: Assoc -&gt; Assoc -&gt; [Assoc]
+enumFromThen :: Assoc -&gt; Assoc -&gt; [Assoc]
+$cenumFromThen :: Assoc -&gt; Assoc -&gt; [Assoc]
+enumFrom :: Assoc -&gt; [Assoc]
+$cenumFrom :: Assoc -&gt; [Assoc]
+fromEnum :: Assoc -&gt; Int
+$cfromEnum :: Assoc -&gt; Int
+toEnum :: Int -&gt; Assoc
+$ctoEnum :: Int -&gt; Assoc
+pred :: Assoc -&gt; Assoc
+$cpred :: Assoc -&gt; Assoc
+succ :: Assoc -&gt; Assoc
+$csucc :: Assoc -&gt; Assoc
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Enum</span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679070641"><span id="local-6989586621679070643"><span class="annot"><span class="annottext">Assoc
+Assoc -&gt; Assoc -&gt; Bounded Assoc
+forall a. a -&gt; a -&gt; Bounded a
+maxBound :: Assoc
+$cmaxBound :: Assoc
+minBound :: Assoc
+$cminBound :: Assoc
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Bounded</span></span></span></span><span class="hs-special">,</span><span id="%24cAssocRight"><span id="%24cAssocLeft"><span id="%24cAssocNone"><span id="%24tAssoc"><span id="local-6989586621679070611"><span id="local-6989586621679070613"><span id="local-6989586621679070615"><span id="local-6989586621679070617"><span id="local-6989586621679070619"><span id="local-6989586621679070621"><span id="local-6989586621679070623"><span id="local-6989586621679070625"><span id="local-6989586621679070627"><span id="local-6989586621679070629"><span id="local-6989586621679070631"><span id="local-6989586621679070633"><span id="local-6989586621679070635"><span id="local-6989586621679070637"><span class="annot"><span class="annottext">Typeable Assoc
+DataType
+Constr
+Typeable Assoc
+-&gt; (forall (c :: * -&gt; *).
+    (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+    -&gt; (forall g. g -&gt; c g) -&gt; Assoc -&gt; c Assoc)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Assoc)
+-&gt; (Assoc -&gt; Constr)
+-&gt; (Assoc -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Assoc))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Assoc))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; Assoc -&gt; Assoc)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Assoc -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Assoc -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; Assoc -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Assoc -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; Assoc -&gt; m Assoc)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; Assoc -&gt; m Assoc)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; Assoc -&gt; m Assoc)
+-&gt; Data Assoc
+Assoc -&gt; DataType
+Assoc -&gt; Constr
+(forall b. Data b =&gt; b -&gt; b) -&gt; Assoc -&gt; Assoc
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Assoc -&gt; c Assoc
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Assoc
+forall a.
+Typeable a
+-&gt; (forall (c :: * -&gt; *).
+    (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+    -&gt; (forall g. g -&gt; c g) -&gt; a -&gt; c a)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c a)
+-&gt; (a -&gt; Constr)
+-&gt; (a -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c a))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c a))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; a -&gt; a)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; Data a
+forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Assoc -&gt; u
+forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; Assoc -&gt; [u]
+forall r r'.
+(r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Assoc -&gt; r
+forall r r'.
+(r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Assoc -&gt; r
+forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Assoc -&gt; m Assoc
+forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Assoc -&gt; m Assoc
+forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Assoc
+forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Assoc -&gt; c Assoc
+forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Assoc)
+forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Assoc)
+$cAssocRight :: Constr
+$cAssocLeft :: Constr
+$cAssocNone :: Constr
+$tAssoc :: DataType
+gmapMo :: (forall d. Data d =&gt; d -&gt; m d) -&gt; Assoc -&gt; m Assoc
+$cgmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Assoc -&gt; m Assoc
+gmapMp :: (forall d. Data d =&gt; d -&gt; m d) -&gt; Assoc -&gt; m Assoc
+$cgmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Assoc -&gt; m Assoc
+gmapM :: (forall d. Data d =&gt; d -&gt; m d) -&gt; Assoc -&gt; m Assoc
+$cgmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Assoc -&gt; m Assoc
+gmapQi :: Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Assoc -&gt; u
+$cgmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Assoc -&gt; u
+gmapQ :: (forall d. Data d =&gt; d -&gt; u) -&gt; Assoc -&gt; [u]
+$cgmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; Assoc -&gt; [u]
+gmapQr :: (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Assoc -&gt; r
+$cgmapQr :: forall r r'.
+(r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Assoc -&gt; r
+gmapQl :: (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Assoc -&gt; r
+$cgmapQl :: forall r r'.
+(r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Assoc -&gt; r
+gmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; Assoc -&gt; Assoc
+$cgmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; Assoc -&gt; Assoc
+dataCast2 :: (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Assoc)
+$cdataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Assoc)
+dataCast1 :: (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Assoc)
+$cdataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Assoc)
+dataTypeOf :: Assoc -&gt; DataType
+$cdataTypeOf :: Assoc -&gt; DataType
+toConstr :: Assoc -&gt; Constr
+$ctoConstr :: Assoc -&gt; Constr
+gunfold :: (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Assoc
+$cgunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Assoc
+gfoldl :: (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Assoc -&gt; c Assoc
+$cgfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Assoc -&gt; c Assoc
+$cp1Data :: Typeable Assoc
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Data</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span class="annot"><span class="hs-identifier hs-type">Typeable</span></span><span class="hs-special">)</span><span>
+</span><span id="line-42"></span><span>
+</span><span id="line-43"></span><span class="hs-comment">-- | This data type specifies operators that work on values of type @a@.</span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- An operator is either binary infix or unary prefix or postfix. A</span><span>
+</span><span id="line-45"></span><span class="hs-comment">-- binary operator has also an associated associativity.</span><span>
+</span><span id="line-46"></span><span>
+</span><span id="line-47"></span><span class="hs-keyword">data</span><span> </span><span id="Operator"><span class="annot"><a href="Text.Parser.Expression.html#Operator"><span class="hs-identifier hs-var">Operator</span></a></span></span><span> </span><span id="local-6989586621679070605"><span class="annot"><a href="#local-6989586621679070605"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span id="local-6989586621679070604"><span class="annot"><a href="#local-6989586621679070604"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-48"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="Infix"><span class="annot"><a href="Text.Parser.Expression.html#Infix"><span class="hs-identifier hs-var">Infix</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679070605"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679070604"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679070604"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679070604"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><a href="Text.Parser.Expression.html#Assoc"><span class="hs-identifier hs-type">Assoc</span></a></span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="Prefix"><span class="annot"><a href="Text.Parser.Expression.html#Prefix"><span class="hs-identifier hs-var">Prefix</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679070605"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679070604"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679070604"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-50"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="Postfix"><span class="annot"><a href="Text.Parser.Expression.html#Postfix"><span class="hs-identifier hs-var">Postfix</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679070605"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679070604"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679070604"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-51"></span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- | An @OperatorTable m a@ is a list of @Operator m a@</span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- lists. The list is ordered in descending</span><span>
+</span><span id="line-54"></span><span class="hs-comment">-- precedence. All operators in one list have the same precedence (but</span><span>
+</span><span id="line-55"></span><span class="hs-comment">-- may have a different associativity).</span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span class="hs-keyword">type</span><span> </span><span id="OperatorTable"><span class="annot"><a href="Text.Parser.Expression.html#OperatorTable"><span class="hs-identifier hs-var">OperatorTable</span></a></span></span><span> </span><span id="local-6989586621679070600"><span class="annot"><a href="#local-6989586621679070600"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span id="local-6989586621679070599"><span class="annot"><a href="#local-6989586621679070599"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><a href="Text.Parser.Expression.html#Operator"><span class="hs-identifier hs-type">Operator</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679070600"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679070599"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span class="hs-special">]</span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span class="hs-comment">-----------------------------------------------------------</span><span>
+</span><span id="line-60"></span><span class="hs-comment">-- Convert an OperatorTable and basic term parser into</span><span>
+</span><span id="line-61"></span><span class="hs-comment">-- a full fledged expression parser</span><span>
+</span><span id="line-62"></span><span class="hs-comment">-----------------------------------------------------------</span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- | @buildExpressionParser table term@ builds an expression parser for</span><span>
+</span><span id="line-65"></span><span class="hs-comment">-- terms @term@ with operators from @table@, taking the associativity</span><span>
+</span><span id="line-66"></span><span class="hs-comment">-- and precedence specified in @table@ into account. Prefix and postfix</span><span>
+</span><span id="line-67"></span><span class="hs-comment">-- operators of the same precedence can only occur once (i.e. @--2@ is</span><span>
+</span><span id="line-68"></span><span class="hs-comment">-- not allowed if @-@ is prefix negate). Prefix and postfix operators</span><span>
+</span><span id="line-69"></span><span class="hs-comment">-- of the same precedence associate to the left (i.e. if @++@ is</span><span>
+</span><span id="line-70"></span><span class="hs-comment">-- postfix increment, than @-2++@ equals @-1@, not @-3@).</span><span>
+</span><span id="line-71"></span><span class="hs-comment">--</span><span>
+</span><span id="line-72"></span><span class="hs-comment">-- The @buildExpressionParser@ takes care of all the complexity</span><span>
+</span><span id="line-73"></span><span class="hs-comment">-- involved in building expression parser. Here is an example of an</span><span>
+</span><span id="line-74"></span><span class="hs-comment">-- expression parser that handles prefix signs, postfix increment and</span><span>
+</span><span id="line-75"></span><span class="hs-comment">-- basic arithmetic.</span><span>
+</span><span id="line-76"></span><span class="hs-comment">--</span><span>
+</span><span id="line-77"></span><span class="hs-comment">-- &gt;  import Control.Applicative ((&lt;|&gt;))</span><span>
+</span><span id="line-78"></span><span class="hs-comment">-- &gt;  import Text.Parser.Combinators ((&lt;?&gt;))</span><span>
+</span><span id="line-79"></span><span class="hs-comment">-- &gt;  import Text.Parser.Expression</span><span>
+</span><span id="line-80"></span><span class="hs-comment">-- &gt;  import Text.Parser.Token (TokenParsing, natural, parens, reserve)</span><span>
+</span><span id="line-81"></span><span class="hs-comment">-- &gt;  import Text.Parser.Token.Style (emptyOps)</span><span>
+</span><span id="line-82"></span><span class="hs-comment">-- &gt;</span><span>
+</span><span id="line-83"></span><span class="hs-comment">-- &gt;  expr   :: (Monad m, TokenParsing m) =&gt; m Integer</span><span>
+</span><span id="line-84"></span><span class="hs-comment">-- &gt;  expr    = buildExpressionParser table term</span><span>
+</span><span id="line-85"></span><span class="hs-comment">-- &gt;          &lt;?&gt; &quot;expression&quot;</span><span>
+</span><span id="line-86"></span><span class="hs-comment">-- &gt;</span><span>
+</span><span id="line-87"></span><span class="hs-comment">-- &gt;  term   :: (Monad m, TokenParsing m) =&gt; m Integer</span><span>
+</span><span id="line-88"></span><span class="hs-comment">-- &gt;  term    =  parens expr</span><span>
+</span><span id="line-89"></span><span class="hs-comment">-- &gt;          &lt;|&gt; natural</span><span>
+</span><span id="line-90"></span><span class="hs-comment">-- &gt;          &lt;?&gt; &quot;simple expression&quot;</span><span>
+</span><span id="line-91"></span><span class="hs-comment">-- &gt;</span><span>
+</span><span id="line-92"></span><span class="hs-comment">-- &gt;  table  :: (Monad m, TokenParsing m) =&gt; [[Operator m Integer]]</span><span>
+</span><span id="line-93"></span><span class="hs-comment">-- &gt;  table   = [ [prefix &quot;-&quot; negate, prefix &quot;+&quot; id ]</span><span>
+</span><span id="line-94"></span><span class="hs-comment">-- &gt;            , [postfix &quot;++&quot; (+1)]</span><span>
+</span><span id="line-95"></span><span class="hs-comment">-- &gt;            , [binary &quot;*&quot; (*) AssocLeft, binary &quot;/&quot; (div) AssocLeft ]</span><span>
+</span><span id="line-96"></span><span class="hs-comment">-- &gt;            , [binary &quot;+&quot; (+) AssocLeft, binary &quot;-&quot; (-)   AssocLeft ]</span><span>
+</span><span id="line-97"></span><span class="hs-comment">-- &gt;            ]</span><span>
+</span><span id="line-98"></span><span class="hs-comment">-- &gt;</span><span>
+</span><span id="line-99"></span><span class="hs-comment">-- &gt;  binary  name fun assoc = Infix (fun &lt;$ reservedOp name) assoc</span><span>
+</span><span id="line-100"></span><span class="hs-comment">-- &gt;  prefix  name fun       = Prefix (fun &lt;$ reservedOp name)</span><span>
+</span><span id="line-101"></span><span class="hs-comment">-- &gt;  postfix name fun       = Postfix (fun &lt;$ reservedOp name)</span><span>
+</span><span id="line-102"></span><span class="hs-comment">-- &gt;</span><span>
+</span><span id="line-103"></span><span class="hs-comment">-- &gt;  reservedOp name = reserve emptyOps name</span><span>
+</span><span id="line-104"></span><span>
+</span><span id="line-105"></span><span class="annot"><a href="Text.Parser.Expression.html#buildExpressionParser"><span class="hs-identifier hs-type">buildExpressionParser</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679070598"><span class="annot"><a href="#local-6989586621679070598"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span id="local-6989586621679070597"><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Parser.Combinators.html#Parsing"><span class="hs-identifier hs-type">Parsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679070598"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Applicative</span></span><span> </span><span class="annot"><a href="#local-6989586621679070598"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-106"></span><span>                      </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Parser.Expression.html#OperatorTable"><span class="hs-identifier hs-type">OperatorTable</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679070598"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-107"></span><span>                      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679070598"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-108"></span><span>                      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679070598"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-109"></span><span id="buildExpressionParser"><span class="annot"><span class="annottext">buildExpressionParser :: OperatorTable m a -&gt; m a -&gt; m a
+</span><a href="Text.Parser.Expression.html#buildExpressionParser"><span class="hs-identifier hs-var hs-var">buildExpressionParser</span></a></span></span><span> </span><span id="local-6989586621679070596"><span class="annot"><span class="annottext">OperatorTable m a
+</span><a href="#local-6989586621679070596"><span class="hs-identifier hs-var">operators</span></a></span></span><span> </span><span id="local-6989586621679070595"><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679070595"><span class="hs-identifier hs-var">simpleExpr</span></a></span></span><span>
+</span><span id="line-110"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(m a -&gt; [Operator m a] -&gt; m a) -&gt; m a -&gt; OperatorTable m a -&gt; m a
+forall (t :: * -&gt; *) b a.
+Foldable t =&gt;
+(b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span><span class="hs-identifier hs-var">foldl</span></span><span> </span><span class="annot"><span class="annottext">m a -&gt; [Operator m a] -&gt; m a
+forall (t :: * -&gt; *). Foldable t =&gt; m a -&gt; t (Operator m a) -&gt; m a
+</span><a href="#local-6989586621679070593"><span class="hs-identifier hs-var">makeParser</span></a></span><span> </span><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679070595"><span class="hs-identifier hs-var">simpleExpr</span></a></span><span> </span><span class="annot"><span class="annottext">OperatorTable m a
+</span><a href="#local-6989586621679070596"><span class="hs-identifier hs-var">operators</span></a></span><span>
+</span><span id="line-111"></span><span>    </span><span class="hs-keyword">where</span><span>
+</span><span id="line-112"></span><span>      </span><span id="local-6989586621679070593"><span class="annot"><span class="annottext">makeParser :: m a -&gt; t (Operator m a) -&gt; m a
+</span><a href="#local-6989586621679070593"><span class="hs-identifier hs-var hs-var">makeParser</span></a></span></span><span> </span><span id="local-6989586621679070592"><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679070592"><span class="hs-identifier hs-var">term</span></a></span></span><span> </span><span id="local-6989586621679070591"><span class="annot"><span class="annottext">t (Operator m a)
+</span><a href="#local-6989586621679070591"><span class="hs-identifier hs-var">ops</span></a></span></span><span>
+</span><span id="line-113"></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">let</span><span> </span><span class="annot"><a href="#local-6989586621679070590"><span class="hs-identifier hs-type">rassoc</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679070589"><span class="hs-identifier hs-type">lassoc</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679070588"><span class="hs-identifier hs-type">nassoc</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679070598"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-114"></span><span>              </span><span class="annot"><a href="#local-6989586621679070587"><span class="hs-identifier hs-type">prefix</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679070586"><span class="hs-identifier hs-type">postfix</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679070598"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-115"></span><span>              </span><span class="hs-special">(</span><span id="local-6989586621679070590"><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070590"><span class="hs-identifier hs-var">rassoc</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679070589"><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070589"><span class="hs-identifier hs-var">lassoc</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679070588"><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070588"><span class="hs-identifier hs-var">nassoc</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679070587"><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070587"><span class="hs-identifier hs-var">prefix</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679070586"><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070586"><span class="hs-identifier hs-var">postfix</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Operator m a
+ -&gt; ([m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)],
+     [m (a -&gt; a)], [m (a -&gt; a)])
+ -&gt; ([m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)],
+     [m (a -&gt; a)], [m (a -&gt; a)]))
+-&gt; ([m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)],
+    [m (a -&gt; a)], [m (a -&gt; a)])
+-&gt; t (Operator m a)
+-&gt; ([m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)],
+    [m (a -&gt; a)], [m (a -&gt; a)])
+forall (t :: * -&gt; *) a b.
+Foldable t =&gt;
+(a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span><span class="hs-identifier hs-var">foldr</span></span><span> </span><span class="annot"><span class="annottext">Operator m a
+-&gt; ([m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)],
+    [m (a -&gt; a)], [m (a -&gt; a)])
+-&gt; ([m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)],
+    [m (a -&gt; a)], [m (a -&gt; a)])
+forall (m :: * -&gt; *) a.
+Operator m a
+-&gt; ([m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)],
+    [m (a -&gt; a)], [m (a -&gt; a)])
+-&gt; ([m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)],
+    [m (a -&gt; a)], [m (a -&gt; a)])
+</span><a href="#local-6989586621679070584"><span class="hs-identifier hs-var">splitOp</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">t (Operator m a)
+</span><a href="#local-6989586621679070591"><span class="hs-identifier hs-var">ops</span></a></span><span>
+</span><span id="line-116"></span><span>
+</span><span id="line-117"></span><span>              </span><span class="annot"><a href="#local-6989586621679070583"><span class="hs-identifier hs-type">rassocOp</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679070582"><span class="hs-identifier hs-type">lassocOp</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679070581"><span class="hs-identifier hs-type">nassocOp</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679070598"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-118"></span><span>              </span><span id="local-6989586621679070583"><span class="annot"><span class="annottext">rassocOp :: m (a -&gt; a -&gt; a)
+</span><a href="#local-6989586621679070583"><span class="hs-identifier hs-var hs-var">rassocOp</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)] -&gt; m (a -&gt; a -&gt; a)
+forall (m :: * -&gt; *) a. Alternative m =&gt; [m a] -&gt; m a
+</span><a href="Text.Parser.Combinators.html#choice"><span class="hs-identifier hs-var">choice</span></a></span><span> </span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070590"><span class="hs-identifier hs-var">rassoc</span></a></span><span>
+</span><span id="line-119"></span><span>              </span><span id="local-6989586621679070582"><span class="annot"><span class="annottext">lassocOp :: m (a -&gt; a -&gt; a)
+</span><a href="#local-6989586621679070582"><span class="hs-identifier hs-var hs-var">lassocOp</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)] -&gt; m (a -&gt; a -&gt; a)
+forall (m :: * -&gt; *) a. Alternative m =&gt; [m a] -&gt; m a
+</span><a href="Text.Parser.Combinators.html#choice"><span class="hs-identifier hs-var">choice</span></a></span><span> </span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070589"><span class="hs-identifier hs-var">lassoc</span></a></span><span>
+</span><span id="line-120"></span><span>              </span><span id="local-6989586621679070581"><span class="annot"><span class="annottext">nassocOp :: m (a -&gt; a -&gt; a)
+</span><a href="#local-6989586621679070581"><span class="hs-identifier hs-var hs-var">nassocOp</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)] -&gt; m (a -&gt; a -&gt; a)
+forall (m :: * -&gt; *) a. Alternative m =&gt; [m a] -&gt; m a
+</span><a href="Text.Parser.Combinators.html#choice"><span class="hs-identifier hs-var">choice</span></a></span><span> </span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070588"><span class="hs-identifier hs-var">nassoc</span></a></span><span>
+</span><span id="line-121"></span><span>
+</span><span id="line-122"></span><span>              </span><span class="annot"><a href="#local-6989586621679070579"><span class="hs-identifier hs-type">prefixOp</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679070578"><span class="hs-identifier hs-type">postfixOp</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679070598"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-123"></span><span>              </span><span id="local-6989586621679070579"><span class="annot"><span class="annottext">prefixOp :: m (a -&gt; a)
+</span><a href="#local-6989586621679070579"><span class="hs-identifier hs-var hs-var">prefixOp</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[m (a -&gt; a)] -&gt; m (a -&gt; a)
+forall (m :: * -&gt; *) a. Alternative m =&gt; [m a] -&gt; m a
+</span><a href="Text.Parser.Combinators.html#choice"><span class="hs-identifier hs-var">choice</span></a></span><span> </span><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070587"><span class="hs-identifier hs-var">prefix</span></a></span><span>  </span><span class="annot"><span class="annottext">m (a -&gt; a) -&gt; String -&gt; m (a -&gt; a)
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; String -&gt; m a
+</span><a href="Text.Parser.Combinators.html#%3C%3F%3E"><span class="hs-operator hs-var">&lt;?&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-124"></span><span>              </span><span id="local-6989586621679070578"><span class="annot"><span class="annottext">postfixOp :: m (a -&gt; a)
+</span><a href="#local-6989586621679070578"><span class="hs-identifier hs-var hs-var">postfixOp</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[m (a -&gt; a)] -&gt; m (a -&gt; a)
+forall (m :: * -&gt; *) a. Alternative m =&gt; [m a] -&gt; m a
+</span><a href="Text.Parser.Combinators.html#choice"><span class="hs-identifier hs-var">choice</span></a></span><span> </span><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070586"><span class="hs-identifier hs-var">postfix</span></a></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a) -&gt; String -&gt; m (a -&gt; a)
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; String -&gt; m a
+</span><a href="Text.Parser.Combinators.html#%3C%3F%3E"><span class="hs-operator hs-var">&lt;?&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-125"></span><span>
+</span><span id="line-126"></span><span>              </span><span id="local-6989586621679070742"><span id="local-6989586621679070743"><span class="annot"><a href="#local-6989586621679070576"><span class="hs-identifier hs-type">ambiguous</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679070598"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679070743"><span class="hs-identifier hs-type">x</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679070598"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679070742"><span class="hs-identifier hs-type">y</span></a></span></span></span><span>
+</span><span id="line-127"></span><span>              </span><span id="local-6989586621679070576"><span class="annot"><span class="annottext">ambiguous :: String -&gt; m x -&gt; m y
+</span><a href="#local-6989586621679070576"><span class="hs-identifier hs-var hs-var">ambiguous</span></a></span></span><span> </span><span id="local-6989586621679070575"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679070575"><span class="hs-identifier hs-var">assoc</span></a></span></span><span> </span><span id="local-6989586621679070574"><span class="annot"><span class="annottext">m x
+</span><a href="#local-6989586621679070574"><span class="hs-identifier hs-var">op</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m y -&gt; m y
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; m a
+</span><a href="Text.Parser.Combinators.html#try"><span class="hs-identifier hs-var">try</span></a></span><span> </span><span class="annot"><span class="annottext">(m y -&gt; m y) -&gt; m y -&gt; m y
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">m x
+</span><a href="#local-6989586621679070574"><span class="hs-identifier hs-var">op</span></a></span><span> </span><span class="annot"><span class="annottext">m x -&gt; m y -&gt; m y
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m y
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a
+</span><span class="hs-identifier hs-var">empty</span></span><span> </span><span class="annot"><span class="annottext">m y -&gt; String -&gt; m y
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; String -&gt; m a
+</span><a href="Text.Parser.Combinators.html#%3C%3F%3E"><span class="hs-operator hs-var">&lt;?&gt;</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;ambiguous use of a &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679070575"><span class="hs-identifier hs-var">assoc</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;-associative operator&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-128"></span><span>
+</span><span id="line-129"></span><span>              </span><span id="local-6989586621679070725"><span class="annot"><a href="#local-6989586621679070571"><span class="hs-identifier hs-type">ambiguousRight</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679070570"><span class="hs-identifier hs-type">ambiguousLeft</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679070569"><span class="hs-identifier hs-type">ambiguousNon</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679070598"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679070725"><span class="hs-identifier hs-type">y</span></a></span></span><span>
+</span><span id="line-130"></span><span>              </span><span id="local-6989586621679070571"><span class="annot"><span class="annottext">ambiguousRight :: m y
+</span><a href="#local-6989586621679070571"><span class="hs-identifier hs-var hs-var">ambiguousRight</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; m (a -&gt; a -&gt; a) -&gt; m y
+forall x y. String -&gt; m x -&gt; m y
+</span><a href="#local-6989586621679070576"><span class="hs-identifier hs-var">ambiguous</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;right&quot;</span></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a -&gt; a)
+</span><a href="#local-6989586621679070583"><span class="hs-identifier hs-var">rassocOp</span></a></span><span>
+</span><span id="line-131"></span><span>              </span><span id="local-6989586621679070570"><span class="annot"><span class="annottext">ambiguousLeft :: m y
+</span><a href="#local-6989586621679070570"><span class="hs-identifier hs-var hs-var">ambiguousLeft</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; m (a -&gt; a -&gt; a) -&gt; m y
+forall x y. String -&gt; m x -&gt; m y
+</span><a href="#local-6989586621679070576"><span class="hs-identifier hs-var">ambiguous</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;left&quot;</span></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a -&gt; a)
+</span><a href="#local-6989586621679070582"><span class="hs-identifier hs-var">lassocOp</span></a></span><span>
+</span><span id="line-132"></span><span>              </span><span id="local-6989586621679070569"><span class="annot"><span class="annottext">ambiguousNon :: m y
+</span><a href="#local-6989586621679070569"><span class="hs-identifier hs-var hs-var">ambiguousNon</span></a></span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; m (a -&gt; a -&gt; a) -&gt; m y
+forall x y. String -&gt; m x -&gt; m y
+</span><a href="#local-6989586621679070576"><span class="hs-identifier hs-var">ambiguous</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;non&quot;</span></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a -&gt; a)
+</span><a href="#local-6989586621679070581"><span class="hs-identifier hs-var">nassocOp</span></a></span><span>
+</span><span id="line-133"></span><span>
+</span><span id="line-134"></span><span>              </span><span class="annot"><a href="#local-6989586621679070568"><span class="hs-identifier hs-type">termP</span></a></span><span>      </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679070598"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-135"></span><span>              </span><span id="local-6989586621679070568"><span class="annot"><span class="annottext">termP :: m a
+</span><a href="#local-6989586621679070568"><span class="hs-identifier hs-var hs-var">termP</span></a></span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">m (a -&gt; a)
+</span><a href="#local-6989586621679070567"><span class="hs-identifier hs-var">prefixP</span></a></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a) -&gt; m a -&gt; m a
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679070592"><span class="hs-identifier hs-var">term</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">m a -&gt; m (a -&gt; a) -&gt; m a
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f (a -&gt; b) -&gt; f b
+</span><span class="hs-operator hs-var">&lt;**&gt;</span></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a)
+</span><a href="#local-6989586621679070565"><span class="hs-identifier hs-var">postfixP</span></a></span><span>
+</span><span id="line-136"></span><span>
+</span><span id="line-137"></span><span>              </span><span class="annot"><a href="#local-6989586621679070565"><span class="hs-identifier hs-type">postfixP</span></a></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679070598"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-138"></span><span>              </span><span id="local-6989586621679070565"><span class="annot"><span class="annottext">postfixP :: m (a -&gt; a)
+</span><a href="#local-6989586621679070565"><span class="hs-identifier hs-var hs-var">postfixP</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a)
+</span><a href="#local-6989586621679070578"><span class="hs-identifier hs-var">postfixOp</span></a></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a) -&gt; m (a -&gt; a) -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; a) -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; a
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span>
+</span><span id="line-139"></span><span>
+</span><span id="line-140"></span><span>              </span><span class="annot"><a href="#local-6989586621679070567"><span class="hs-identifier hs-type">prefixP</span></a></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679070598"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-141"></span><span>              </span><span id="local-6989586621679070567"><span class="annot"><span class="annottext">prefixP :: m (a -&gt; a)
+</span><a href="#local-6989586621679070567"><span class="hs-identifier hs-var hs-var">prefixP</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a)
+</span><a href="#local-6989586621679070579"><span class="hs-identifier hs-var">prefixOp</span></a></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a) -&gt; m (a -&gt; a) -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; a) -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; a
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span>
+</span><span id="line-142"></span><span>
+</span><span id="line-143"></span><span>              </span><span class="annot"><a href="#local-6989586621679070562"><span class="hs-identifier hs-type">rassocP</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679070561"><span class="hs-identifier hs-type">rassocP1</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679070560"><span class="hs-identifier hs-type">lassocP</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679070559"><span class="hs-identifier hs-type">lassocP1</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679070558"><span class="hs-identifier hs-type">nassocP</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679070598"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679070597"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-144"></span><span>
+</span><span id="line-145"></span><span>              </span><span id="local-6989586621679070562"><span class="annot"><span class="annottext">rassocP :: m (a -&gt; a)
+</span><a href="#local-6989586621679070562"><span class="hs-identifier hs-var hs-var">rassocP</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(a -&gt; a -&gt; a) -&gt; a -&gt; a -&gt; a
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span><span class="hs-identifier hs-var">flip</span></span><span> </span><span class="annot"><span class="annottext">((a -&gt; a -&gt; a) -&gt; a -&gt; a -&gt; a)
+-&gt; m (a -&gt; a -&gt; a) -&gt; m (a -&gt; a -&gt; a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a -&gt; a)
+</span><a href="#local-6989586621679070583"><span class="hs-identifier hs-var">rassocOp</span></a></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a -&gt; a) -&gt; m a -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679070568"><span class="hs-identifier hs-var">termP</span></a></span><span> </span><span class="annot"><span class="annottext">m a -&gt; m (a -&gt; a) -&gt; m a
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f (a -&gt; b) -&gt; f b
+</span><span class="hs-operator hs-var">&lt;**&gt;</span></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a)
+</span><a href="#local-6989586621679070561"><span class="hs-identifier hs-var">rassocP1</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-146"></span><span>                          </span><span class="annot"><span class="annottext">m (a -&gt; a) -&gt; m (a -&gt; a) -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a)
+forall y. m y
+</span><a href="#local-6989586621679070570"><span class="hs-identifier hs-var">ambiguousLeft</span></a></span><span>
+</span><span id="line-147"></span><span>                          </span><span class="annot"><span class="annottext">m (a -&gt; a) -&gt; m (a -&gt; a) -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a)
+forall y. m y
+</span><a href="#local-6989586621679070569"><span class="hs-identifier hs-var">ambiguousNon</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-148"></span><span>
+</span><span id="line-149"></span><span>              </span><span id="local-6989586621679070561"><span class="annot"><span class="annottext">rassocP1 :: m (a -&gt; a)
+</span><a href="#local-6989586621679070561"><span class="hs-identifier hs-var hs-var">rassocP1</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a)
+</span><a href="#local-6989586621679070562"><span class="hs-identifier hs-var">rassocP</span></a></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a) -&gt; m (a -&gt; a) -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; a) -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; a
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span>
+</span><span id="line-150"></span><span>
+</span><span id="line-151"></span><span>              </span><span id="local-6989586621679070560"><span class="annot"><span class="annottext">lassocP :: m (a -&gt; a)
+</span><a href="#local-6989586621679070560"><span class="hs-identifier hs-var hs-var">lassocP</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">(a -&gt; a -&gt; a) -&gt; a -&gt; a -&gt; a
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span><span class="hs-identifier hs-var">flip</span></span><span> </span><span class="annot"><span class="annottext">((a -&gt; a -&gt; a) -&gt; a -&gt; a -&gt; a)
+-&gt; m (a -&gt; a -&gt; a) -&gt; m (a -&gt; a -&gt; a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a -&gt; a)
+</span><a href="#local-6989586621679070582"><span class="hs-identifier hs-var">lassocOp</span></a></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a -&gt; a) -&gt; m a -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679070568"><span class="hs-identifier hs-var">termP</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a) -&gt; m ((a -&gt; a) -&gt; a -&gt; a) -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f (a -&gt; b) -&gt; f b
+</span><span class="hs-operator hs-var">&lt;**&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(a -&gt; a) -&gt; (a -&gt; a) -&gt; a -&gt; a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">(.)</span></span><span> </span><span class="annot"><span class="annottext">((a -&gt; a) -&gt; (a -&gt; a) -&gt; a -&gt; a)
+-&gt; m (a -&gt; a) -&gt; m ((a -&gt; a) -&gt; a -&gt; a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a)
+</span><a href="#local-6989586621679070559"><span class="hs-identifier hs-var">lassocP1</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-152"></span><span>                          </span><span class="annot"><span class="annottext">m (a -&gt; a) -&gt; m (a -&gt; a) -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a)
+forall y. m y
+</span><a href="#local-6989586621679070571"><span class="hs-identifier hs-var">ambiguousRight</span></a></span><span>
+</span><span id="line-153"></span><span>                          </span><span class="annot"><span class="annottext">m (a -&gt; a) -&gt; m (a -&gt; a) -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a)
+forall y. m y
+</span><a href="#local-6989586621679070569"><span class="hs-identifier hs-var">ambiguousNon</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-154"></span><span>
+</span><span id="line-155"></span><span>              </span><span id="local-6989586621679070559"><span class="annot"><span class="annottext">lassocP1 :: m (a -&gt; a)
+</span><a href="#local-6989586621679070559"><span class="hs-identifier hs-var hs-var">lassocP1</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a)
+</span><a href="#local-6989586621679070560"><span class="hs-identifier hs-var">lassocP</span></a></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a) -&gt; m (a -&gt; a) -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; a) -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; a
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span>
+</span><span id="line-156"></span><span>
+</span><span id="line-157"></span><span>              </span><span id="local-6989586621679070558"><span class="annot"><span class="annottext">nassocP :: m (a -&gt; a)
+</span><a href="#local-6989586621679070558"><span class="hs-identifier hs-var hs-var">nassocP</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(a -&gt; a -&gt; a) -&gt; a -&gt; a -&gt; a
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span><span class="hs-identifier hs-var">flip</span></span><span> </span><span class="annot"><span class="annottext">((a -&gt; a -&gt; a) -&gt; a -&gt; a -&gt; a)
+-&gt; m (a -&gt; a -&gt; a) -&gt; m (a -&gt; a -&gt; a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a -&gt; a)
+</span><a href="#local-6989586621679070581"><span class="hs-identifier hs-var">nassocOp</span></a></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a -&gt; a) -&gt; m a -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679070568"><span class="hs-identifier hs-var">termP</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-158"></span><span>                        </span><span class="annot"><span class="annottext">m (a -&gt; a) -&gt; m ((a -&gt; a) -&gt; a -&gt; a) -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f (a -&gt; b) -&gt; f b
+</span><span class="hs-operator hs-var">&lt;**&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">m ((a -&gt; a) -&gt; a -&gt; a)
+forall y. m y
+</span><a href="#local-6989586621679070571"><span class="hs-identifier hs-var">ambiguousRight</span></a></span><span>
+</span><span id="line-159"></span><span>                              </span><span class="annot"><span class="annottext">m ((a -&gt; a) -&gt; a -&gt; a)
+-&gt; m ((a -&gt; a) -&gt; a -&gt; a) -&gt; m ((a -&gt; a) -&gt; a -&gt; a)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ((a -&gt; a) -&gt; a -&gt; a)
+forall y. m y
+</span><a href="#local-6989586621679070570"><span class="hs-identifier hs-var">ambiguousLeft</span></a></span><span>
+</span><span id="line-160"></span><span>                              </span><span class="annot"><span class="annottext">m ((a -&gt; a) -&gt; a -&gt; a)
+-&gt; m ((a -&gt; a) -&gt; a -&gt; a) -&gt; m ((a -&gt; a) -&gt; a -&gt; a)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ((a -&gt; a) -&gt; a -&gt; a)
+forall y. m y
+</span><a href="#local-6989586621679070569"><span class="hs-identifier hs-var">ambiguousNon</span></a></span><span>
+</span><span id="line-161"></span><span>                              </span><span class="annot"><span class="annottext">m ((a -&gt; a) -&gt; a -&gt; a)
+-&gt; m ((a -&gt; a) -&gt; a -&gt; a) -&gt; m ((a -&gt; a) -&gt; a -&gt; a)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">((a -&gt; a) -&gt; a -&gt; a) -&gt; m ((a -&gt; a) -&gt; a -&gt; a)
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; a) -&gt; a -&gt; a
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span class="hs-special">)</span><span>
+</span><span id="line-162"></span><span>           </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679070568"><span class="hs-identifier hs-var">termP</span></a></span><span> </span><span class="annot"><span class="annottext">m a -&gt; m (a -&gt; a) -&gt; m a
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f (a -&gt; b) -&gt; f b
+</span><span class="hs-operator hs-var">&lt;**&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">m (a -&gt; a)
+</span><a href="#local-6989586621679070562"><span class="hs-identifier hs-var">rassocP</span></a></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a) -&gt; m (a -&gt; a) -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a)
+</span><a href="#local-6989586621679070560"><span class="hs-identifier hs-var">lassocP</span></a></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a) -&gt; m (a -&gt; a) -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a)
+</span><a href="#local-6989586621679070558"><span class="hs-identifier hs-var">nassocP</span></a></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; a) -&gt; m (a -&gt; a) -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; a) -&gt; m (a -&gt; a)
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; a
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">m a -&gt; String -&gt; m a
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; String -&gt; m a
+</span><a href="Text.Parser.Combinators.html#%3C%3F%3E"><span class="hs-operator hs-var">&lt;?&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;operator&quot;</span></span><span>
+</span><span id="line-163"></span><span>
+</span><span id="line-164"></span><span>
+</span><span id="line-165"></span><span>      </span><span id="local-6989586621679070584"><span class="annot"><span class="annottext">splitOp :: Operator m a
+-&gt; ([m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)],
+    [m (a -&gt; a)], [m (a -&gt; a)])
+-&gt; ([m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)], [m (a -&gt; a -&gt; a)],
+    [m (a -&gt; a)], [m (a -&gt; a)])
+</span><a href="#local-6989586621679070584"><span class="hs-identifier hs-var hs-var">splitOp</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Parser.Expression.html#Infix"><span class="hs-identifier hs-type">Infix</span></a></span><span> </span><span id="local-6989586621679070554"><span class="annot"><span class="annottext">m (a -&gt; a -&gt; a)
+</span><a href="#local-6989586621679070554"><span class="hs-identifier hs-var">op</span></a></span></span><span> </span><span id="local-6989586621679070553"><span class="annot"><span class="annottext">Assoc
+</span><a href="#local-6989586621679070553"><span class="hs-identifier hs-var">assoc</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679070552"><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070552"><span class="hs-identifier hs-var">rassoc</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679070551"><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070551"><span class="hs-identifier hs-var">lassoc</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679070550"><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070550"><span class="hs-identifier hs-var">nassoc</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679070549"><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070549"><span class="hs-identifier hs-var">prefix</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679070548"><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070548"><span class="hs-identifier hs-var">postfix</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-166"></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Assoc
+</span><a href="#local-6989586621679070553"><span class="hs-identifier hs-var">assoc</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-167"></span><span>            </span><span class="annot"><span class="annottext">Assoc
+</span><a href="Text.Parser.Expression.html#AssocNone"><span class="hs-identifier hs-var">AssocNone</span></a></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070552"><span class="hs-identifier hs-var">rassoc</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070551"><span class="hs-identifier hs-var">lassoc</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">m (a -&gt; a -&gt; a)
+</span><a href="#local-6989586621679070554"><span class="hs-identifier hs-var">op</span></a></span><span class="annot"><span class="annottext">m (a -&gt; a -&gt; a) -&gt; [m (a -&gt; a -&gt; a)] -&gt; [m (a -&gt; a -&gt; a)]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070550"><span class="hs-identifier hs-var">nassoc</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070549"><span class="hs-identifier hs-var">prefix</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070548"><span class="hs-identifier hs-var">postfix</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-168"></span><span>            </span><span class="annot"><span class="annottext">Assoc
+</span><a href="Text.Parser.Expression.html#AssocLeft"><span class="hs-identifier hs-var">AssocLeft</span></a></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070552"><span class="hs-identifier hs-var">rassoc</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">m (a -&gt; a -&gt; a)
+</span><a href="#local-6989586621679070554"><span class="hs-identifier hs-var">op</span></a></span><span class="annot"><span class="annottext">m (a -&gt; a -&gt; a) -&gt; [m (a -&gt; a -&gt; a)] -&gt; [m (a -&gt; a -&gt; a)]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070551"><span class="hs-identifier hs-var">lassoc</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070550"><span class="hs-identifier hs-var">nassoc</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070549"><span class="hs-identifier hs-var">prefix</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070548"><span class="hs-identifier hs-var">postfix</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-169"></span><span>            </span><span class="annot"><span class="annottext">Assoc
+</span><a href="Text.Parser.Expression.html#AssocRight"><span class="hs-identifier hs-var">AssocRight</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">m (a -&gt; a -&gt; a)
+</span><a href="#local-6989586621679070554"><span class="hs-identifier hs-var">op</span></a></span><span class="annot"><span class="annottext">m (a -&gt; a -&gt; a) -&gt; [m (a -&gt; a -&gt; a)] -&gt; [m (a -&gt; a -&gt; a)]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070552"><span class="hs-identifier hs-var">rassoc</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070551"><span class="hs-identifier hs-var">lassoc</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070550"><span class="hs-identifier hs-var">nassoc</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070549"><span class="hs-identifier hs-var">prefix</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070548"><span class="hs-identifier hs-var">postfix</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-170"></span><span>
+</span><span id="line-171"></span><span>      </span><span class="annot"><a href="#local-6989586621679070584"><span class="hs-identifier hs-var">splitOp</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Parser.Expression.html#Prefix"><span class="hs-identifier hs-type">Prefix</span></a></span><span> </span><span id="local-6989586621679070547"><span class="annot"><span class="annottext">m (a -&gt; a)
+</span><a href="#local-6989586621679070547"><span class="hs-identifier hs-var">op</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679070546"><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070546"><span class="hs-identifier hs-var">rassoc</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679070545"><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070545"><span class="hs-identifier hs-var">lassoc</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679070544"><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070544"><span class="hs-identifier hs-var">nassoc</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679070543"><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070543"><span class="hs-identifier hs-var">prefix</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679070542"><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070542"><span class="hs-identifier hs-var">postfix</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-172"></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070546"><span class="hs-identifier hs-var">rassoc</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070545"><span class="hs-identifier hs-var">lassoc</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070544"><span class="hs-identifier hs-var">nassoc</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">m (a -&gt; a)
+</span><a href="#local-6989586621679070547"><span class="hs-identifier hs-var">op</span></a></span><span class="annot"><span class="annottext">m (a -&gt; a) -&gt; [m (a -&gt; a)] -&gt; [m (a -&gt; a)]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070543"><span class="hs-identifier hs-var">prefix</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070542"><span class="hs-identifier hs-var">postfix</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-173"></span><span>
+</span><span id="line-174"></span><span>      </span><span class="annot"><a href="#local-6989586621679070584"><span class="hs-identifier hs-var">splitOp</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Parser.Expression.html#Postfix"><span class="hs-identifier hs-type">Postfix</span></a></span><span> </span><span id="local-6989586621679070541"><span class="annot"><span class="annottext">m (a -&gt; a)
+</span><a href="#local-6989586621679070541"><span class="hs-identifier hs-var">op</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679070540"><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070540"><span class="hs-identifier hs-var">rassoc</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679070539"><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070539"><span class="hs-identifier hs-var">lassoc</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679070538"><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070538"><span class="hs-identifier hs-var">nassoc</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679070537"><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070537"><span class="hs-identifier hs-var">prefix</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679070536"><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070536"><span class="hs-identifier hs-var">postfix</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-175"></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070540"><span class="hs-identifier hs-var">rassoc</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070539"><span class="hs-identifier hs-var">lassoc</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[m (a -&gt; a -&gt; a)]
+</span><a href="#local-6989586621679070538"><span class="hs-identifier hs-var">nassoc</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070537"><span class="hs-identifier hs-var">prefix</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">m (a -&gt; a)
+</span><a href="#local-6989586621679070541"><span class="hs-identifier hs-var">op</span></a></span><span class="annot"><span class="annottext">m (a -&gt; a) -&gt; [m (a -&gt; a)] -&gt; [m (a -&gt; a)]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[m (a -&gt; a)]
+</span><a href="#local-6989586621679070536"><span class="hs-identifier hs-var">postfix</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-176"></span></pre></body></html>

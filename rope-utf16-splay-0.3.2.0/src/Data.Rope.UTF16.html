@@ -1,0 +1,52 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.Rope.UTF16</span><span>
+</span><span id="line-2"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#Rope"><span class="hs-identifier">Rope.Rope</span></a></span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span>  </span><span class="annot"><span class="hs-comment">-- * Queries</span></span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#null"><span class="hs-identifier">Rope.null</span></a></span><span>
+</span><span id="line-6"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#length"><span class="hs-identifier">Rope.length</span></a></span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#rows"><span class="hs-identifier">Rope.rows</span></a></span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#columns"><span class="hs-identifier">Rope.columns</span></a></span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span>  </span><span class="annot"><span class="hs-comment">-- * Conversions</span></span><span>
+</span><span id="line-11"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#toText"><span class="hs-identifier">Rope.toText</span></a></span><span>
+</span><span id="line-12"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#toLazyText"><span class="hs-identifier">Rope.toLazyText</span></a></span><span>
+</span><span id="line-13"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#fromText"><span class="hs-identifier">Rope.fromText</span></a></span><span>
+</span><span id="line-14"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#toString"><span class="hs-identifier">Rope.toString</span></a></span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span>  </span><span class="annot"><span class="hs-comment">-- * Transformations</span></span><span>
+</span><span id="line-17"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#map"><span class="hs-identifier">Rope.map</span></a></span><span>
+</span><span id="line-18"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#intercalate"><span class="hs-identifier">Rope.intercalate</span></a></span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span>  </span><span class="annot"><span class="hs-comment">-- * Chunking</span></span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#toChunks"><span class="hs-identifier">Rope.toChunks</span></a></span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#unconsChunk"><span class="hs-identifier">Rope.unconsChunk</span></a></span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#unsnocChunk"><span class="hs-identifier">Rope.unsnocChunk</span></a></span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span>  </span><span class="annot"><span class="hs-comment">-- * UTF-16 code unit indexing</span></span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#splitAt"><span class="hs-identifier">Rope.splitAt</span></a></span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#take"><span class="hs-identifier">Rope.take</span></a></span><span>
+</span><span id="line-28"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#drop"><span class="hs-identifier">Rope.drop</span></a></span><span>
+</span><span id="line-29"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html#RowColumn"><span class="hs-identifier">Position.RowColumn</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#rowColumnCodeUnits"><span class="hs-identifier">Rope.rowColumnCodeUnits</span></a></span><span>
+</span><span id="line-31"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#codeUnitsRowColumn"><span class="hs-identifier">Rope.codeUnitsRowColumn</span></a></span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#splitAtLine"><span class="hs-identifier">Rope.splitAtLine</span></a></span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span>  </span><span class="annot"><span class="hs-comment">-- * Breaking by predicate</span></span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#span"><span class="hs-identifier">Rope.span</span></a></span><span>
+</span><span id="line-36"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#break"><span class="hs-identifier">Rope.break</span></a></span><span>
+</span><span id="line-37"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#takeWhile"><span class="hs-identifier">Rope.takeWhile</span></a></span><span>
+</span><span id="line-38"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#dropWhile"><span class="hs-identifier">Rope.dropWhile</span></a></span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span>  </span><span class="annot"><span class="hs-comment">-- * Folds</span></span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#foldl"><span class="hs-identifier">Rope.foldl</span></a></span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#foldl%27"><span class="hs-identifier">Rope.foldl'</span></a></span><span>
+</span><span id="line-43"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#foldr"><span class="hs-identifier">Rope.foldr</span></a></span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span>  </span><span class="annot"><span class="hs-comment">-- * Special folds</span></span><span>
+</span><span id="line-46"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#any"><span class="hs-identifier">Rope.any</span></a></span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html#all"><span class="hs-identifier">Rope.all</span></a></span><span>
+</span><span id="line-48"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-49"></span><span>
+</span><span id="line-50"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.html"><span class="hs-identifier">Data.Rope.UTF16.Internal</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Rope</span></span><span>
+</span><span id="line-51"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Data.Rope.UTF16.Internal.Position.html"><span class="hs-identifier">Data.Rope.UTF16.Internal.Position</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Position</span></span><span>
+</span><span id="line-52"></span></pre></body></html>

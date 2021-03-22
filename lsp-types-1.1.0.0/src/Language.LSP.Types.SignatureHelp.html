@@ -1,0 +1,573 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- | Signature Help Request</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- https://github.com/Microsoft/language-server-protocol/blob/master/protocol.md#signature-help-request</span><span>
+</span><span id="line-5"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.SignatureHelp</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-6"></span><span>    </span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson</span></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html"><span class="hs-identifier">Language.LSP.Types.Common</span></a></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html"><span class="hs-identifier">Language.LSP.Types.MarkupContent</span></a></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Progress.html"><span class="hs-identifier">Language.LSP.Types.Progress</span></a></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.TextDocument.html"><span class="hs-identifier">Language.LSP.Types.TextDocument</span></a></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">data</span><span> </span><span id="SignatureHelpParameterInformation"><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureHelpParameterInformation"><span class="hs-identifier hs-var">SignatureHelpParameterInformation</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-19"></span><span>  </span><span id="SignatureHelpParameterInformation"><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureHelpParameterInformation"><span class="hs-identifier hs-var">SignatureHelpParameterInformation</span></a></span></span><span>
+</span><span id="line-20"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The client supports processing label offsets instead of a simple</span><span>
+</span><span id="line-21"></span><span>      </span><span class="hs-comment">-- label string.</span><span>
+</span><span id="line-22"></span><span>      </span><span class="hs-comment">--</span><span>
+</span><span id="line-23"></span><span>      </span><span class="hs-comment">-- @since 3.14.0</span><span>
+</span><span id="line-24"></span><span>      </span><span id="%24sel%3A_labelOffsetSupport%3ASignatureHelpParameterInformation"><span class="annot"><span class="annottext">SignatureHelpParameterInformation -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.SignatureHelp.html#%24sel%3A_labelOffsetSupport%3ASignatureHelpParameterInformation"><span class="hs-identifier hs-var hs-var">_labelOffsetSupport</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-25"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680438164"><span id="local-6989586621680438166"><span id="local-6989586621680438168"><span id="local-6989586621680438170"><span class="annot"><span class="annottext">ReadPrec [SignatureHelpParameterInformation]
+ReadPrec SignatureHelpParameterInformation
+Int -&gt; ReadS SignatureHelpParameterInformation
+ReadS [SignatureHelpParameterInformation]
+(Int -&gt; ReadS SignatureHelpParameterInformation)
+-&gt; ReadS [SignatureHelpParameterInformation]
+-&gt; ReadPrec SignatureHelpParameterInformation
+-&gt; ReadPrec [SignatureHelpParameterInformation]
+-&gt; Read SignatureHelpParameterInformation
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [SignatureHelpParameterInformation]
+$creadListPrec :: ReadPrec [SignatureHelpParameterInformation]
+readPrec :: ReadPrec SignatureHelpParameterInformation
+$creadPrec :: ReadPrec SignatureHelpParameterInformation
+readList :: ReadS [SignatureHelpParameterInformation]
+$creadList :: ReadS [SignatureHelpParameterInformation]
+readsPrec :: Int -&gt; ReadS SignatureHelpParameterInformation
+$creadsPrec :: Int -&gt; ReadS SignatureHelpParameterInformation
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680438157"><span id="local-6989586621680438159"><span id="local-6989586621680438161"><span class="annot"><span class="annottext">Int -&gt; SignatureHelpParameterInformation -&gt; ShowS
+[SignatureHelpParameterInformation] -&gt; ShowS
+SignatureHelpParameterInformation -&gt; String
+(Int -&gt; SignatureHelpParameterInformation -&gt; ShowS)
+-&gt; (SignatureHelpParameterInformation -&gt; String)
+-&gt; ([SignatureHelpParameterInformation] -&gt; ShowS)
+-&gt; Show SignatureHelpParameterInformation
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [SignatureHelpParameterInformation] -&gt; ShowS
+$cshowList :: [SignatureHelpParameterInformation] -&gt; ShowS
+show :: SignatureHelpParameterInformation -&gt; String
+$cshow :: SignatureHelpParameterInformation -&gt; String
+showsPrec :: Int -&gt; SignatureHelpParameterInformation -&gt; ShowS
+$cshowsPrec :: Int -&gt; SignatureHelpParameterInformation -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680438152"><span id="local-6989586621680438154"><span class="annot"><span class="annottext">SignatureHelpParameterInformation
+-&gt; SignatureHelpParameterInformation -&gt; Bool
+(SignatureHelpParameterInformation
+ -&gt; SignatureHelpParameterInformation -&gt; Bool)
+-&gt; (SignatureHelpParameterInformation
+    -&gt; SignatureHelpParameterInformation -&gt; Bool)
+-&gt; Eq SignatureHelpParameterInformation
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: SignatureHelpParameterInformation
+-&gt; SignatureHelpParameterInformation -&gt; Bool
+$c/= :: SignatureHelpParameterInformation
+-&gt; SignatureHelpParameterInformation -&gt; Bool
+== :: SignatureHelpParameterInformation
+-&gt; SignatureHelpParameterInformation -&gt; Bool
+$c== :: SignatureHelpParameterInformation
+-&gt; SignatureHelpParameterInformation -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span id="local-6989586621680438139"><span id="local-6989586621680438141"><span id="local-6989586621680438143"><span id="local-6989586621680438145"><span id="local-6989586621680438147"><span id="local-6989586621680438149"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">SignatureHelpParameterInformation</span></span></span></span></span></span></span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">data</span><span> </span><span id="SignatureHelpSignatureInformation"><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureHelpSignatureInformation"><span class="hs-identifier hs-var">SignatureHelpSignatureInformation</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-30"></span><span>  </span><span id="SignatureHelpSignatureInformation"><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureHelpSignatureInformation"><span class="hs-identifier hs-var">SignatureHelpSignatureInformation</span></a></span></span><span>
+</span><span id="line-31"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Client supports the follow content formats for the documentation</span><span>
+</span><span id="line-32"></span><span>      </span><span class="hs-comment">-- property. The order describes the preferred format of the client.</span><span>
+</span><span id="line-33"></span><span>      </span><span id="%24sel%3A_documentationFormat%3ASignatureHelpSignatureInformation"><span class="annot"><span class="annottext">SignatureHelpSignatureInformation -&gt; Maybe (List MarkupKind)
+</span><a href="Language.LSP.Types.SignatureHelp.html#%24sel%3A_documentationFormat%3ASignatureHelpSignatureInformation"><span class="hs-identifier hs-var hs-var">_documentationFormat</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupKind"><span class="hs-identifier hs-type">MarkupKind</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-34"></span><span>      </span><span class="hs-comment">-- | Client capabilities specific to parameter information.</span><span>
+</span><span id="line-35"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_parameterInformation%3ASignatureHelpSignatureInformation"><span class="annot"><span class="annottext">SignatureHelpSignatureInformation
+-&gt; Maybe SignatureHelpParameterInformation
+</span><a href="Language.LSP.Types.SignatureHelp.html#%24sel%3A_parameterInformation%3ASignatureHelpSignatureInformation"><span class="hs-identifier hs-var hs-var">_parameterInformation</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureHelpParameterInformation"><span class="hs-identifier hs-type">SignatureHelpParameterInformation</span></a></span><span>
+</span><span id="line-36"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-37"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680438125"><span id="local-6989586621680438127"><span id="local-6989586621680438129"><span class="annot"><span class="annottext">Int -&gt; SignatureHelpSignatureInformation -&gt; ShowS
+[SignatureHelpSignatureInformation] -&gt; ShowS
+SignatureHelpSignatureInformation -&gt; String
+(Int -&gt; SignatureHelpSignatureInformation -&gt; ShowS)
+-&gt; (SignatureHelpSignatureInformation -&gt; String)
+-&gt; ([SignatureHelpSignatureInformation] -&gt; ShowS)
+-&gt; Show SignatureHelpSignatureInformation
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [SignatureHelpSignatureInformation] -&gt; ShowS
+$cshowList :: [SignatureHelpSignatureInformation] -&gt; ShowS
+show :: SignatureHelpSignatureInformation -&gt; String
+$cshow :: SignatureHelpSignatureInformation -&gt; String
+showsPrec :: Int -&gt; SignatureHelpSignatureInformation -&gt; ShowS
+$cshowsPrec :: Int -&gt; SignatureHelpSignatureInformation -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680438117"><span id="local-6989586621680438119"><span id="local-6989586621680438121"><span id="local-6989586621680438123"><span class="annot"><span class="annottext">ReadPrec [SignatureHelpSignatureInformation]
+ReadPrec SignatureHelpSignatureInformation
+Int -&gt; ReadS SignatureHelpSignatureInformation
+ReadS [SignatureHelpSignatureInformation]
+(Int -&gt; ReadS SignatureHelpSignatureInformation)
+-&gt; ReadS [SignatureHelpSignatureInformation]
+-&gt; ReadPrec SignatureHelpSignatureInformation
+-&gt; ReadPrec [SignatureHelpSignatureInformation]
+-&gt; Read SignatureHelpSignatureInformation
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [SignatureHelpSignatureInformation]
+$creadListPrec :: ReadPrec [SignatureHelpSignatureInformation]
+readPrec :: ReadPrec SignatureHelpSignatureInformation
+$creadPrec :: ReadPrec SignatureHelpSignatureInformation
+readList :: ReadS [SignatureHelpSignatureInformation]
+$creadList :: ReadS [SignatureHelpSignatureInformation]
+readsPrec :: Int -&gt; ReadS SignatureHelpSignatureInformation
+$creadsPrec :: Int -&gt; ReadS SignatureHelpSignatureInformation
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680438113"><span id="local-6989586621680438115"><span class="annot"><span class="annottext">SignatureHelpSignatureInformation
+-&gt; SignatureHelpSignatureInformation -&gt; Bool
+(SignatureHelpSignatureInformation
+ -&gt; SignatureHelpSignatureInformation -&gt; Bool)
+-&gt; (SignatureHelpSignatureInformation
+    -&gt; SignatureHelpSignatureInformation -&gt; Bool)
+-&gt; Eq SignatureHelpSignatureInformation
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: SignatureHelpSignatureInformation
+-&gt; SignatureHelpSignatureInformation -&gt; Bool
+$c/= :: SignatureHelpSignatureInformation
+-&gt; SignatureHelpSignatureInformation -&gt; Bool
+== :: SignatureHelpSignatureInformation
+-&gt; SignatureHelpSignatureInformation -&gt; Bool
+$c== :: SignatureHelpSignatureInformation
+-&gt; SignatureHelpSignatureInformation -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span id="local-6989586621680438101"><span id="local-6989586621680438103"><span id="local-6989586621680438105"><span id="local-6989586621680438107"><span id="local-6989586621680438109"><span id="local-6989586621680438111"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">SignatureHelpSignatureInformation</span></span></span></span></span></span></span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="hs-keyword">data</span><span> </span><span id="SignatureHelpClientCapabilities"><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureHelpClientCapabilities"><span class="hs-identifier hs-var">SignatureHelpClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-42"></span><span>  </span><span id="SignatureHelpClientCapabilities"><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureHelpClientCapabilities"><span class="hs-identifier hs-var">SignatureHelpClientCapabilities</span></a></span></span><span>
+</span><span id="line-43"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Whether signature help supports dynamic registration.</span><span>
+</span><span id="line-44"></span><span>      </span><span id="%24sel%3A_dynamicRegistration%3ASignatureHelpClientCapabilities"><span class="annot"><span class="annottext">SignatureHelpClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.SignatureHelp.html#%24sel%3A_dynamicRegistration%3ASignatureHelpClientCapabilities"><span class="hs-identifier hs-var hs-var">_dynamicRegistration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-45"></span><span>      </span><span class="hs-comment">-- | The client supports the following 'SignatureInformation'</span><span>
+</span><span id="line-46"></span><span>      </span><span class="hs-comment">-- specific properties.</span><span>
+</span><span id="line-47"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_signatureInformation%3ASignatureHelpClientCapabilities"><span class="annot"><span class="annottext">SignatureHelpClientCapabilities
+-&gt; Maybe SignatureHelpSignatureInformation
+</span><a href="Language.LSP.Types.SignatureHelp.html#%24sel%3A_signatureInformation%3ASignatureHelpClientCapabilities"><span class="hs-identifier hs-var hs-var">_signatureInformation</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureHelpSignatureInformation"><span class="hs-identifier hs-type">SignatureHelpSignatureInformation</span></a></span><span>
+</span><span id="line-48"></span><span>      </span><span class="hs-comment">-- | The client supports to send additional context information for a</span><span>
+</span><span id="line-49"></span><span>      </span><span class="hs-comment">-- @textDocument/signatureHelp@ request. A client that opts into</span><span>
+</span><span id="line-50"></span><span>      </span><span class="hs-comment">-- contextSupport will also support the '_retriggerCharacters' on</span><span>
+</span><span id="line-51"></span><span>      </span><span class="hs-comment">-- 'SignatureHelpOptions'.</span><span>
+</span><span id="line-52"></span><span>      </span><span class="hs-comment">--</span><span>
+</span><span id="line-53"></span><span>      </span><span class="hs-comment">-- @since 3.15.0</span><span>
+</span><span id="line-54"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_contextSupport%3ASignatureHelpClientCapabilities"><span class="annot"><span class="annottext">SignatureHelpClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.SignatureHelp.html#%24sel%3A_contextSupport%3ASignatureHelpClientCapabilities"><span class="hs-identifier hs-var hs-var">_contextSupport</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-55"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680438091"><span id="local-6989586621680438093"><span id="local-6989586621680438095"><span class="annot"><span class="annottext">Int -&gt; SignatureHelpClientCapabilities -&gt; ShowS
+[SignatureHelpClientCapabilities] -&gt; ShowS
+SignatureHelpClientCapabilities -&gt; String
+(Int -&gt; SignatureHelpClientCapabilities -&gt; ShowS)
+-&gt; (SignatureHelpClientCapabilities -&gt; String)
+-&gt; ([SignatureHelpClientCapabilities] -&gt; ShowS)
+-&gt; Show SignatureHelpClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [SignatureHelpClientCapabilities] -&gt; ShowS
+$cshowList :: [SignatureHelpClientCapabilities] -&gt; ShowS
+show :: SignatureHelpClientCapabilities -&gt; String
+$cshow :: SignatureHelpClientCapabilities -&gt; String
+showsPrec :: Int -&gt; SignatureHelpClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; SignatureHelpClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680438083"><span id="local-6989586621680438085"><span id="local-6989586621680438087"><span id="local-6989586621680438089"><span class="annot"><span class="annottext">ReadPrec [SignatureHelpClientCapabilities]
+ReadPrec SignatureHelpClientCapabilities
+Int -&gt; ReadS SignatureHelpClientCapabilities
+ReadS [SignatureHelpClientCapabilities]
+(Int -&gt; ReadS SignatureHelpClientCapabilities)
+-&gt; ReadS [SignatureHelpClientCapabilities]
+-&gt; ReadPrec SignatureHelpClientCapabilities
+-&gt; ReadPrec [SignatureHelpClientCapabilities]
+-&gt; Read SignatureHelpClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [SignatureHelpClientCapabilities]
+$creadListPrec :: ReadPrec [SignatureHelpClientCapabilities]
+readPrec :: ReadPrec SignatureHelpClientCapabilities
+$creadPrec :: ReadPrec SignatureHelpClientCapabilities
+readList :: ReadS [SignatureHelpClientCapabilities]
+$creadList :: ReadS [SignatureHelpClientCapabilities]
+readsPrec :: Int -&gt; ReadS SignatureHelpClientCapabilities
+$creadsPrec :: Int -&gt; ReadS SignatureHelpClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680438079"><span id="local-6989586621680438081"><span class="annot"><span class="annottext">SignatureHelpClientCapabilities
+-&gt; SignatureHelpClientCapabilities -&gt; Bool
+(SignatureHelpClientCapabilities
+ -&gt; SignatureHelpClientCapabilities -&gt; Bool)
+-&gt; (SignatureHelpClientCapabilities
+    -&gt; SignatureHelpClientCapabilities -&gt; Bool)
+-&gt; Eq SignatureHelpClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: SignatureHelpClientCapabilities
+-&gt; SignatureHelpClientCapabilities -&gt; Bool
+$c/= :: SignatureHelpClientCapabilities
+-&gt; SignatureHelpClientCapabilities -&gt; Bool
+== :: SignatureHelpClientCapabilities
+-&gt; SignatureHelpClientCapabilities -&gt; Bool
+$c== :: SignatureHelpClientCapabilities
+-&gt; SignatureHelpClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span id="local-6989586621680438067"><span id="local-6989586621680438069"><span id="local-6989586621680438071"><span id="local-6989586621680438073"><span id="local-6989586621680438075"><span id="local-6989586621680438077"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">SignatureHelpClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span id="%24sel%3A_retriggerCharacters%3ASignatureHelpOptions"><span id="%24sel%3A_triggerCharacters%3ASignatureHelpOptions"><span id="%24sel%3A_workDoneProgress%3ASignatureHelpOptions"><span id="SignatureHelpOptions"><span id="local-6989586621680438049"><span id="local-6989586621680438051"><span id="local-6989586621680438053"><span id="local-6989586621680438055"><span id="local-6989586621680438057"><span id="local-6989586621680438059"><span id="local-6989586621680438061"><span id="local-6989586621680438063"><span id="local-6989586621680438065"><span id="SignatureHelpOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;SignatureHelpOptions&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressOptions</span><span class="hs-special">]</span><span>
+</span><span id="line-62"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;_triggerCharacters&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">Maybe</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">List</span><span> </span><span class="hs-identifier">Text</span><span class="hs-special">)</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;_retriggerCharacters&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">Maybe</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">List</span><span> </span><span class="hs-identifier">Text</span><span class="hs-special">)</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><span id="line-64"></span><span>  </span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-65"></span><span id="local-6989586621680438033"><span id="local-6989586621680438035"><span id="local-6989586621680438037"><span id="local-6989586621680438039"><span id="local-6989586621680438041"><span id="local-6989586621680438043"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">SignatureHelpOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span id="%24sel%3A_retriggerCharacters%3ASignatureHelpRegistrationOptions"><span id="%24sel%3A_triggerCharacters%3ASignatureHelpRegistrationOptions"><span id="%24sel%3A_workDoneProgress%3ASignatureHelpRegistrationOptions"><span id="%24sel%3A_documentSelector%3ASignatureHelpRegistrationOptions"><span id="SignatureHelpRegistrationOptions"><span id="local-6989586621680438015"><span id="local-6989586621680438017"><span id="local-6989586621680438019"><span id="local-6989586621680438021"><span id="local-6989586621680438023"><span id="local-6989586621680438025"><span id="local-6989586621680438027"><span id="local-6989586621680438029"><span id="local-6989586621680438031"><span id="SignatureHelpRegistrationOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;SignatureHelpRegistrationOptions&quot;</span><span>
+</span><span id="line-68"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentRegistrationOptions</span><span>
+</span><span id="line-69"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">SignatureHelpOptions</span><span>
+</span><span id="line-70"></span><span>  </span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-71"></span><span id="local-6989586621680437998"><span id="local-6989586621680438000"><span id="local-6989586621680438002"><span id="local-6989586621680438004"><span id="local-6989586621680438006"><span id="local-6989586621680438008"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">SignatureHelpRegistrationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-72"></span><span>
+</span><span id="line-73"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-74"></span><span>
+</span><span id="line-75"></span><span class="hs-keyword">data</span><span> </span><span id="ParameterInformation"><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#ParameterInformation"><span class="hs-identifier hs-var">ParameterInformation</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-76"></span><span>  </span><span id="ParameterInformation"><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#ParameterInformation"><span class="hs-identifier hs-var">ParameterInformation</span></a></span></span><span>
+</span><span id="line-77"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_label%3AParameterInformation"><span class="annot"><span class="annottext">ParameterInformation -&gt; Text
+</span><a href="Language.LSP.Types.SignatureHelp.html#%24sel%3A_label%3AParameterInformation"><span class="hs-identifier hs-var hs-var">_label</span></a></span></span><span>         </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-78"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_documentation%3AParameterInformation"><span class="annot"><span class="annottext">ParameterInformation -&gt; Maybe Text
+</span><a href="Language.LSP.Types.SignatureHelp.html#%24sel%3A_documentation%3AParameterInformation"><span class="hs-identifier hs-var hs-var">_documentation</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-79"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680437987"><span id="local-6989586621680437989"><span id="local-6989586621680437991"><span id="local-6989586621680437993"><span class="annot"><span class="annottext">ReadPrec [ParameterInformation]
+ReadPrec ParameterInformation
+Int -&gt; ReadS ParameterInformation
+ReadS [ParameterInformation]
+(Int -&gt; ReadS ParameterInformation)
+-&gt; ReadS [ParameterInformation]
+-&gt; ReadPrec ParameterInformation
+-&gt; ReadPrec [ParameterInformation]
+-&gt; Read ParameterInformation
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [ParameterInformation]
+$creadListPrec :: ReadPrec [ParameterInformation]
+readPrec :: ReadPrec ParameterInformation
+$creadPrec :: ReadPrec ParameterInformation
+readList :: ReadS [ParameterInformation]
+$creadList :: ReadS [ParameterInformation]
+readsPrec :: Int -&gt; ReadS ParameterInformation
+$creadsPrec :: Int -&gt; ReadS ParameterInformation
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680437981"><span id="local-6989586621680437983"><span id="local-6989586621680437985"><span class="annot"><span class="annottext">Int -&gt; ParameterInformation -&gt; ShowS
+[ParameterInformation] -&gt; ShowS
+ParameterInformation -&gt; String
+(Int -&gt; ParameterInformation -&gt; ShowS)
+-&gt; (ParameterInformation -&gt; String)
+-&gt; ([ParameterInformation] -&gt; ShowS)
+-&gt; Show ParameterInformation
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [ParameterInformation] -&gt; ShowS
+$cshowList :: [ParameterInformation] -&gt; ShowS
+show :: ParameterInformation -&gt; String
+$cshow :: ParameterInformation -&gt; String
+showsPrec :: Int -&gt; ParameterInformation -&gt; ShowS
+$cshowsPrec :: Int -&gt; ParameterInformation -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680437977"><span id="local-6989586621680437979"><span class="annot"><span class="annottext">ParameterInformation -&gt; ParameterInformation -&gt; Bool
+(ParameterInformation -&gt; ParameterInformation -&gt; Bool)
+-&gt; (ParameterInformation -&gt; ParameterInformation -&gt; Bool)
+-&gt; Eq ParameterInformation
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: ParameterInformation -&gt; ParameterInformation -&gt; Bool
+$c/= :: ParameterInformation -&gt; ParameterInformation -&gt; Bool
+== :: ParameterInformation -&gt; ParameterInformation -&gt; Bool
+$c== :: ParameterInformation -&gt; ParameterInformation -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-80"></span><span id="local-6989586621680437965"><span id="local-6989586621680437967"><span id="local-6989586621680437969"><span id="local-6989586621680437971"><span id="local-6989586621680437973"><span id="local-6989586621680437975"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ParameterInformation</span></span></span></span></span></span></span><span>
+</span><span id="line-81"></span><span>
+</span><span id="line-82"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-83"></span><span>
+</span><span id="line-84"></span><span class="hs-keyword">data</span><span> </span><span id="SignatureInformation"><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureInformation"><span class="hs-identifier hs-var">SignatureInformation</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-85"></span><span>  </span><span id="SignatureInformation"><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureInformation"><span class="hs-identifier hs-var">SignatureInformation</span></a></span></span><span>
+</span><span id="line-86"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_label%3ASignatureInformation"><span class="annot"><span class="annottext">SignatureInformation -&gt; Text
+</span><a href="Language.LSP.Types.SignatureHelp.html#%24sel%3A_label%3ASignatureInformation"><span class="hs-identifier hs-var hs-var">_label</span></a></span></span><span>         </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-87"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_documentation%3ASignatureInformation"><span class="annot"><span class="annottext">SignatureInformation -&gt; Maybe Text
+</span><a href="Language.LSP.Types.SignatureHelp.html#%24sel%3A_documentation%3ASignatureInformation"><span class="hs-identifier hs-var hs-var">_documentation</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-88"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_parameters%3ASignatureInformation"><span class="annot"><span class="annottext">SignatureInformation -&gt; Maybe (List ParameterInformation)
+</span><a href="Language.LSP.Types.SignatureHelp.html#%24sel%3A_parameters%3ASignatureInformation"><span class="hs-identifier hs-var hs-var">_parameters</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#ParameterInformation"><span class="hs-identifier hs-type">ParameterInformation</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-89"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680437953"><span id="local-6989586621680437955"><span id="local-6989586621680437957"><span id="local-6989586621680437959"><span class="annot"><span class="annottext">ReadPrec [SignatureInformation]
+ReadPrec SignatureInformation
+Int -&gt; ReadS SignatureInformation
+ReadS [SignatureInformation]
+(Int -&gt; ReadS SignatureInformation)
+-&gt; ReadS [SignatureInformation]
+-&gt; ReadPrec SignatureInformation
+-&gt; ReadPrec [SignatureInformation]
+-&gt; Read SignatureInformation
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [SignatureInformation]
+$creadListPrec :: ReadPrec [SignatureInformation]
+readPrec :: ReadPrec SignatureInformation
+$creadPrec :: ReadPrec SignatureInformation
+readList :: ReadS [SignatureInformation]
+$creadList :: ReadS [SignatureInformation]
+readsPrec :: Int -&gt; ReadS SignatureInformation
+$creadsPrec :: Int -&gt; ReadS SignatureInformation
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680437947"><span id="local-6989586621680437949"><span id="local-6989586621680437951"><span class="annot"><span class="annottext">Int -&gt; SignatureInformation -&gt; ShowS
+[SignatureInformation] -&gt; ShowS
+SignatureInformation -&gt; String
+(Int -&gt; SignatureInformation -&gt; ShowS)
+-&gt; (SignatureInformation -&gt; String)
+-&gt; ([SignatureInformation] -&gt; ShowS)
+-&gt; Show SignatureInformation
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [SignatureInformation] -&gt; ShowS
+$cshowList :: [SignatureInformation] -&gt; ShowS
+show :: SignatureInformation -&gt; String
+$cshow :: SignatureInformation -&gt; String
+showsPrec :: Int -&gt; SignatureInformation -&gt; ShowS
+$cshowsPrec :: Int -&gt; SignatureInformation -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680437943"><span id="local-6989586621680437945"><span class="annot"><span class="annottext">SignatureInformation -&gt; SignatureInformation -&gt; Bool
+(SignatureInformation -&gt; SignatureInformation -&gt; Bool)
+-&gt; (SignatureInformation -&gt; SignatureInformation -&gt; Bool)
+-&gt; Eq SignatureInformation
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: SignatureInformation -&gt; SignatureInformation -&gt; Bool
+$c/= :: SignatureInformation -&gt; SignatureInformation -&gt; Bool
+== :: SignatureInformation -&gt; SignatureInformation -&gt; Bool
+$c== :: SignatureInformation -&gt; SignatureInformation -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-90"></span><span>
+</span><span id="line-91"></span><span id="local-6989586621680437931"><span id="local-6989586621680437933"><span id="local-6989586621680437935"><span id="local-6989586621680437937"><span id="local-6989586621680437939"><span id="local-6989586621680437941"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">SignatureInformation</span></span></span></span></span></span></span><span>
+</span><span id="line-92"></span><span>
+</span><span id="line-93"></span><span class="hs-keyword">data</span><span> </span><span id="SignatureHelp"><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureHelp"><span class="hs-identifier hs-var">SignatureHelp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-94"></span><span>  </span><span id="SignatureHelp"><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureHelp"><span class="hs-identifier hs-var">SignatureHelp</span></a></span></span><span>
+</span><span id="line-95"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_signatures%3ASignatureHelp"><span class="annot"><span class="annottext">SignatureHelp -&gt; List SignatureInformation
+</span><a href="Language.LSP.Types.SignatureHelp.html#%24sel%3A_signatures%3ASignatureHelp"><span class="hs-identifier hs-var hs-var">_signatures</span></a></span></span><span>      </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureInformation"><span class="hs-identifier hs-type">SignatureInformation</span></a></span><span>
+</span><span id="line-96"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_activeSignature%3ASignatureHelp"><span class="annot"><span class="annottext">SignatureHelp -&gt; Maybe Int
+</span><a href="Language.LSP.Types.SignatureHelp.html#%24sel%3A_activeSignature%3ASignatureHelp"><span class="hs-identifier hs-var hs-var">_activeSignature</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-comment">-- ^ The active signature</span><span>
+</span><span id="line-97"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_activeParameter%3ASignatureHelp"><span class="annot"><span class="annottext">SignatureHelp -&gt; Maybe Int
+</span><a href="Language.LSP.Types.SignatureHelp.html#%24sel%3A_activeParameter%3ASignatureHelp"><span class="hs-identifier hs-var hs-var">_activeParameter</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-comment">-- ^ The active parameter of the active signature</span><span>
+</span><span id="line-98"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680437919"><span id="local-6989586621680437921"><span id="local-6989586621680437923"><span id="local-6989586621680437925"><span class="annot"><span class="annottext">ReadPrec [SignatureHelp]
+ReadPrec SignatureHelp
+Int -&gt; ReadS SignatureHelp
+ReadS [SignatureHelp]
+(Int -&gt; ReadS SignatureHelp)
+-&gt; ReadS [SignatureHelp]
+-&gt; ReadPrec SignatureHelp
+-&gt; ReadPrec [SignatureHelp]
+-&gt; Read SignatureHelp
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [SignatureHelp]
+$creadListPrec :: ReadPrec [SignatureHelp]
+readPrec :: ReadPrec SignatureHelp
+$creadPrec :: ReadPrec SignatureHelp
+readList :: ReadS [SignatureHelp]
+$creadList :: ReadS [SignatureHelp]
+readsPrec :: Int -&gt; ReadS SignatureHelp
+$creadsPrec :: Int -&gt; ReadS SignatureHelp
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680437913"><span id="local-6989586621680437915"><span id="local-6989586621680437917"><span class="annot"><span class="annottext">Int -&gt; SignatureHelp -&gt; ShowS
+[SignatureHelp] -&gt; ShowS
+SignatureHelp -&gt; String
+(Int -&gt; SignatureHelp -&gt; ShowS)
+-&gt; (SignatureHelp -&gt; String)
+-&gt; ([SignatureHelp] -&gt; ShowS)
+-&gt; Show SignatureHelp
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [SignatureHelp] -&gt; ShowS
+$cshowList :: [SignatureHelp] -&gt; ShowS
+show :: SignatureHelp -&gt; String
+$cshow :: SignatureHelp -&gt; String
+showsPrec :: Int -&gt; SignatureHelp -&gt; ShowS
+$cshowsPrec :: Int -&gt; SignatureHelp -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680437909"><span id="local-6989586621680437911"><span class="annot"><span class="annottext">SignatureHelp -&gt; SignatureHelp -&gt; Bool
+(SignatureHelp -&gt; SignatureHelp -&gt; Bool)
+-&gt; (SignatureHelp -&gt; SignatureHelp -&gt; Bool) -&gt; Eq SignatureHelp
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: SignatureHelp -&gt; SignatureHelp -&gt; Bool
+$c/= :: SignatureHelp -&gt; SignatureHelp -&gt; Bool
+== :: SignatureHelp -&gt; SignatureHelp -&gt; Bool
+$c== :: SignatureHelp -&gt; SignatureHelp -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-99"></span><span>
+</span><span id="line-100"></span><span id="local-6989586621680437897"><span id="local-6989586621680437899"><span id="local-6989586621680437901"><span id="local-6989586621680437903"><span id="local-6989586621680437905"><span id="local-6989586621680437907"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">SignatureHelp</span></span></span></span></span></span></span><span>
+</span><span id="line-101"></span><span>
+</span><span id="line-102"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-103"></span><span>
+</span><span id="line-104"></span><span class="hs-keyword">data</span><span> </span><span id="SignatureHelpTriggerKind"><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureHelpTriggerKind"><span class="hs-identifier hs-var">SignatureHelpTriggerKind</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="SHTKInvoked"><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SHTKInvoked"><span class="hs-identifier hs-var">SHTKInvoked</span></a></span></span><span>
+</span><span id="line-105"></span><span>                              </span><span class="hs-glyph">|</span><span> </span><span id="SHTKTriggerCharacter"><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SHTKTriggerCharacter"><span class="hs-identifier hs-var">SHTKTriggerCharacter</span></a></span></span><span>
+</span><span id="line-106"></span><span>                              </span><span class="hs-glyph">|</span><span> </span><span id="SHTKContentChange"><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SHTKContentChange"><span class="hs-identifier hs-var">SHTKContentChange</span></a></span></span><span>
+</span><span id="line-107"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680437886"><span id="local-6989586621680437888"><span id="local-6989586621680437890"><span id="local-6989586621680437892"><span class="annot"><span class="annottext">ReadPrec [SignatureHelpTriggerKind]
+ReadPrec SignatureHelpTriggerKind
+Int -&gt; ReadS SignatureHelpTriggerKind
+ReadS [SignatureHelpTriggerKind]
+(Int -&gt; ReadS SignatureHelpTriggerKind)
+-&gt; ReadS [SignatureHelpTriggerKind]
+-&gt; ReadPrec SignatureHelpTriggerKind
+-&gt; ReadPrec [SignatureHelpTriggerKind]
+-&gt; Read SignatureHelpTriggerKind
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [SignatureHelpTriggerKind]
+$creadListPrec :: ReadPrec [SignatureHelpTriggerKind]
+readPrec :: ReadPrec SignatureHelpTriggerKind
+$creadPrec :: ReadPrec SignatureHelpTriggerKind
+readList :: ReadS [SignatureHelpTriggerKind]
+$creadList :: ReadS [SignatureHelpTriggerKind]
+readsPrec :: Int -&gt; ReadS SignatureHelpTriggerKind
+$creadsPrec :: Int -&gt; ReadS SignatureHelpTriggerKind
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680437880"><span id="local-6989586621680437882"><span id="local-6989586621680437884"><span class="annot"><span class="annottext">Int -&gt; SignatureHelpTriggerKind -&gt; ShowS
+[SignatureHelpTriggerKind] -&gt; ShowS
+SignatureHelpTriggerKind -&gt; String
+(Int -&gt; SignatureHelpTriggerKind -&gt; ShowS)
+-&gt; (SignatureHelpTriggerKind -&gt; String)
+-&gt; ([SignatureHelpTriggerKind] -&gt; ShowS)
+-&gt; Show SignatureHelpTriggerKind
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [SignatureHelpTriggerKind] -&gt; ShowS
+$cshowList :: [SignatureHelpTriggerKind] -&gt; ShowS
+show :: SignatureHelpTriggerKind -&gt; String
+$cshow :: SignatureHelpTriggerKind -&gt; String
+showsPrec :: Int -&gt; SignatureHelpTriggerKind -&gt; ShowS
+$cshowsPrec :: Int -&gt; SignatureHelpTriggerKind -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680437876"><span id="local-6989586621680437878"><span class="annot"><span class="annottext">SignatureHelpTriggerKind -&gt; SignatureHelpTriggerKind -&gt; Bool
+(SignatureHelpTriggerKind -&gt; SignatureHelpTriggerKind -&gt; Bool)
+-&gt; (SignatureHelpTriggerKind -&gt; SignatureHelpTriggerKind -&gt; Bool)
+-&gt; Eq SignatureHelpTriggerKind
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: SignatureHelpTriggerKind -&gt; SignatureHelpTriggerKind -&gt; Bool
+$c/= :: SignatureHelpTriggerKind -&gt; SignatureHelpTriggerKind -&gt; Bool
+== :: SignatureHelpTriggerKind -&gt; SignatureHelpTriggerKind -&gt; Bool
+$c== :: SignatureHelpTriggerKind -&gt; SignatureHelpTriggerKind -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-108"></span><span>
+</span><span id="line-109"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680437869"><span id="local-6989586621680437871"><span id="local-6989586621680437873"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureHelpTriggerKind"><span class="hs-identifier hs-type">SignatureHelpTriggerKind</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-110"></span><span>  </span><span id="local-6989586621680437868"><span class="annot"><span class="annottext">toJSON :: SignatureHelpTriggerKind -&gt; Value
+</span><a href="#local-6989586621680437868"><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></a></span></span><span> </span><span class="annot"><span class="annottext">SignatureHelpTriggerKind
+</span><a href="Language.LSP.Types.SignatureHelp.html#SHTKInvoked"><span class="hs-identifier hs-var">SHTKInvoked</span></a></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-111"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SignatureHelpTriggerKind
+</span><a href="Language.LSP.Types.SignatureHelp.html#SHTKTriggerCharacter"><span class="hs-identifier hs-var">SHTKTriggerCharacter</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">2</span></span><span>
+</span><span id="line-112"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">SignatureHelpTriggerKind
+</span><a href="Language.LSP.Types.SignatureHelp.html#SHTKContentChange"><span class="hs-identifier hs-var">SHTKContentChange</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">3</span></span><span>
+</span><span id="line-113"></span><span>
+</span><span id="line-114"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680437864"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureHelpTriggerKind"><span class="hs-identifier hs-type">SignatureHelpTriggerKind</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-115"></span><span>  </span><span id="local-6989586621680437863"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser SignatureHelpTriggerKind
+</span><a href="#local-6989586621680437863"><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SignatureHelpTriggerKind -&gt; Parser SignatureHelpTriggerKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SignatureHelpTriggerKind
+</span><a href="Language.LSP.Types.SignatureHelp.html#SHTKInvoked"><span class="hs-identifier hs-var">SHTKInvoked</span></a></span><span>
+</span><span id="line-116"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">2</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SignatureHelpTriggerKind -&gt; Parser SignatureHelpTriggerKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SignatureHelpTriggerKind
+</span><a href="Language.LSP.Types.SignatureHelp.html#SHTKTriggerCharacter"><span class="hs-identifier hs-var">SHTKTriggerCharacter</span></a></span><span>
+</span><span id="line-117"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">3</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SignatureHelpTriggerKind -&gt; Parser SignatureHelpTriggerKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">SignatureHelpTriggerKind
+</span><a href="Language.LSP.Types.SignatureHelp.html#SHTKContentChange"><span class="hs-identifier hs-var">SHTKContentChange</span></a></span><span>
+</span><span id="line-118"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><span class="hs-identifier">_</span></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser SignatureHelpTriggerKind
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-119"></span><span>
+</span><span id="line-120"></span><span class="hs-comment">-- | Additional information about the context in which a signature help request</span><span>
+</span><span id="line-121"></span><span class="hs-comment">-- was triggered.</span><span>
+</span><span id="line-122"></span><span class="hs-keyword">data</span><span> </span><span id="SignatureHelpContext"><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureHelpContext"><span class="hs-identifier hs-var">SignatureHelpContext</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span>
+</span><span id="line-123"></span><span>  </span><span id="SignatureHelpContext"><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureHelpContext"><span class="hs-identifier hs-var">SignatureHelpContext</span></a></span></span><span>
+</span><span id="line-124"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Action that caused signature help to be triggered.</span><span>
+</span><span id="line-125"></span><span>      </span><span id="%24sel%3A_triggerKind%3ASignatureHelpContext"><span class="annot"><span class="annottext">SignatureHelpContext -&gt; SignatureHelpTriggerKind
+</span><a href="Language.LSP.Types.SignatureHelp.html#%24sel%3A_triggerKind%3ASignatureHelpContext"><span class="hs-identifier hs-var hs-var">_triggerKind</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureHelpTriggerKind"><span class="hs-identifier hs-type">SignatureHelpTriggerKind</span></a></span><span>
+</span><span id="line-126"></span><span>      </span><span class="hs-comment">-- | Character that caused signature help to be triggered. This is</span><span>
+</span><span id="line-127"></span><span>      </span><span class="hs-comment">-- undefined when @triggerKind !==</span><span>
+</span><span id="line-128"></span><span>      </span><span class="hs-comment">-- SignatureHelpTriggerKind.TriggerCharacter@</span><span>
+</span><span id="line-129"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_triggerCharacter%3ASignatureHelpContext"><span class="annot"><span class="annottext">SignatureHelpContext -&gt; Maybe Text
+</span><a href="Language.LSP.Types.SignatureHelp.html#%24sel%3A_triggerCharacter%3ASignatureHelpContext"><span class="hs-identifier hs-var hs-var">_triggerCharacter</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-130"></span><span>      </span><span class="hs-comment">-- | 'True' if signature help was already showing when it was triggered.</span><span>
+</span><span id="line-131"></span><span>      </span><span class="hs-comment">-- </span><span>
+</span><span id="line-132"></span><span>      </span><span class="hs-comment">-- Retriggers occur when the signature help is already active and can be</span><span>
+</span><span id="line-133"></span><span>      </span><span class="hs-comment">-- caused by actions such as typing a trigger character, a cursor move, or</span><span>
+</span><span id="line-134"></span><span>      </span><span class="hs-comment">-- document content changes.</span><span>
+</span><span id="line-135"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_isRetrigger%3ASignatureHelpContext"><span class="annot"><span class="annottext">SignatureHelpContext -&gt; Bool
+</span><a href="Language.LSP.Types.SignatureHelp.html#%24sel%3A_isRetrigger%3ASignatureHelpContext"><span class="hs-identifier hs-var hs-var">_isRetrigger</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-136"></span><span>      </span><span class="hs-comment">-- | The currently active 'SignatureHelp'.</span><span>
+</span><span id="line-137"></span><span>      </span><span class="hs-comment">-- </span><span>
+</span><span id="line-138"></span><span>      </span><span class="hs-comment">-- The '_activeSignatureHelp' has its @SignatureHelp.activeSignature@</span><span>
+</span><span id="line-139"></span><span>      </span><span class="hs-comment">-- field updated based on the user navigating through available</span><span>
+</span><span id="line-140"></span><span>      </span><span class="hs-comment">-- signatures.</span><span>
+</span><span id="line-141"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_activeSignatureHelp%3ASignatureHelpContext"><span class="annot"><span class="annottext">SignatureHelpContext -&gt; Maybe SignatureHelp
+</span><a href="Language.LSP.Types.SignatureHelp.html#%24sel%3A_activeSignatureHelp%3ASignatureHelpContext"><span class="hs-identifier hs-var hs-var">_activeSignatureHelp</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureHelp"><span class="hs-identifier hs-type">SignatureHelp</span></a></span><span>
+</span><span id="line-142"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-143"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680437850"><span id="local-6989586621680437852"><span id="local-6989586621680437854"><span id="local-6989586621680437856"><span class="annot"><span class="annottext">ReadPrec [SignatureHelpContext]
+ReadPrec SignatureHelpContext
+Int -&gt; ReadS SignatureHelpContext
+ReadS [SignatureHelpContext]
+(Int -&gt; ReadS SignatureHelpContext)
+-&gt; ReadS [SignatureHelpContext]
+-&gt; ReadPrec SignatureHelpContext
+-&gt; ReadPrec [SignatureHelpContext]
+-&gt; Read SignatureHelpContext
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [SignatureHelpContext]
+$creadListPrec :: ReadPrec [SignatureHelpContext]
+readPrec :: ReadPrec SignatureHelpContext
+$creadPrec :: ReadPrec SignatureHelpContext
+readList :: ReadS [SignatureHelpContext]
+$creadList :: ReadS [SignatureHelpContext]
+readsPrec :: Int -&gt; ReadS SignatureHelpContext
+$creadsPrec :: Int -&gt; ReadS SignatureHelpContext
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680437844"><span id="local-6989586621680437846"><span id="local-6989586621680437848"><span class="annot"><span class="annottext">Int -&gt; SignatureHelpContext -&gt; ShowS
+[SignatureHelpContext] -&gt; ShowS
+SignatureHelpContext -&gt; String
+(Int -&gt; SignatureHelpContext -&gt; ShowS)
+-&gt; (SignatureHelpContext -&gt; String)
+-&gt; ([SignatureHelpContext] -&gt; ShowS)
+-&gt; Show SignatureHelpContext
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [SignatureHelpContext] -&gt; ShowS
+$cshowList :: [SignatureHelpContext] -&gt; ShowS
+show :: SignatureHelpContext -&gt; String
+$cshow :: SignatureHelpContext -&gt; String
+showsPrec :: Int -&gt; SignatureHelpContext -&gt; ShowS
+$cshowsPrec :: Int -&gt; SignatureHelpContext -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680437840"><span id="local-6989586621680437842"><span class="annot"><span class="annottext">SignatureHelpContext -&gt; SignatureHelpContext -&gt; Bool
+(SignatureHelpContext -&gt; SignatureHelpContext -&gt; Bool)
+-&gt; (SignatureHelpContext -&gt; SignatureHelpContext -&gt; Bool)
+-&gt; Eq SignatureHelpContext
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: SignatureHelpContext -&gt; SignatureHelpContext -&gt; Bool
+$c/= :: SignatureHelpContext -&gt; SignatureHelpContext -&gt; Bool
+== :: SignatureHelpContext -&gt; SignatureHelpContext -&gt; Bool
+$c== :: SignatureHelpContext -&gt; SignatureHelpContext -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-144"></span><span id="local-6989586621680437828"><span id="local-6989586621680437830"><span id="local-6989586621680437832"><span id="local-6989586621680437834"><span id="local-6989586621680437836"><span id="local-6989586621680437838"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">SignatureHelpContext</span></span></span></span></span></span></span><span>
+</span><span id="line-145"></span><span>
+</span><span id="line-146"></span><span id="%24sel%3A_context%3ASignatureHelpParams"><span id="%24sel%3A_workDoneToken%3ASignatureHelpParams"><span id="%24sel%3A_position%3ASignatureHelpParams"><span id="%24sel%3A_textDocument%3ASignatureHelpParams"><span id="SignatureHelpParams"><span id="local-6989586621680437810"><span id="local-6989586621680437812"><span id="local-6989586621680437814"><span id="local-6989586621680437816"><span id="local-6989586621680437818"><span id="local-6989586621680437820"><span id="local-6989586621680437822"><span id="local-6989586621680437824"><span id="local-6989586621680437826"><span id="SignatureHelpParams"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;SignatureHelpParams&quot;</span><span>
+</span><span id="line-147"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentPositionParams</span><span>
+</span><span id="line-148"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressParams</span><span>
+</span><span id="line-149"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-150"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;_context&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">Maybe</span><span> </span><span class="hs-identifier">SignatureHelpContext</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><span id="line-151"></span><span>  </span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-152"></span><span id="local-6989586621680437793"><span id="local-6989586621680437795"><span id="local-6989586621680437797"><span id="local-6989586621680437799"><span id="local-6989586621680437801"><span id="local-6989586621680437803"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">SignatureHelpParams</span></span></span></span></span></span></span><span>
+</span><span id="line-153"></span><span>
+</span><span id="line-154"></span><span>
+</span><span id="line-155"></span></pre></body></html>

@@ -1,0 +1,436 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{-|
+Module      : AST
+Description : Abstract Syntax Tree types
+
+This module holds the data types that are uses to represent the parsed program.
+-}</span><span>
+</span><span id="line-7"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Banana.Syntax.AST</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- | The possible types in the Banana language</span><span>
+</span><span id="line-10"></span><span class="hs-keyword">data</span><span> </span><span id="Type"><span class="annot"><a href="Banana.Syntax.AST.html#Type"><span class="hs-identifier hs-var">Type</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Number"><span class="annot"><a href="Banana.Syntax.AST.html#Number"><span class="hs-identifier hs-var">Number</span></a></span></span><span>
+</span><span id="line-11"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="Array"><span class="annot"><a href="Banana.Syntax.AST.html#Array"><span class="hs-identifier hs-var">Array</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Integer</span></span><span> </span><span class="annot"><a href="Banana.Syntax.AST.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-12"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="Void"><span class="annot"><a href="Banana.Syntax.AST.html#Void"><span class="hs-identifier hs-var">Void</span></a></span></span><span>
+</span><span id="line-13"></span><span>          </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679076303"><span id="local-6989586621679076305"><span id="local-6989586621679076307"><span class="annot"><span class="annottext">Int -&gt; Type -&gt; ShowS
+[Type] -&gt; ShowS
+Type -&gt; String
+(Int -&gt; Type -&gt; ShowS)
+-&gt; (Type -&gt; String) -&gt; ([Type] -&gt; ShowS) -&gt; Show Type
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Type] -&gt; ShowS
+$cshowList :: [Type] -&gt; ShowS
+show :: Type -&gt; String
+$cshow :: Type -&gt; String
+showsPrec :: Int -&gt; Type -&gt; ShowS
+$cshowsPrec :: Int -&gt; Type -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679076298"><span id="local-6989586621679076300"><span class="annot"><span class="annottext">Type -&gt; Type -&gt; Bool
+(Type -&gt; Type -&gt; Bool) -&gt; (Type -&gt; Type -&gt; Bool) -&gt; Eq Type
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Type -&gt; Type -&gt; Bool
+$c/= :: Type -&gt; Type -&gt; Bool
+== :: Type -&gt; Type -&gt; Bool
+$c== :: Type -&gt; Type -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- | A variable declaration of the form &quot;var x: num&quot;</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">data</span><span> </span><span id="VarDecl"><span class="annot"><a href="Banana.Syntax.AST.html#VarDecl"><span class="hs-identifier hs-var">VarDecl</span></a></span></span><span> </span><span id="local-6989586621679076296"><span class="annot"><a href="#local-6989586621679076296"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="VarDecl"><span class="annot"><a href="Banana.Syntax.AST.html#VarDecl"><span class="hs-identifier hs-var">VarDecl</span></a></span></span><span>
+</span><span id="line-17"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="varName"><span class="annot"><span class="annottext">VarDecl a -&gt; a
+</span><a href="Banana.Syntax.AST.html#varName"><span class="hs-identifier hs-var hs-var">varName</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679076296"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-18"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="varType"><span class="annot"><span class="annottext">VarDecl a -&gt; Type
+</span><a href="Banana.Syntax.AST.html#varType"><span class="hs-identifier hs-var hs-var">varType</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Banana.Syntax.AST.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-19"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679076287"><span id="local-6989586621679076289"><span id="local-6989586621679076291"><span class="annot"><span class="annottext">Int -&gt; VarDecl a -&gt; ShowS
+[VarDecl a] -&gt; ShowS
+VarDecl a -&gt; String
+(Int -&gt; VarDecl a -&gt; ShowS)
+-&gt; (VarDecl a -&gt; String)
+-&gt; ([VarDecl a] -&gt; ShowS)
+-&gt; Show (VarDecl a)
+forall a. Show a =&gt; Int -&gt; VarDecl a -&gt; ShowS
+forall a. Show a =&gt; [VarDecl a] -&gt; ShowS
+forall a. Show a =&gt; VarDecl a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [VarDecl a] -&gt; ShowS
+$cshowList :: forall a. Show a =&gt; [VarDecl a] -&gt; ShowS
+show :: VarDecl a -&gt; String
+$cshow :: forall a. Show a =&gt; VarDecl a -&gt; String
+showsPrec :: Int -&gt; VarDecl a -&gt; ShowS
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; VarDecl a -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679076283"><span id="local-6989586621679076285"><span class="annot"><span class="annottext">VarDecl a -&gt; VarDecl a -&gt; Bool
+(VarDecl a -&gt; VarDecl a -&gt; Bool)
+-&gt; (VarDecl a -&gt; VarDecl a -&gt; Bool) -&gt; Eq (VarDecl a)
+forall a. Eq a =&gt; VarDecl a -&gt; VarDecl a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: VarDecl a -&gt; VarDecl a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; VarDecl a -&gt; VarDecl a -&gt; Bool
+== :: VarDecl a -&gt; VarDecl a -&gt; Bool
+$c== :: forall a. Eq a =&gt; VarDecl a -&gt; VarDecl a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- | Function call, with the same representation as for expressions</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">data</span><span> </span><span id="FuncCall"><span class="annot"><a href="Banana.Syntax.AST.html#FuncCall"><span class="hs-identifier hs-var">FuncCall</span></a></span></span><span> </span><span id="local-6989586621679076282"><span class="annot"><a href="#local-6989586621679076282"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="FuncCall"><span class="annot"><a href="Banana.Syntax.AST.html#FuncCall"><span class="hs-identifier hs-var">FuncCall</span></a></span></span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="func"><span class="annot"><span class="annottext">FuncCall a -&gt; a
+</span><a href="Banana.Syntax.AST.html#func"><span class="hs-identifier hs-var hs-var">func</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679076282"><span class="hs-identifier hs-type">a</span></a></span><span>        </span><span class="hs-comment">-- A reference to the function declaration</span><span>
+</span><span id="line-24"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="args"><span class="annot"><span class="annottext">FuncCall a -&gt; [Expr a]
+</span><a href="Banana.Syntax.AST.html#args"><span class="hs-identifier hs-var hs-var">args</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076282"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-comment">-- The arguments provided to the invocation</span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679076273"><span id="local-6989586621679076275"><span id="local-6989586621679076277"><span class="annot"><span class="annottext">Int -&gt; FuncCall a -&gt; ShowS
+[FuncCall a] -&gt; ShowS
+FuncCall a -&gt; String
+(Int -&gt; FuncCall a -&gt; ShowS)
+-&gt; (FuncCall a -&gt; String)
+-&gt; ([FuncCall a] -&gt; ShowS)
+-&gt; Show (FuncCall a)
+forall a. Show a =&gt; Int -&gt; FuncCall a -&gt; ShowS
+forall a. Show a =&gt; [FuncCall a] -&gt; ShowS
+forall a. Show a =&gt; FuncCall a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [FuncCall a] -&gt; ShowS
+$cshowList :: forall a. Show a =&gt; [FuncCall a] -&gt; ShowS
+show :: FuncCall a -&gt; String
+$cshow :: forall a. Show a =&gt; FuncCall a -&gt; String
+showsPrec :: Int -&gt; FuncCall a -&gt; ShowS
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; FuncCall a -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679076269"><span id="local-6989586621679076271"><span class="annot"><span class="annottext">FuncCall a -&gt; FuncCall a -&gt; Bool
+(FuncCall a -&gt; FuncCall a -&gt; Bool)
+-&gt; (FuncCall a -&gt; FuncCall a -&gt; Bool) -&gt; Eq (FuncCall a)
+forall a. Eq a =&gt; FuncCall a -&gt; FuncCall a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: FuncCall a -&gt; FuncCall a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; FuncCall a -&gt; FuncCall a -&gt; Bool
+== :: FuncCall a -&gt; FuncCall a -&gt; Bool
+$c== :: forall a. Eq a =&gt; FuncCall a -&gt; FuncCall a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span class="hs-comment">-- | An arithmetic expression</span><span>
+</span><span id="line-28"></span><span class="hs-keyword">data</span><span> </span><span id="Expr"><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-var">Expr</span></a></span></span><span> </span><span id="local-6989586621679076268"><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Add"><span class="annot"><a href="Banana.Syntax.AST.html#Add"><span class="hs-identifier hs-var">Add</span></a></span></span><span>   </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>   </span><span class="hs-comment">-- ^ Addition (+)</span><span>
+</span><span id="line-29"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span id="Sub"><span class="annot"><a href="Banana.Syntax.AST.html#Sub"><span class="hs-identifier hs-var">Sub</span></a></span></span><span>   </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>   </span><span class="hs-comment">-- ^ Subtraction (-)</span><span>
+</span><span id="line-30"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span id="Mul"><span class="annot"><a href="Banana.Syntax.AST.html#Mul"><span class="hs-identifier hs-var">Mul</span></a></span></span><span>   </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>   </span><span class="hs-comment">-- ^ Multiplication (*)</span><span>
+</span><span id="line-31"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span id="Div"><span class="annot"><a href="Banana.Syntax.AST.html#Div"><span class="hs-identifier hs-var">Div</span></a></span></span><span>   </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>   </span><span class="hs-comment">-- ^ Division (/)</span><span>
+</span><span id="line-32"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span id="Var"><span class="annot"><a href="Banana.Syntax.AST.html#Var"><span class="hs-identifier hs-var">Var</span></a></span></span><span>   </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span>                   </span><span class="hs-comment">-- ^ Variable (identifier)</span><span>
+</span><span id="line-33"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span id="Lit"><span class="annot"><a href="Banana.Syntax.AST.html#Lit"><span class="hs-identifier hs-var">Lit</span></a></span></span><span>   </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>              </span><span class="hs-comment">-- ^ A literal value</span><span>
+</span><span id="line-34"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span id="Not"><span class="annot"><a href="Banana.Syntax.AST.html#Not"><span class="hs-identifier hs-var">Not</span></a></span></span><span>   </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>            </span><span class="hs-comment">-- ^ Unary logical not ('not')</span><span>
+</span><span id="line-35"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span id="Or"><span class="annot"><a href="Banana.Syntax.AST.html#Or"><span class="hs-identifier hs-var">Or</span></a></span></span><span>    </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>   </span><span class="hs-comment">-- ^ Logical OR ('or')</span><span>
+</span><span id="line-36"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span id="And"><span class="annot"><a href="Banana.Syntax.AST.html#And"><span class="hs-identifier hs-var">And</span></a></span></span><span>   </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>   </span><span class="hs-comment">-- ^ Logical AND ('and')</span><span>
+</span><span id="line-37"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span id="Eq"><span class="annot"><a href="Banana.Syntax.AST.html#Eq"><span class="hs-identifier hs-var">Eq</span></a></span></span><span>    </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>   </span><span class="hs-comment">-- ^ Equal to (=)</span><span>
+</span><span id="line-38"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span id="NEq"><span class="annot"><a href="Banana.Syntax.AST.html#NEq"><span class="hs-identifier hs-var">NEq</span></a></span></span><span>   </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>   </span><span class="hs-comment">-- ^ Not Equal to (/=)</span><span>
+</span><span id="line-39"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span id="Less"><span class="annot"><a href="Banana.Syntax.AST.html#Less"><span class="hs-identifier hs-var">Less</span></a></span></span><span>  </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>   </span><span class="hs-comment">-- ^ Less than (&lt;)</span><span>
+</span><span id="line-40"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span id="More"><span class="annot"><a href="Banana.Syntax.AST.html#More"><span class="hs-identifier hs-var">More</span></a></span></span><span>  </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>   </span><span class="hs-comment">-- ^ Bigger than (&gt;)</span><span>
+</span><span id="line-41"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span id="LEq"><span class="annot"><a href="Banana.Syntax.AST.html#LEq"><span class="hs-identifier hs-var">LEq</span></a></span></span><span>   </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>   </span><span class="hs-comment">-- ^ Less than or Equal to (&lt;=)</span><span>
+</span><span id="line-42"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span id="MEq"><span class="annot"><a href="Banana.Syntax.AST.html#MEq"><span class="hs-identifier hs-var">MEq</span></a></span></span><span>   </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>   </span><span class="hs-comment">-- ^ Bigger than or Equal to (&gt;=)</span><span>
+</span><span id="line-43"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span id="FuncCallExpr"><span class="annot"><a href="Banana.Syntax.AST.html#FuncCallExpr"><span class="hs-identifier hs-var">FuncCallExpr</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#FuncCall"><span class="hs-identifier hs-type">FuncCall</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076268"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-comment">-- ^ A function call as an expression</span><span>
+</span><span id="line-44"></span><span>            </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679076246"><span id="local-6989586621679076248"><span id="local-6989586621679076250"><span class="annot"><span class="annottext">Int -&gt; Expr a -&gt; ShowS
+[Expr a] -&gt; ShowS
+Expr a -&gt; String
+(Int -&gt; Expr a -&gt; ShowS)
+-&gt; (Expr a -&gt; String) -&gt; ([Expr a] -&gt; ShowS) -&gt; Show (Expr a)
+forall a. Show a =&gt; Int -&gt; Expr a -&gt; ShowS
+forall a. Show a =&gt; [Expr a] -&gt; ShowS
+forall a. Show a =&gt; Expr a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Expr a] -&gt; ShowS
+$cshowList :: forall a. Show a =&gt; [Expr a] -&gt; ShowS
+show :: Expr a -&gt; String
+$cshow :: forall a. Show a =&gt; Expr a -&gt; String
+showsPrec :: Int -&gt; Expr a -&gt; ShowS
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; Expr a -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679076242"><span id="local-6989586621679076244"><span class="annot"><span class="annottext">Expr a -&gt; Expr a -&gt; Bool
+(Expr a -&gt; Expr a -&gt; Bool)
+-&gt; (Expr a -&gt; Expr a -&gt; Bool) -&gt; Eq (Expr a)
+forall a. Eq a =&gt; Expr a -&gt; Expr a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Expr a -&gt; Expr a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; Expr a -&gt; Expr a -&gt; Bool
+== :: Expr a -&gt; Expr a -&gt; Bool
+$c== :: forall a. Eq a =&gt; Expr a -&gt; Expr a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- | A variable assignment of the form &quot;x := y&quot;</span><span>
+</span><span id="line-47"></span><span class="hs-keyword">data</span><span> </span><span id="VarAssign"><span class="annot"><a href="Banana.Syntax.AST.html#VarAssign"><span class="hs-identifier hs-var">VarAssign</span></a></span></span><span> </span><span id="local-6989586621679076241"><span class="annot"><a href="#local-6989586621679076241"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="VarAssign"><span class="annot"><a href="Banana.Syntax.AST.html#VarAssign"><span class="hs-identifier hs-var">VarAssign</span></a></span></span><span>
+</span><span id="line-48"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="varAssignee"><span class="annot"><span class="annottext">VarAssign a -&gt; Expr a
+</span><a href="Banana.Syntax.AST.html#varAssignee"><span class="hs-identifier hs-var hs-var">varAssignee</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076241"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-comment">-- ^ LHS</span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="varExpr"><span class="annot"><span class="annottext">VarAssign a -&gt; Expr a
+</span><a href="Banana.Syntax.AST.html#varExpr"><span class="hs-identifier hs-var hs-var">varExpr</span></a></span></span><span>     </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076241"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-comment">-- ^ RHS</span><span>
+</span><span id="line-50"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679076232"><span id="local-6989586621679076234"><span id="local-6989586621679076236"><span class="annot"><span class="annottext">Int -&gt; VarAssign a -&gt; ShowS
+[VarAssign a] -&gt; ShowS
+VarAssign a -&gt; String
+(Int -&gt; VarAssign a -&gt; ShowS)
+-&gt; (VarAssign a -&gt; String)
+-&gt; ([VarAssign a] -&gt; ShowS)
+-&gt; Show (VarAssign a)
+forall a. Show a =&gt; Int -&gt; VarAssign a -&gt; ShowS
+forall a. Show a =&gt; [VarAssign a] -&gt; ShowS
+forall a. Show a =&gt; VarAssign a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [VarAssign a] -&gt; ShowS
+$cshowList :: forall a. Show a =&gt; [VarAssign a] -&gt; ShowS
+show :: VarAssign a -&gt; String
+$cshow :: forall a. Show a =&gt; VarAssign a -&gt; String
+showsPrec :: Int -&gt; VarAssign a -&gt; ShowS
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; VarAssign a -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679076228"><span id="local-6989586621679076230"><span class="annot"><span class="annottext">VarAssign a -&gt; VarAssign a -&gt; Bool
+(VarAssign a -&gt; VarAssign a -&gt; Bool)
+-&gt; (VarAssign a -&gt; VarAssign a -&gt; Bool) -&gt; Eq (VarAssign a)
+forall a. Eq a =&gt; VarAssign a -&gt; VarAssign a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: VarAssign a -&gt; VarAssign a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; VarAssign a -&gt; VarAssign a -&gt; Bool
+== :: VarAssign a -&gt; VarAssign a -&gt; Bool
+$c== :: forall a. Eq a =&gt; VarAssign a -&gt; VarAssign a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-51"></span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- | A definition of if statement</span><span>
+</span><span id="line-53"></span><span class="hs-keyword">data</span><span> </span><span id="IfStatement"><span class="annot"><a href="Banana.Syntax.AST.html#IfStatement"><span class="hs-identifier hs-var">IfStatement</span></a></span></span><span> </span><span id="local-6989586621679076227"><span class="annot"><a href="#local-6989586621679076227"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="If"><span class="annot"><a href="Banana.Syntax.AST.html#If"><span class="hs-identifier hs-var">If</span></a></span></span><span>
+</span><span id="line-54"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="condition"><span class="annot"><span class="annottext">IfStatement a -&gt; [Expr a]
+</span><a href="Banana.Syntax.AST.html#condition"><span class="hs-identifier hs-var hs-var">condition</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Banana.Syntax.AST.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076227"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-55"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="statement"><span class="annot"><span class="annottext">IfStatement a -&gt; [Statement a]
+</span><a href="Banana.Syntax.AST.html#statement"><span class="hs-identifier hs-var hs-var">statement</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Banana.Syntax.AST.html#Statement"><span class="hs-identifier hs-type">Statement</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076227"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-56"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679076218"><span id="local-6989586621679076220"><span id="local-6989586621679076222"><span class="annot"><span class="annottext">Int -&gt; IfStatement a -&gt; ShowS
+[IfStatement a] -&gt; ShowS
+IfStatement a -&gt; String
+(Int -&gt; IfStatement a -&gt; ShowS)
+-&gt; (IfStatement a -&gt; String)
+-&gt; ([IfStatement a] -&gt; ShowS)
+-&gt; Show (IfStatement a)
+forall a. Show a =&gt; Int -&gt; IfStatement a -&gt; ShowS
+forall a. Show a =&gt; [IfStatement a] -&gt; ShowS
+forall a. Show a =&gt; IfStatement a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [IfStatement a] -&gt; ShowS
+$cshowList :: forall a. Show a =&gt; [IfStatement a] -&gt; ShowS
+show :: IfStatement a -&gt; String
+$cshow :: forall a. Show a =&gt; IfStatement a -&gt; String
+showsPrec :: Int -&gt; IfStatement a -&gt; ShowS
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; IfStatement a -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679076214"><span id="local-6989586621679076216"><span class="annot"><span class="annottext">IfStatement a -&gt; IfStatement a -&gt; Bool
+(IfStatement a -&gt; IfStatement a -&gt; Bool)
+-&gt; (IfStatement a -&gt; IfStatement a -&gt; Bool) -&gt; Eq (IfStatement a)
+forall a. Eq a =&gt; IfStatement a -&gt; IfStatement a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: IfStatement a -&gt; IfStatement a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; IfStatement a -&gt; IfStatement a -&gt; Bool
+== :: IfStatement a -&gt; IfStatement a -&gt; Bool
+$c== :: forall a. Eq a =&gt; IfStatement a -&gt; IfStatement a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-57"></span><span>
+</span><span id="line-58"></span><span class="hs-comment">-- | A wrapper to collect all statement types together</span><span>
+</span><span id="line-59"></span><span class="hs-keyword">data</span><span> </span><span id="Statement"><span class="annot"><a href="Banana.Syntax.AST.html#Statement"><span class="hs-identifier hs-var">Statement</span></a></span></span><span> </span><span id="local-6989586621679076213"><span class="annot"><a href="#local-6989586621679076213"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-60"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="VarDeclaration"><span class="annot"><a href="Banana.Syntax.AST.html#VarDeclaration"><span class="hs-identifier hs-var">VarDeclaration</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#VarDecl"><span class="hs-identifier hs-type">VarDecl</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076213"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-61"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="VarAssignment"><span class="annot"><a href="Banana.Syntax.AST.html#VarAssignment"><span class="hs-identifier hs-var">VarAssignment</span></a></span></span><span>  </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#VarAssign"><span class="hs-identifier hs-type">VarAssign</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076213"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-62"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="FuncCallStatement"><span class="annot"><a href="Banana.Syntax.AST.html#FuncCallStatement"><span class="hs-identifier hs-var">FuncCallStatement</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#FuncCall"><span class="hs-identifier hs-type">FuncCall</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076213"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="IfStatement"><span class="annot"><a href="Banana.Syntax.AST.html#IfStatement"><span class="hs-identifier hs-var">IfStatement</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#IfStatement"><span class="hs-identifier hs-type">IfStatement</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076213"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-64"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679076203"><span id="local-6989586621679076205"><span id="local-6989586621679076207"><span class="annot"><span class="annottext">Int -&gt; Statement a -&gt; ShowS
+[Statement a] -&gt; ShowS
+Statement a -&gt; String
+(Int -&gt; Statement a -&gt; ShowS)
+-&gt; (Statement a -&gt; String)
+-&gt; ([Statement a] -&gt; ShowS)
+-&gt; Show (Statement a)
+forall a. Show a =&gt; Int -&gt; Statement a -&gt; ShowS
+forall a. Show a =&gt; [Statement a] -&gt; ShowS
+forall a. Show a =&gt; Statement a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Statement a] -&gt; ShowS
+$cshowList :: forall a. Show a =&gt; [Statement a] -&gt; ShowS
+show :: Statement a -&gt; String
+$cshow :: forall a. Show a =&gt; Statement a -&gt; String
+showsPrec :: Int -&gt; Statement a -&gt; ShowS
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; Statement a -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679076199"><span id="local-6989586621679076201"><span class="annot"><span class="annottext">Statement a -&gt; Statement a -&gt; Bool
+(Statement a -&gt; Statement a -&gt; Bool)
+-&gt; (Statement a -&gt; Statement a -&gt; Bool) -&gt; Eq (Statement a)
+forall a. Eq a =&gt; Statement a -&gt; Statement a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Statement a -&gt; Statement a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; Statement a -&gt; Statement a -&gt; Bool
+== :: Statement a -&gt; Statement a -&gt; Bool
+$c== :: forall a. Eq a =&gt; Statement a -&gt; Statement a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span>
+</span><span id="line-66"></span><span class="hs-comment">-- | A function definition</span><span>
+</span><span id="line-67"></span><span class="hs-keyword">data</span><span> </span><span id="Function"><span class="annot"><a href="Banana.Syntax.AST.html#Function"><span class="hs-identifier hs-var">Function</span></a></span></span><span> </span><span id="local-6989586621679076198"><span class="annot"><a href="#local-6989586621679076198"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Function"><span class="annot"><a href="Banana.Syntax.AST.html#Function"><span class="hs-identifier hs-var">Function</span></a></span></span><span>
+</span><span id="line-68"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="params"><span class="annot"><span class="annottext">Function a -&gt; [VarDecl a]
+</span><a href="Banana.Syntax.AST.html#params"><span class="hs-identifier hs-var hs-var">params</span></a></span></span><span>     </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Banana.Syntax.AST.html#VarDecl"><span class="hs-identifier hs-type">VarDecl</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076198"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-69"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="returnType"><span class="annot"><span class="annottext">Function a -&gt; Type
+</span><a href="Banana.Syntax.AST.html#returnType"><span class="hs-identifier hs-var hs-var">returnType</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Banana.Syntax.AST.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-70"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="body"><span class="annot"><span class="annottext">Function a -&gt; [Statement a]
+</span><a href="Banana.Syntax.AST.html#body"><span class="hs-identifier hs-var hs-var">body</span></a></span></span><span>       </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Banana.Syntax.AST.html#Statement"><span class="hs-identifier hs-type">Statement</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076198"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-71"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679076188"><span id="local-6989586621679076190"><span id="local-6989586621679076192"><span class="annot"><span class="annottext">Int -&gt; Function a -&gt; ShowS
+[Function a] -&gt; ShowS
+Function a -&gt; String
+(Int -&gt; Function a -&gt; ShowS)
+-&gt; (Function a -&gt; String)
+-&gt; ([Function a] -&gt; ShowS)
+-&gt; Show (Function a)
+forall a. Show a =&gt; Int -&gt; Function a -&gt; ShowS
+forall a. Show a =&gt; [Function a] -&gt; ShowS
+forall a. Show a =&gt; Function a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Function a] -&gt; ShowS
+$cshowList :: forall a. Show a =&gt; [Function a] -&gt; ShowS
+show :: Function a -&gt; String
+$cshow :: forall a. Show a =&gt; Function a -&gt; String
+showsPrec :: Int -&gt; Function a -&gt; ShowS
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; Function a -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679076184"><span id="local-6989586621679076186"><span class="annot"><span class="annottext">Function a -&gt; Function a -&gt; Bool
+(Function a -&gt; Function a -&gt; Bool)
+-&gt; (Function a -&gt; Function a -&gt; Bool) -&gt; Eq (Function a)
+forall a. Eq a =&gt; Function a -&gt; Function a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Function a -&gt; Function a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; Function a -&gt; Function a -&gt; Bool
+== :: Function a -&gt; Function a -&gt; Bool
+$c== :: forall a. Eq a =&gt; Function a -&gt; Function a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-72"></span><span>
+</span><span id="line-73"></span><span class="hs-comment">-- | The AST node representing the entire program with all of its structures</span><span>
+</span><span id="line-74"></span><span class="hs-keyword">data</span><span> </span><span id="Program"><span class="annot"><a href="Banana.Syntax.AST.html#Program"><span class="hs-identifier hs-var">Program</span></a></span></span><span> </span><span id="local-6989586621679076321"><span class="annot"><a href="#local-6989586621679076321"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Program"><span class="annot"><a href="Banana.Syntax.AST.html#Program"><span class="hs-identifier hs-var">Program</span></a></span></span><span>
+</span><span id="line-75"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="statements"><span class="annot"><span class="annottext">Program a -&gt; [Statement a]
+</span><a href="Banana.Syntax.AST.html#statements"><span class="hs-identifier hs-var hs-var">statements</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Banana.Syntax.AST.html#Statement"><span class="hs-identifier hs-type">Statement</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076321"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-76"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="functions"><span class="annot"><span class="annottext">Program a -&gt; [Function a]
+</span><a href="Banana.Syntax.AST.html#functions"><span class="hs-identifier hs-var hs-var">functions</span></a></span></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Banana.Syntax.AST.html#Function"><span class="hs-identifier hs-type">Function</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076321"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-77"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679076175"><span id="local-6989586621679076177"><span id="local-6989586621679076179"><span class="annot"><span class="annottext">Int -&gt; Program a -&gt; ShowS
+[Program a] -&gt; ShowS
+Program a -&gt; String
+(Int -&gt; Program a -&gt; ShowS)
+-&gt; (Program a -&gt; String)
+-&gt; ([Program a] -&gt; ShowS)
+-&gt; Show (Program a)
+forall a. Show a =&gt; Int -&gt; Program a -&gt; ShowS
+forall a. Show a =&gt; [Program a] -&gt; ShowS
+forall a. Show a =&gt; Program a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Program a] -&gt; ShowS
+$cshowList :: forall a. Show a =&gt; [Program a] -&gt; ShowS
+show :: Program a -&gt; String
+$cshow :: forall a. Show a =&gt; Program a -&gt; String
+showsPrec :: Int -&gt; Program a -&gt; ShowS
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; Program a -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679076171"><span id="local-6989586621679076173"><span class="annot"><span class="annottext">Program a -&gt; Program a -&gt; Bool
+(Program a -&gt; Program a -&gt; Bool)
+-&gt; (Program a -&gt; Program a -&gt; Bool) -&gt; Eq (Program a)
+forall a. Eq a =&gt; Program a -&gt; Program a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Program a -&gt; Program a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; Program a -&gt; Program a -&gt; Bool
+== :: Program a -&gt; Program a -&gt; Bool
+$c== :: forall a. Eq a =&gt; Program a -&gt; Program a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-78"></span><span>
+</span><span id="line-79"></span><span id="local-6989586621679076170"><span class="annot"><a href="Banana.Syntax.AST.html#varDecls"><span class="hs-identifier hs-type">varDecls</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Banana.Syntax.AST.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076170"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Banana.Syntax.AST.html#VarDecl"><span class="hs-identifier hs-type">VarDecl</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076170"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-80"></span><span id="varDecls"><span class="annot"><span class="annottext">varDecls :: Program a -&gt; [VarDecl a]
+</span><a href="Banana.Syntax.AST.html#varDecls"><span class="hs-identifier hs-var hs-var">varDecls</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Statement a -&gt; VarDecl a) -&gt; [Statement a] -&gt; [VarDecl a]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Statement a -&gt; VarDecl a
+forall a. Statement a -&gt; VarDecl a
+</span><a href="#local-6989586621679076168"><span class="hs-identifier hs-var">extractDecl</span></a></span><span> </span><span class="annot"><span class="annottext">([Statement a] -&gt; [VarDecl a])
+-&gt; (Program a -&gt; [Statement a]) -&gt; Program a -&gt; [VarDecl a]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Statement a -&gt; Bool) -&gt; [Statement a] -&gt; [Statement a]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">filter</span></span><span> </span><span class="annot"><span class="annottext">Statement a -&gt; Bool
+forall a. Statement a -&gt; Bool
+</span><a href="#local-6989586621679076166"><span class="hs-identifier hs-var">isVarDecl</span></a></span><span> </span><span class="annot"><span class="annottext">([Statement a] -&gt; [Statement a])
+-&gt; (Program a -&gt; [Statement a]) -&gt; Program a -&gt; [Statement a]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Program a -&gt; [Statement a]
+forall a. Program a -&gt; [Statement a]
+</span><a href="Banana.Syntax.AST.html#statements"><span class="hs-identifier hs-var hs-var">statements</span></a></span><span>
+</span><span id="line-81"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-82"></span><span>    </span><span id="local-6989586621679076166"><span class="annot"><span class="annottext">isVarDecl :: Statement a -&gt; Bool
+</span><a href="#local-6989586621679076166"><span class="hs-identifier hs-var hs-var">isVarDecl</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#VarDeclaration"><span class="hs-identifier hs-type">VarDeclaration</span></a></span><span> </span><span class="annot"><span class="annottext">VarDecl a
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-83"></span><span>    </span><span class="annot"><a href="#local-6989586621679076166"><span class="hs-identifier hs-var">isVarDecl</span></a></span><span> </span><span class="annot"><span class="annottext">Statement a
+</span><span class="hs-identifier">_</span></span><span>                  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-84"></span><span>
+</span><span id="line-85"></span><span>    </span><span id="local-6989586621679076168"><span class="annot"><span class="annottext">extractDecl :: Statement a -&gt; VarDecl a
+</span><a href="#local-6989586621679076168"><span class="hs-identifier hs-var hs-var">extractDecl</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#VarDeclaration"><span class="hs-identifier hs-type">VarDeclaration</span></a></span><span> </span><span id="local-6989586621679076165"><span class="annot"><span class="annottext">VarDecl a
+</span><a href="#local-6989586621679076165"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">VarDecl a
+</span><a href="#local-6989586621679076165"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-86"></span><span>    </span><span class="annot"><a href="#local-6989586621679076168"><span class="hs-identifier hs-var">extractDecl</span></a></span><span> </span><span class="annot"><span class="annottext">Statement a
+</span><span class="hs-identifier">_</span></span><span>                  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">VarDecl a
+forall a. HasCallStack =&gt; a
+</span><span class="hs-identifier hs-var">undefined</span></span><span>
+</span><span id="line-87"></span><span>
+</span><span id="line-88"></span><span id="local-6989586621679076163"><span class="annot"><a href="Banana.Syntax.AST.html#assignments"><span class="hs-identifier hs-type">assignments</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Banana.Syntax.AST.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076163"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Banana.Syntax.AST.html#VarAssign"><span class="hs-identifier hs-type">VarAssign</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076163"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-89"></span><span id="assignments"><span class="annot"><span class="annottext">assignments :: Program a -&gt; [VarAssign a]
+</span><a href="Banana.Syntax.AST.html#assignments"><span class="hs-identifier hs-var hs-var">assignments</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Statement a -&gt; VarAssign a) -&gt; [Statement a] -&gt; [VarAssign a]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Statement a -&gt; VarAssign a
+forall a. Statement a -&gt; VarAssign a
+</span><a href="#local-6989586621679076161"><span class="hs-identifier hs-var">extractAssign</span></a></span><span> </span><span class="annot"><span class="annottext">([Statement a] -&gt; [VarAssign a])
+-&gt; (Program a -&gt; [Statement a]) -&gt; Program a -&gt; [VarAssign a]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Statement a -&gt; Bool) -&gt; [Statement a] -&gt; [Statement a]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">filter</span></span><span> </span><span class="annot"><span class="annottext">Statement a -&gt; Bool
+forall a. Statement a -&gt; Bool
+</span><a href="#local-6989586621679076160"><span class="hs-identifier hs-var">isVarAssign</span></a></span><span> </span><span class="annot"><span class="annottext">([Statement a] -&gt; [Statement a])
+-&gt; (Program a -&gt; [Statement a]) -&gt; Program a -&gt; [Statement a]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Program a -&gt; [Statement a]
+forall a. Program a -&gt; [Statement a]
+</span><a href="Banana.Syntax.AST.html#statements"><span class="hs-identifier hs-var hs-var">statements</span></a></span><span>
+</span><span id="line-90"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-91"></span><span>    </span><span id="local-6989586621679076160"><span class="annot"><span class="annottext">isVarAssign :: Statement a -&gt; Bool
+</span><a href="#local-6989586621679076160"><span class="hs-identifier hs-var hs-var">isVarAssign</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#VarAssignment"><span class="hs-identifier hs-type">VarAssignment</span></a></span><span> </span><span class="annot"><span class="annottext">VarAssign a
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-92"></span><span>    </span><span class="annot"><a href="#local-6989586621679076160"><span class="hs-identifier hs-var">isVarAssign</span></a></span><span> </span><span class="annot"><span class="annottext">Statement a
+</span><span class="hs-identifier">_</span></span><span>                 </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-93"></span><span>
+</span><span id="line-94"></span><span>    </span><span id="local-6989586621679076161"><span class="annot"><span class="annottext">extractAssign :: Statement a -&gt; VarAssign a
+</span><a href="#local-6989586621679076161"><span class="hs-identifier hs-var hs-var">extractAssign</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#VarAssignment"><span class="hs-identifier hs-type">VarAssignment</span></a></span><span> </span><span id="local-6989586621679076159"><span class="annot"><span class="annottext">VarAssign a
+</span><a href="#local-6989586621679076159"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">VarAssign a
+</span><a href="#local-6989586621679076159"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-95"></span><span>    </span><span class="annot"><a href="#local-6989586621679076161"><span class="hs-identifier hs-var">extractAssign</span></a></span><span> </span><span class="annot"><span class="annottext">Statement a
+</span><span class="hs-identifier">_</span></span><span>                 </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">VarAssign a
+forall a. HasCallStack =&gt; a
+</span><span class="hs-identifier hs-var">undefined</span></span><span>
+</span><span id="line-96"></span><span>
+</span><span id="line-97"></span><span id="local-6989586621679076158"><span class="annot"><a href="Banana.Syntax.AST.html#ifStatements"><span class="hs-identifier hs-type">ifStatements</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Banana.Syntax.AST.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076158"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Banana.Syntax.AST.html#IfStatement"><span class="hs-identifier hs-type">IfStatement</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679076158"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-98"></span><span id="ifStatements"><span class="annot"><span class="annottext">ifStatements :: Program a -&gt; [IfStatement a]
+</span><a href="Banana.Syntax.AST.html#ifStatements"><span class="hs-identifier hs-var hs-var">ifStatements</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Statement a -&gt; IfStatement a) -&gt; [Statement a] -&gt; [IfStatement a]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Statement a -&gt; IfStatement a
+forall a. Statement a -&gt; IfStatement a
+</span><a href="#local-6989586621679076156"><span class="hs-identifier hs-var">extractIf</span></a></span><span> </span><span class="annot"><span class="annottext">([Statement a] -&gt; [IfStatement a])
+-&gt; (Program a -&gt; [Statement a]) -&gt; Program a -&gt; [IfStatement a]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Statement a -&gt; Bool) -&gt; [Statement a] -&gt; [Statement a]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">filter</span></span><span> </span><span class="annot"><span class="annottext">Statement a -&gt; Bool
+forall a. Statement a -&gt; Bool
+</span><a href="#local-6989586621679076155"><span class="hs-identifier hs-var">isIfStatement</span></a></span><span> </span><span class="annot"><span class="annottext">([Statement a] -&gt; [Statement a])
+-&gt; (Program a -&gt; [Statement a]) -&gt; Program a -&gt; [Statement a]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Program a -&gt; [Statement a]
+forall a. Program a -&gt; [Statement a]
+</span><a href="Banana.Syntax.AST.html#statements"><span class="hs-identifier hs-var hs-var">statements</span></a></span><span>
+</span><span id="line-99"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-100"></span><span>    </span><span id="local-6989586621679076155"><span class="annot"><span class="annottext">isIfStatement :: Statement a -&gt; Bool
+</span><a href="#local-6989586621679076155"><span class="hs-identifier hs-var hs-var">isIfStatement</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#IfStatement"><span class="hs-identifier hs-type">IfStatement</span></a></span><span> </span><span class="annot"><span class="annottext">IfStatement a
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-101"></span><span>    </span><span class="annot"><a href="#local-6989586621679076155"><span class="hs-identifier hs-var">isIfStatement</span></a></span><span> </span><span class="annot"><span class="annottext">Statement a
+</span><span class="hs-identifier">_</span></span><span>               </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-102"></span><span>
+</span><span id="line-103"></span><span>    </span><span id="local-6989586621679076156"><span class="annot"><span class="annottext">extractIf :: Statement a -&gt; IfStatement a
+</span><a href="#local-6989586621679076156"><span class="hs-identifier hs-var hs-var">extractIf</span></a></span></span><span>  </span><span class="hs-special">(</span><span class="annot"><a href="Banana.Syntax.AST.html#IfStatement"><span class="hs-identifier hs-type">IfStatement</span></a></span><span> </span><span id="local-6989586621679076154"><span class="annot"><span class="annottext">IfStatement a
+</span><a href="#local-6989586621679076154"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IfStatement a
+</span><a href="#local-6989586621679076154"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-104"></span><span>    </span><span class="annot"><a href="#local-6989586621679076156"><span class="hs-identifier hs-var">extractIf</span></a></span><span>  </span><span class="annot"><span class="annottext">Statement a
+</span><span class="hs-identifier">_</span></span><span>               </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IfStatement a
+forall a. HasCallStack =&gt; a
+</span><span class="hs-identifier hs-var">undefined</span></span><span>
+</span><span id="line-105"></span></pre></body></html>

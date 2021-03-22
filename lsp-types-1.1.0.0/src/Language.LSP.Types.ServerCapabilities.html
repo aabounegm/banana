@@ -1,0 +1,317 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell       #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE TypeOperators         #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields #-}</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.ServerCapabilities</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson</span></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.CodeAction.html"><span class="hs-identifier">Language.LSP.Types.CodeAction</span></a></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.CodeLens.html"><span class="hs-identifier">Language.LSP.Types.CodeLens</span></a></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Command.html"><span class="hs-identifier">Language.LSP.Types.Command</span></a></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html"><span class="hs-identifier">Language.LSP.Types.Common</span></a></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html"><span class="hs-identifier">Language.LSP.Types.Completion</span></a></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Declaration.html"><span class="hs-identifier">Language.LSP.Types.Declaration</span></a></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Definition.html"><span class="hs-identifier">Language.LSP.Types.Definition</span></a></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentColor.html"><span class="hs-identifier">Language.LSP.Types.DocumentColor</span></a></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentHighlight.html"><span class="hs-identifier">Language.LSP.Types.DocumentHighlight</span></a></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentLink.html"><span class="hs-identifier">Language.LSP.Types.DocumentLink</span></a></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html"><span class="hs-identifier">Language.LSP.Types.DocumentSymbol</span></a></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.FoldingRange.html"><span class="hs-identifier">Language.LSP.Types.FoldingRange</span></a></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Formatting.html"><span class="hs-identifier">Language.LSP.Types.Formatting</span></a></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Hover.html"><span class="hs-identifier">Language.LSP.Types.Hover</span></a></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Implementation.html"><span class="hs-identifier">Language.LSP.Types.Implementation</span></a></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.References.html"><span class="hs-identifier">Language.LSP.Types.References</span></a></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Rename.html"><span class="hs-identifier">Language.LSP.Types.Rename</span></a></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.SelectionRange.html"><span class="hs-identifier">Language.LSP.Types.SelectionRange</span></a></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html"><span class="hs-identifier">Language.LSP.Types.SignatureHelp</span></a></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.TextDocument.html"><span class="hs-identifier">Language.LSP.Types.TextDocument</span></a></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.TypeDefinition.html"><span class="hs-identifier">Language.LSP.Types.TypeDefinition</span></a></span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-34"></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">data</span><span> </span><span id="WorkspaceFoldersServerCapabilities"><span class="annot"><a href="Language.LSP.Types.ServerCapabilities.html#WorkspaceFoldersServerCapabilities"><span class="hs-identifier hs-var">WorkspaceFoldersServerCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-36"></span><span>  </span><span id="WorkspaceFoldersServerCapabilities"><span class="annot"><a href="Language.LSP.Types.ServerCapabilities.html#WorkspaceFoldersServerCapabilities"><span class="hs-identifier hs-var">WorkspaceFoldersServerCapabilities</span></a></span></span><span>
+</span><span id="line-37"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The server has support for workspace folders</span><span>
+</span><span id="line-38"></span><span>      </span><span id="%24sel%3A_supported%3AWorkspaceFoldersServerCapabilities"><span class="annot"><span class="annottext">WorkspaceFoldersServerCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_supported%3AWorkspaceFoldersServerCapabilities"><span class="hs-identifier hs-var hs-var">_supported</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-39"></span><span>      </span><span class="hs-comment">-- | Whether the server wants to receive workspace folder</span><span>
+</span><span id="line-40"></span><span>      </span><span class="hs-comment">-- change notifications.</span><span>
+</span><span id="line-41"></span><span>      </span><span class="hs-comment">-- If a strings is provided the string is treated as a ID</span><span>
+</span><span id="line-42"></span><span>      </span><span class="hs-comment">-- under which the notification is registered on the client</span><span>
+</span><span id="line-43"></span><span>      </span><span class="hs-comment">-- side. The ID can be used to unregister for these events</span><span>
+</span><span id="line-44"></span><span>      </span><span class="hs-comment">-- using the `client/unregisterCapability` request.</span><span>
+</span><span id="line-45"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_changeNotifications%3AWorkspaceFoldersServerCapabilities"><span class="annot"><span class="annottext">WorkspaceFoldersServerCapabilities -&gt; Maybe (Text |? Bool)
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_changeNotifications%3AWorkspaceFoldersServerCapabilities"><span class="hs-identifier hs-var hs-var">_changeNotifications</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">)</span><span>
+</span><span id="line-46"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680444789"><span id="local-6989586621680444791"><span id="local-6989586621680444793"><span class="annot"><span class="annottext">Int -&gt; WorkspaceFoldersServerCapabilities -&gt; ShowS
+[WorkspaceFoldersServerCapabilities] -&gt; ShowS
+WorkspaceFoldersServerCapabilities -&gt; String
+(Int -&gt; WorkspaceFoldersServerCapabilities -&gt; ShowS)
+-&gt; (WorkspaceFoldersServerCapabilities -&gt; String)
+-&gt; ([WorkspaceFoldersServerCapabilities] -&gt; ShowS)
+-&gt; Show WorkspaceFoldersServerCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [WorkspaceFoldersServerCapabilities] -&gt; ShowS
+$cshowList :: [WorkspaceFoldersServerCapabilities] -&gt; ShowS
+show :: WorkspaceFoldersServerCapabilities -&gt; String
+$cshow :: WorkspaceFoldersServerCapabilities -&gt; String
+showsPrec :: Int -&gt; WorkspaceFoldersServerCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; WorkspaceFoldersServerCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444780"><span id="local-6989586621680444782"><span id="local-6989586621680444784"><span id="local-6989586621680444786"><span class="annot"><span class="annottext">ReadPrec [WorkspaceFoldersServerCapabilities]
+ReadPrec WorkspaceFoldersServerCapabilities
+Int -&gt; ReadS WorkspaceFoldersServerCapabilities
+ReadS [WorkspaceFoldersServerCapabilities]
+(Int -&gt; ReadS WorkspaceFoldersServerCapabilities)
+-&gt; ReadS [WorkspaceFoldersServerCapabilities]
+-&gt; ReadPrec WorkspaceFoldersServerCapabilities
+-&gt; ReadPrec [WorkspaceFoldersServerCapabilities]
+-&gt; Read WorkspaceFoldersServerCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [WorkspaceFoldersServerCapabilities]
+$creadListPrec :: ReadPrec [WorkspaceFoldersServerCapabilities]
+readPrec :: ReadPrec WorkspaceFoldersServerCapabilities
+$creadPrec :: ReadPrec WorkspaceFoldersServerCapabilities
+readList :: ReadS [WorkspaceFoldersServerCapabilities]
+$creadList :: ReadS [WorkspaceFoldersServerCapabilities]
+readsPrec :: Int -&gt; ReadS WorkspaceFoldersServerCapabilities
+$creadsPrec :: Int -&gt; ReadS WorkspaceFoldersServerCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444775"><span id="local-6989586621680444777"><span class="annot"><span class="annottext">WorkspaceFoldersServerCapabilities
+-&gt; WorkspaceFoldersServerCapabilities -&gt; Bool
+(WorkspaceFoldersServerCapabilities
+ -&gt; WorkspaceFoldersServerCapabilities -&gt; Bool)
+-&gt; (WorkspaceFoldersServerCapabilities
+    -&gt; WorkspaceFoldersServerCapabilities -&gt; Bool)
+-&gt; Eq WorkspaceFoldersServerCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: WorkspaceFoldersServerCapabilities
+-&gt; WorkspaceFoldersServerCapabilities -&gt; Bool
+$c/= :: WorkspaceFoldersServerCapabilities
+-&gt; WorkspaceFoldersServerCapabilities -&gt; Bool
+== :: WorkspaceFoldersServerCapabilities
+-&gt; WorkspaceFoldersServerCapabilities -&gt; Bool
+$c== :: WorkspaceFoldersServerCapabilities
+-&gt; WorkspaceFoldersServerCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span id="local-6989586621680444762"><span id="local-6989586621680444764"><span id="local-6989586621680444766"><span id="local-6989586621680444768"><span id="local-6989586621680444770"><span id="local-6989586621680444772"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkspaceFoldersServerCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="hs-keyword">data</span><span> </span><span id="WorkspaceServerCapabilities"><span class="annot"><a href="Language.LSP.Types.ServerCapabilities.html#WorkspaceServerCapabilities"><span class="hs-identifier hs-var">WorkspaceServerCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-52"></span><span>  </span><span id="WorkspaceServerCapabilities"><span class="annot"><a href="Language.LSP.Types.ServerCapabilities.html#WorkspaceServerCapabilities"><span class="hs-identifier hs-var">WorkspaceServerCapabilities</span></a></span></span><span>
+</span><span id="line-53"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The server supports workspace folder. Since LSP 3.6</span><span>
+</span><span id="line-54"></span><span>      </span><span class="hs-comment">--</span><span>
+</span><span id="line-55"></span><span>      </span><span class="hs-comment">-- @since 0.7.0.0</span><span>
+</span><span id="line-56"></span><span>      </span><span id="%24sel%3A_workspaceFolders%3AWorkspaceServerCapabilities"><span class="annot"><span class="annottext">WorkspaceServerCapabilities
+-&gt; Maybe WorkspaceFoldersServerCapabilities
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_workspaceFolders%3AWorkspaceServerCapabilities"><span class="hs-identifier hs-var hs-var">_workspaceFolders</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.ServerCapabilities.html#WorkspaceFoldersServerCapabilities"><span class="hs-identifier hs-type">WorkspaceFoldersServerCapabilities</span></a></span><span>
+</span><span id="line-57"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-58"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680444749"><span id="local-6989586621680444751"><span id="local-6989586621680444753"><span class="annot"><span class="annottext">Int -&gt; WorkspaceServerCapabilities -&gt; ShowS
+[WorkspaceServerCapabilities] -&gt; ShowS
+WorkspaceServerCapabilities -&gt; String
+(Int -&gt; WorkspaceServerCapabilities -&gt; ShowS)
+-&gt; (WorkspaceServerCapabilities -&gt; String)
+-&gt; ([WorkspaceServerCapabilities] -&gt; ShowS)
+-&gt; Show WorkspaceServerCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [WorkspaceServerCapabilities] -&gt; ShowS
+$cshowList :: [WorkspaceServerCapabilities] -&gt; ShowS
+show :: WorkspaceServerCapabilities -&gt; String
+$cshow :: WorkspaceServerCapabilities -&gt; String
+showsPrec :: Int -&gt; WorkspaceServerCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; WorkspaceServerCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444741"><span id="local-6989586621680444743"><span id="local-6989586621680444745"><span id="local-6989586621680444747"><span class="annot"><span class="annottext">ReadPrec [WorkspaceServerCapabilities]
+ReadPrec WorkspaceServerCapabilities
+Int -&gt; ReadS WorkspaceServerCapabilities
+ReadS [WorkspaceServerCapabilities]
+(Int -&gt; ReadS WorkspaceServerCapabilities)
+-&gt; ReadS [WorkspaceServerCapabilities]
+-&gt; ReadPrec WorkspaceServerCapabilities
+-&gt; ReadPrec [WorkspaceServerCapabilities]
+-&gt; Read WorkspaceServerCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [WorkspaceServerCapabilities]
+$creadListPrec :: ReadPrec [WorkspaceServerCapabilities]
+readPrec :: ReadPrec WorkspaceServerCapabilities
+$creadPrec :: ReadPrec WorkspaceServerCapabilities
+readList :: ReadS [WorkspaceServerCapabilities]
+$creadList :: ReadS [WorkspaceServerCapabilities]
+readsPrec :: Int -&gt; ReadS WorkspaceServerCapabilities
+$creadsPrec :: Int -&gt; ReadS WorkspaceServerCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444737"><span id="local-6989586621680444739"><span class="annot"><span class="annottext">WorkspaceServerCapabilities -&gt; WorkspaceServerCapabilities -&gt; Bool
+(WorkspaceServerCapabilities
+ -&gt; WorkspaceServerCapabilities -&gt; Bool)
+-&gt; (WorkspaceServerCapabilities
+    -&gt; WorkspaceServerCapabilities -&gt; Bool)
+-&gt; Eq WorkspaceServerCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: WorkspaceServerCapabilities -&gt; WorkspaceServerCapabilities -&gt; Bool
+$c/= :: WorkspaceServerCapabilities -&gt; WorkspaceServerCapabilities -&gt; Bool
+== :: WorkspaceServerCapabilities -&gt; WorkspaceServerCapabilities -&gt; Bool
+$c== :: WorkspaceServerCapabilities -&gt; WorkspaceServerCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-59"></span><span id="local-6989586621680444725"><span id="local-6989586621680444727"><span id="local-6989586621680444729"><span id="local-6989586621680444731"><span id="local-6989586621680444733"><span id="local-6989586621680444735"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkspaceServerCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span class="hs-keyword">data</span><span> </span><span id="ServerCapabilities"><span class="annot"><a href="Language.LSP.Types.ServerCapabilities.html#ServerCapabilities"><span class="hs-identifier hs-var">ServerCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-62"></span><span>  </span><span id="ServerCapabilities"><span class="annot"><a href="Language.LSP.Types.ServerCapabilities.html#ServerCapabilities"><span class="hs-identifier hs-var">ServerCapabilities</span></a></span></span><span>
+</span><span id="line-63"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Defines how text documents are synced. Is either a detailed structure</span><span>
+</span><span id="line-64"></span><span>      </span><span class="hs-comment">-- defining each notification or for backwards compatibility the</span><span>
+</span><span id="line-65"></span><span>      </span><span class="hs-comment">-- 'TextDocumentSyncKind' number.</span><span>
+</span><span id="line-66"></span><span>      </span><span class="hs-comment">-- If omitted it defaults to 'TdSyncNone'.</span><span>
+</span><span id="line-67"></span><span>      </span><span id="%24sel%3A_textDocumentSync%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities
+-&gt; Maybe (TextDocumentSyncOptions |? TextDocumentSyncKind)
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_textDocumentSync%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_textDocumentSync</span></a></span></span><span>                 </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.TextDocument.html#TextDocumentSyncOptions"><span class="hs-identifier hs-type">TextDocumentSyncOptions</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.TextDocument.html#TextDocumentSyncKind"><span class="hs-identifier hs-type">TextDocumentSyncKind</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-68"></span><span>      </span><span class="hs-comment">-- | The server provides hover support.</span><span>
+</span><span id="line-69"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_hoverProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities -&gt; Maybe (Bool |? HoverOptions)
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_hoverProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_hoverProvider</span></a></span></span><span>                    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverOptions"><span class="hs-identifier hs-type">HoverOptions</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-70"></span><span>      </span><span class="hs-comment">-- | The server provides completion support.</span><span>
+</span><span id="line-71"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_completionProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities -&gt; Maybe CompletionOptions
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_completionProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_completionProvider</span></a></span></span><span>               </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionOptions"><span class="hs-identifier hs-type">CompletionOptions</span></a></span><span>
+</span><span id="line-72"></span><span>      </span><span class="hs-comment">-- | The server provides signature help support.</span><span>
+</span><span id="line-73"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_signatureHelpProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities -&gt; Maybe SignatureHelpOptions
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_signatureHelpProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_signatureHelpProvider</span></a></span></span><span>            </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureHelpOptions"><span class="hs-identifier hs-type">SignatureHelpOptions</span></a></span><span>
+</span><span id="line-74"></span><span>      </span><span class="hs-comment">-- | The server provides go to declaration support.</span><span>
+</span><span id="line-75"></span><span>      </span><span class="hs-comment">-- </span><span>
+</span><span id="line-76"></span><span>      </span><span class="hs-comment">-- Since LSP 3.14.0</span><span>
+</span><span id="line-77"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_declarationProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities
+-&gt; Maybe
+     (Bool |? (DeclarationOptions |? DeclarationRegistrationOptions))
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_declarationProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_declarationProvider</span></a></span></span><span>              </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Declaration.html#DeclarationOptions"><span class="hs-identifier hs-type">DeclarationOptions</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Declaration.html#DeclarationRegistrationOptions"><span class="hs-identifier hs-type">DeclarationRegistrationOptions</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-78"></span><span>      </span><span class="hs-comment">-- | The server provides goto definition support.</span><span>
+</span><span id="line-79"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_definitionProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities -&gt; Maybe (Bool |? DefinitionOptions)
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_definitionProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_definitionProvider</span></a></span></span><span>               </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Definition.html#DefinitionOptions"><span class="hs-identifier hs-type">DefinitionOptions</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-80"></span><span>      </span><span class="hs-comment">-- | The server provides Goto Type Definition support. Since LSP 3.6</span><span>
+</span><span id="line-81"></span><span>      </span><span class="hs-comment">--</span><span>
+</span><span id="line-82"></span><span>      </span><span class="hs-comment">-- @since 0.7.0.0</span><span>
+</span><span id="line-83"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_typeDefinitionProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities
+-&gt; Maybe
+     (Bool
+      |? (TypeDefinitionOptions |? TypeDefinitionRegistrationOptions))
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_typeDefinitionProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_typeDefinitionProvider</span></a></span></span><span>           </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.TypeDefinition.html#TypeDefinitionOptions"><span class="hs-identifier hs-type">TypeDefinitionOptions</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.TypeDefinition.html#TypeDefinitionRegistrationOptions"><span class="hs-identifier hs-type">TypeDefinitionRegistrationOptions</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-84"></span><span>      </span><span class="hs-comment">-- | The server provides Goto Implementation support. Since LSP 3.6</span><span>
+</span><span id="line-85"></span><span>      </span><span class="hs-comment">--</span><span>
+</span><span id="line-86"></span><span>      </span><span class="hs-comment">-- @since 0.7.0.0</span><span>
+</span><span id="line-87"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_implementationProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities
+-&gt; Maybe
+     (Bool
+      |? (ImplementationOptions |? ImplementationRegistrationOptions))
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_implementationProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_implementationProvider</span></a></span></span><span>           </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Implementation.html#ImplementationOptions"><span class="hs-identifier hs-type">ImplementationOptions</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Implementation.html#ImplementationRegistrationOptions"><span class="hs-identifier hs-type">ImplementationRegistrationOptions</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-88"></span><span>      </span><span class="hs-comment">-- | The server provides find references support.</span><span>
+</span><span id="line-89"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_referencesProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities -&gt; Maybe (Bool |? ReferenceOptions)
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_referencesProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_referencesProvider</span></a></span></span><span>               </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.References.html#ReferenceOptions"><span class="hs-identifier hs-type">ReferenceOptions</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-90"></span><span>      </span><span class="hs-comment">-- | The server provides document highlight support.</span><span>
+</span><span id="line-91"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_documentHighlightProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities -&gt; Maybe (Bool |? DocumentHighlightOptions)
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_documentHighlightProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_documentHighlightProvider</span></a></span></span><span>        </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentHighlight.html#DocumentHighlightOptions"><span class="hs-identifier hs-type">DocumentHighlightOptions</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-92"></span><span>      </span><span class="hs-comment">-- | The server provides document symbol support.</span><span>
+</span><span id="line-93"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_documentSymbolProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities -&gt; Maybe (Bool |? DocumentSymbolOptions)
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_documentSymbolProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_documentSymbolProvider</span></a></span></span><span>           </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#DocumentSymbolOptions"><span class="hs-identifier hs-type">DocumentSymbolOptions</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-94"></span><span>      </span><span class="hs-comment">-- | The server provides code actions.</span><span>
+</span><span id="line-95"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_codeActionProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities -&gt; Maybe (Bool |? CodeActionOptions)
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_codeActionProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_codeActionProvider</span></a></span></span><span>               </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionOptions"><span class="hs-identifier hs-type">CodeActionOptions</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-96"></span><span>      </span><span class="hs-comment">-- | The server provides code lens.</span><span>
+</span><span id="line-97"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_codeLensProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities -&gt; Maybe CodeLensOptions
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_codeLensProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_codeLensProvider</span></a></span></span><span>                 </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.CodeLens.html#CodeLensOptions"><span class="hs-identifier hs-type">CodeLensOptions</span></a></span><span>
+</span><span id="line-98"></span><span>      </span><span class="hs-comment">-- | The server provides document link support.</span><span>
+</span><span id="line-99"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_documentLinkProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities -&gt; Maybe DocumentLinkOptions
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_documentLinkProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_documentLinkProvider</span></a></span></span><span>             </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentLink.html#DocumentLinkOptions"><span class="hs-identifier hs-type">DocumentLinkOptions</span></a></span><span>
+</span><span id="line-100"></span><span>      </span><span class="hs-comment">-- | The server provides color provider support. Since LSP 3.6</span><span>
+</span><span id="line-101"></span><span>      </span><span class="hs-comment">--</span><span>
+</span><span id="line-102"></span><span>      </span><span class="hs-comment">-- @since 0.7.0.0</span><span>
+</span><span id="line-103"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_colorProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities
+-&gt; Maybe
+     (Bool
+      |? (DocumentColorOptions |? DocumentColorRegistrationOptions))
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_colorProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_colorProvider</span></a></span></span><span>                    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentColor.html#DocumentColorOptions"><span class="hs-identifier hs-type">DocumentColorOptions</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentColor.html#DocumentColorRegistrationOptions"><span class="hs-identifier hs-type">DocumentColorRegistrationOptions</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-104"></span><span>      </span><span class="hs-comment">-- | The server provides document formatting.</span><span>
+</span><span id="line-105"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_documentFormattingProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities -&gt; Maybe (Bool |? DocumentFormattingOptions)
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_documentFormattingProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_documentFormattingProvider</span></a></span></span><span>       </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Formatting.html#DocumentFormattingOptions"><span class="hs-identifier hs-type">DocumentFormattingOptions</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-106"></span><span>      </span><span class="hs-comment">-- | The server provides document range formatting.</span><span>
+</span><span id="line-107"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_documentRangeFormattingProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities
+-&gt; Maybe (Bool |? DocumentRangeFormattingOptions)
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_documentRangeFormattingProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_documentRangeFormattingProvider</span></a></span></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Formatting.html#DocumentRangeFormattingOptions"><span class="hs-identifier hs-type">DocumentRangeFormattingOptions</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-108"></span><span>      </span><span class="hs-comment">-- | The server provides document formatting on typing.</span><span>
+</span><span id="line-109"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_documentOnTypeFormattingProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities -&gt; Maybe DocumentOnTypeFormattingOptions
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_documentOnTypeFormattingProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_documentOnTypeFormattingProvider</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Formatting.html#DocumentOnTypeFormattingOptions"><span class="hs-identifier hs-type">DocumentOnTypeFormattingOptions</span></a></span><span>
+</span><span id="line-110"></span><span>      </span><span class="hs-comment">-- | The server provides rename support.</span><span>
+</span><span id="line-111"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_renameProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities -&gt; Maybe (Bool |? RenameOptions)
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_renameProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_renameProvider</span></a></span></span><span>                   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Rename.html#RenameOptions"><span class="hs-identifier hs-type">RenameOptions</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-112"></span><span>      </span><span class="hs-comment">-- | The server provides folding provider support. Since LSP 3.10</span><span>
+</span><span id="line-113"></span><span>      </span><span class="hs-comment">--</span><span>
+</span><span id="line-114"></span><span>      </span><span class="hs-comment">-- @since 0.7.0.0</span><span>
+</span><span id="line-115"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_foldingRangeProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities
+-&gt; Maybe
+     (Bool |? (FoldingRangeOptions |? FoldingRangeRegistrationOptions))
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_foldingRangeProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_foldingRangeProvider</span></a></span></span><span>             </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeOptions"><span class="hs-identifier hs-type">FoldingRangeOptions</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeRegistrationOptions"><span class="hs-identifier hs-type">FoldingRangeRegistrationOptions</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-116"></span><span>      </span><span class="hs-comment">-- | The server provides execute command support.</span><span>
+</span><span id="line-117"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_executeCommandProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities -&gt; Maybe ExecuteCommandOptions
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_executeCommandProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_executeCommandProvider</span></a></span></span><span>           </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Command.html#ExecuteCommandOptions"><span class="hs-identifier hs-type">ExecuteCommandOptions</span></a></span><span>
+</span><span id="line-118"></span><span>      </span><span class="hs-comment">-- | The server provides selection range support. Since LSP 3.15</span><span>
+</span><span id="line-119"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_selectionRangeProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities
+-&gt; Maybe
+     (Bool
+      |? (SelectionRangeOptions |? SelectionRangeRegistrationOptions))
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_selectionRangeProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_selectionRangeProvider</span></a></span></span><span>           </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.SelectionRange.html#SelectionRangeOptions"><span class="hs-identifier hs-type">SelectionRangeOptions</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#%7C%3F"><span class="hs-operator hs-type">|?</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.SelectionRange.html#SelectionRangeRegistrationOptions"><span class="hs-identifier hs-type">SelectionRangeRegistrationOptions</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-120"></span><span>      </span><span class="hs-comment">-- | The server provides workspace symbol support.</span><span>
+</span><span id="line-121"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_workspaceSymbolProvider%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_workspaceSymbolProvider%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_workspaceSymbolProvider</span></a></span></span><span>          </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-122"></span><span>      </span><span class="hs-comment">-- | Workspace specific server capabilities</span><span>
+</span><span id="line-123"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_workspace%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities -&gt; Maybe WorkspaceServerCapabilities
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_workspace%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_workspace</span></a></span></span><span>                        </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.ServerCapabilities.html#WorkspaceServerCapabilities"><span class="hs-identifier hs-type">WorkspaceServerCapabilities</span></a></span><span>
+</span><span id="line-124"></span><span>      </span><span class="hs-comment">-- | Experimental server capabilities.</span><span>
+</span><span id="line-125"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_experimental%3AServerCapabilities"><span class="annot"><span class="annottext">ServerCapabilities -&gt; Maybe Value
+</span><a href="Language.LSP.Types.ServerCapabilities.html#%24sel%3A_experimental%3AServerCapabilities"><span class="hs-identifier hs-var hs-var">_experimental</span></a></span></span><span>                     </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Value</span></span><span>
+</span><span id="line-126"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680444693"><span id="local-6989586621680444695"><span id="local-6989586621680444697"><span class="annot"><span class="annottext">Int -&gt; ServerCapabilities -&gt; ShowS
+[ServerCapabilities] -&gt; ShowS
+ServerCapabilities -&gt; String
+(Int -&gt; ServerCapabilities -&gt; ShowS)
+-&gt; (ServerCapabilities -&gt; String)
+-&gt; ([ServerCapabilities] -&gt; ShowS)
+-&gt; Show ServerCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [ServerCapabilities] -&gt; ShowS
+$cshowList :: [ServerCapabilities] -&gt; ShowS
+show :: ServerCapabilities -&gt; String
+$cshow :: ServerCapabilities -&gt; String
+showsPrec :: Int -&gt; ServerCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; ServerCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444685"><span id="local-6989586621680444687"><span id="local-6989586621680444689"><span id="local-6989586621680444691"><span class="annot"><span class="annottext">ReadPrec [ServerCapabilities]
+ReadPrec ServerCapabilities
+Int -&gt; ReadS ServerCapabilities
+ReadS [ServerCapabilities]
+(Int -&gt; ReadS ServerCapabilities)
+-&gt; ReadS [ServerCapabilities]
+-&gt; ReadPrec ServerCapabilities
+-&gt; ReadPrec [ServerCapabilities]
+-&gt; Read ServerCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [ServerCapabilities]
+$creadListPrec :: ReadPrec [ServerCapabilities]
+readPrec :: ReadPrec ServerCapabilities
+$creadPrec :: ReadPrec ServerCapabilities
+readList :: ReadS [ServerCapabilities]
+$creadList :: ReadS [ServerCapabilities]
+readsPrec :: Int -&gt; ReadS ServerCapabilities
+$creadsPrec :: Int -&gt; ReadS ServerCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444681"><span id="local-6989586621680444683"><span class="annot"><span class="annottext">ServerCapabilities -&gt; ServerCapabilities -&gt; Bool
+(ServerCapabilities -&gt; ServerCapabilities -&gt; Bool)
+-&gt; (ServerCapabilities -&gt; ServerCapabilities -&gt; Bool)
+-&gt; Eq ServerCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: ServerCapabilities -&gt; ServerCapabilities -&gt; Bool
+$c/= :: ServerCapabilities -&gt; ServerCapabilities -&gt; Bool
+== :: ServerCapabilities -&gt; ServerCapabilities -&gt; Bool
+$c== :: ServerCapabilities -&gt; ServerCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-127"></span><span>
+</span><span id="line-128"></span><span id="local-6989586621680444669"><span id="local-6989586621680444671"><span id="local-6989586621680444673"><span id="local-6989586621680444675"><span id="local-6989586621680444677"><span id="local-6989586621680444679"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ServerCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-129"></span></pre></body></html>

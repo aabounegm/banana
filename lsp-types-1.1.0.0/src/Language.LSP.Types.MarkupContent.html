@@ -1,0 +1,261 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields      #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE OverloadedStrings          #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell            #-}</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- | A MarkupContent literal represents a string value which content can</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- be represented in different formats.</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- Currently plaintext and markdown are supported formats.</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- A MarkupContent is usually used in documentation properties of result</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- literals like CompletionItem or SignatureInformation.</span><span>
+</span><span id="line-10"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.MarkupContent</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Aeson</span></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span>                                      </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- |  Describes the content type that a client supports in various</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- result literals like `Hover`, `ParameterInfo` or `CompletionItem`.</span><span>
+</span><span id="line-19"></span><span class="hs-keyword">data</span><span> </span><span id="MarkupKind"><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupKind"><span class="hs-identifier hs-var">MarkupKind</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkPlainText"><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MkPlainText"><span class="hs-identifier hs-var">MkPlainText</span></a></span></span><span> </span><span class="hs-comment">-- ^ Plain text is supported as a content format</span><span>
+</span><span id="line-20"></span><span>                </span><span class="hs-glyph">|</span><span> </span><span id="MkMarkdown"><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MkMarkdown"><span class="hs-identifier hs-var">MkMarkdown</span></a></span></span><span> </span><span class="hs-comment">-- ^ Markdown is supported as a content format</span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680436634"><span id="local-6989586621680436636"><span id="local-6989586621680436638"><span id="local-6989586621680436640"><span class="annot"><span class="annottext">ReadPrec [MarkupKind]
+ReadPrec MarkupKind
+Int -&gt; ReadS MarkupKind
+ReadS [MarkupKind]
+(Int -&gt; ReadS MarkupKind)
+-&gt; ReadS [MarkupKind]
+-&gt; ReadPrec MarkupKind
+-&gt; ReadPrec [MarkupKind]
+-&gt; Read MarkupKind
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [MarkupKind]
+$creadListPrec :: ReadPrec [MarkupKind]
+readPrec :: ReadPrec MarkupKind
+$creadPrec :: ReadPrec MarkupKind
+readList :: ReadS [MarkupKind]
+$creadList :: ReadS [MarkupKind]
+readsPrec :: Int -&gt; ReadS MarkupKind
+$creadsPrec :: Int -&gt; ReadS MarkupKind
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680436627"><span id="local-6989586621680436629"><span id="local-6989586621680436631"><span class="annot"><span class="annottext">Int -&gt; MarkupKind -&gt; ShowS
+[MarkupKind] -&gt; ShowS
+MarkupKind -&gt; String
+(Int -&gt; MarkupKind -&gt; ShowS)
+-&gt; (MarkupKind -&gt; String)
+-&gt; ([MarkupKind] -&gt; ShowS)
+-&gt; Show MarkupKind
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [MarkupKind] -&gt; ShowS
+$cshowList :: [MarkupKind] -&gt; ShowS
+show :: MarkupKind -&gt; String
+$cshow :: MarkupKind -&gt; String
+showsPrec :: Int -&gt; MarkupKind -&gt; ShowS
+$cshowsPrec :: Int -&gt; MarkupKind -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680436622"><span id="local-6989586621680436624"><span class="annot"><span class="annottext">MarkupKind -&gt; MarkupKind -&gt; Bool
+(MarkupKind -&gt; MarkupKind -&gt; Bool)
+-&gt; (MarkupKind -&gt; MarkupKind -&gt; Bool) -&gt; Eq MarkupKind
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: MarkupKind -&gt; MarkupKind -&gt; Bool
+$c/= :: MarkupKind -&gt; MarkupKind -&gt; Bool
+== :: MarkupKind -&gt; MarkupKind -&gt; Bool
+$c== :: MarkupKind -&gt; MarkupKind -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680436614"><span id="local-6989586621680436616"><span id="local-6989586621680436618"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupKind"><span class="hs-identifier hs-type">MarkupKind</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-24"></span><span>  </span><span id="local-6989586621680436612"><span class="annot"><span class="annottext">toJSON :: MarkupKind -&gt; Value
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></span></span><span> </span><span class="annot"><span class="annottext">MarkupKind
+</span><a href="Language.LSP.Types.MarkupContent.html#MkPlainText"><span class="hs-identifier hs-var">MkPlainText</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span class="hs-identifier hs-var">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;plaintext&quot;</span></span><span>
+</span><span id="line-25"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">MarkupKind
+</span><a href="Language.LSP.Types.MarkupContent.html#MkMarkdown"><span class="hs-identifier hs-var">MkMarkdown</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span class="hs-identifier hs-var">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;markdown&quot;</span></span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680436607"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupKind"><span class="hs-identifier hs-type">MarkupKind</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-28"></span><span>  </span><span id="local-6989586621680436605"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser MarkupKind
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;plaintext&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MarkupKind -&gt; Parser MarkupKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">MarkupKind
+</span><a href="Language.LSP.Types.MarkupContent.html#MkPlainText"><span class="hs-identifier hs-var">MkPlainText</span></a></span><span>
+</span><span id="line-29"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;markdown&quot;</span></span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MarkupKind -&gt; Parser MarkupKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">MarkupKind
+</span><a href="Language.LSP.Types.MarkupContent.html#MkMarkdown"><span class="hs-identifier hs-var">MkMarkdown</span></a></span><span>
+</span><span id="line-30"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><span class="hs-identifier">_</span></span><span>                    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser MarkupKind
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- | A `MarkupContent` literal represents a string value which content is interpreted base on its</span><span>
+</span><span id="line-33"></span><span class="hs-comment">-- | kind flag. Currently the protocol supports `plaintext` and `markdown` as markup kinds.</span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-35"></span><span class="hs-comment">-- | If the kind is `markdown` then the value can contain fenced code blocks like in GitHub issues.</span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- | See https://help.github.com/articles/creating-and-highlighting-code-blocks/#syntax-highlighting</span><span>
+</span><span id="line-37"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-38"></span><span class="hs-comment">-- | Here is an example how such a string can be constructed using JavaScript / TypeScript:</span><span>
+</span><span id="line-39"></span><span class="hs-comment">-- | ```ts</span><span>
+</span><span id="line-40"></span><span class="hs-comment">-- | let markdown: MarkdownContent = {</span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- |  kind: MarkupKind.Markdown,</span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- |	value: [</span><span>
+</span><span id="line-43"></span><span class="hs-comment">-- |		'# Header',</span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- |		'Some text',</span><span>
+</span><span id="line-45"></span><span class="hs-comment">-- |		'```typescript',</span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- |		'someCode();',</span><span>
+</span><span id="line-47"></span><span class="hs-comment">-- |		'```'</span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- |	].join('\n')</span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- | };</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- | ```</span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- | *Please Note* that clients might sanitize the return markdown. A client could decide to</span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- | remove HTML from the markdown to avoid script execution.</span><span>
+</span><span id="line-54"></span><span class="hs-keyword">data</span><span> </span><span id="MarkupContent"><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-var">MarkupContent</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-55"></span><span>  </span><span id="MarkupContent"><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-var">MarkupContent</span></a></span></span><span>
+</span><span id="line-56"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_kind%3AMarkupContent"><span class="annot"><span class="annottext">MarkupContent -&gt; MarkupKind
+</span><a href="Language.LSP.Types.MarkupContent.html#%24sel%3A_kind%3AMarkupContent"><span class="hs-identifier hs-var hs-var">_kind</span></a></span></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupKind"><span class="hs-identifier hs-type">MarkupKind</span></a></span><span> </span><span class="hs-comment">-- ^ The type of the Markup</span><span>
+</span><span id="line-57"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_value%3AMarkupContent"><span class="annot"><span class="annottext">MarkupContent -&gt; Text
+</span><a href="Language.LSP.Types.MarkupContent.html#%24sel%3A_value%3AMarkupContent"><span class="hs-identifier hs-var hs-var">_value</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-comment">-- ^ The content itself</span><span>
+</span><span id="line-58"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-59"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680436593"><span id="local-6989586621680436595"><span id="local-6989586621680436597"><span id="local-6989586621680436599"><span class="annot"><span class="annottext">ReadPrec [MarkupContent]
+ReadPrec MarkupContent
+Int -&gt; ReadS MarkupContent
+ReadS [MarkupContent]
+(Int -&gt; ReadS MarkupContent)
+-&gt; ReadS [MarkupContent]
+-&gt; ReadPrec MarkupContent
+-&gt; ReadPrec [MarkupContent]
+-&gt; Read MarkupContent
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [MarkupContent]
+$creadListPrec :: ReadPrec [MarkupContent]
+readPrec :: ReadPrec MarkupContent
+$creadPrec :: ReadPrec MarkupContent
+readList :: ReadS [MarkupContent]
+$creadList :: ReadS [MarkupContent]
+readsPrec :: Int -&gt; ReadS MarkupContent
+$creadsPrec :: Int -&gt; ReadS MarkupContent
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680436587"><span id="local-6989586621680436589"><span id="local-6989586621680436591"><span class="annot"><span class="annottext">Int -&gt; MarkupContent -&gt; ShowS
+[MarkupContent] -&gt; ShowS
+MarkupContent -&gt; String
+(Int -&gt; MarkupContent -&gt; ShowS)
+-&gt; (MarkupContent -&gt; String)
+-&gt; ([MarkupContent] -&gt; ShowS)
+-&gt; Show MarkupContent
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [MarkupContent] -&gt; ShowS
+$cshowList :: [MarkupContent] -&gt; ShowS
+show :: MarkupContent -&gt; String
+$cshow :: MarkupContent -&gt; String
+showsPrec :: Int -&gt; MarkupContent -&gt; ShowS
+$cshowsPrec :: Int -&gt; MarkupContent -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680436583"><span id="local-6989586621680436585"><span class="annot"><span class="annottext">MarkupContent -&gt; MarkupContent -&gt; Bool
+(MarkupContent -&gt; MarkupContent -&gt; Bool)
+-&gt; (MarkupContent -&gt; MarkupContent -&gt; Bool) -&gt; Eq MarkupContent
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: MarkupContent -&gt; MarkupContent -&gt; Bool
+$c/= :: MarkupContent -&gt; MarkupContent -&gt; Bool
+== :: MarkupContent -&gt; MarkupContent -&gt; Bool
+$c== :: MarkupContent -&gt; MarkupContent -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span id="local-6989586621680436571"><span id="local-6989586621680436573"><span id="local-6989586621680436575"><span id="local-6989586621680436577"><span id="local-6989586621680436579"><span id="local-6989586621680436581"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">MarkupContent</span></span></span></span></span></span></span><span>
+</span><span id="line-62"></span><span>
+</span><span id="line-63"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span class="hs-comment">-- | Create a 'MarkupContent' containing a quoted language string only.</span><span>
+</span><span id="line-66"></span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#markedUpContent"><span class="hs-identifier hs-type">markedUpContent</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-type">MarkupContent</span></a></span><span>
+</span><span id="line-67"></span><span id="markedUpContent"><span class="annot"><span class="annottext">markedUpContent :: Text -&gt; Text -&gt; MarkupContent
+</span><a href="Language.LSP.Types.MarkupContent.html#markedUpContent"><span class="hs-identifier hs-var hs-var">markedUpContent</span></a></span></span><span> </span><span id="local-6989586621680436568"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680436568"><span class="hs-identifier hs-var">lang</span></a></span></span><span> </span><span id="local-6989586621680436567"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680436567"><span class="hs-identifier hs-var">quote</span></a></span></span><span>
+</span><span id="line-68"></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MarkupKind -&gt; Text -&gt; MarkupContent
+</span><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-var">MarkupContent</span></a></span><span> </span><span class="annot"><span class="annottext">MarkupKind
+</span><a href="Language.LSP.Types.MarkupContent.html#MkMarkdown"><span class="hs-identifier hs-var">MkMarkdown</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;\n```&quot;</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680436568"><span class="hs-identifier hs-var">lang</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;\n&quot;</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680436567"><span class="hs-identifier hs-var">quote</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;\n```\n&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-69"></span><span>
+</span><span id="line-70"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-71"></span><span>
+</span><span id="line-72"></span><span class="hs-comment">-- | Create a 'MarkupContent' containing unquoted text</span><span>
+</span><span id="line-73"></span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#unmarkedUpContent"><span class="hs-identifier hs-type">unmarkedUpContent</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-type">MarkupContent</span></a></span><span>
+</span><span id="line-74"></span><span id="unmarkedUpContent"><span class="annot"><span class="annottext">unmarkedUpContent :: Text -&gt; MarkupContent
+</span><a href="Language.LSP.Types.MarkupContent.html#unmarkedUpContent"><span class="hs-identifier hs-var hs-var">unmarkedUpContent</span></a></span></span><span> </span><span id="local-6989586621680436565"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680436565"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MarkupKind -&gt; Text -&gt; MarkupContent
+</span><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-var">MarkupContent</span></a></span><span> </span><span class="annot"><span class="annottext">MarkupKind
+</span><a href="Language.LSP.Types.MarkupContent.html#MkPlainText"><span class="hs-identifier hs-var">MkPlainText</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680436565"><span class="hs-identifier hs-var">str</span></a></span><span>
+</span><span id="line-75"></span><span>
+</span><span id="line-76"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-77"></span><span>
+</span><span id="line-78"></span><span class="hs-comment">-- | Markdown for a section separator in Markdown, being a horizontal line</span><span>
+</span><span id="line-79"></span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#sectionSeparator"><span class="hs-identifier hs-type">sectionSeparator</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-80"></span><span id="sectionSeparator"><span class="annot"><span class="annottext">sectionSeparator :: Text
+</span><a href="Language.LSP.Types.MarkupContent.html#sectionSeparator"><span class="hs-identifier hs-var hs-var">sectionSeparator</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;* * *\n&quot;</span></span><span>
+</span><span id="line-81"></span><span>
+</span><span id="line-82"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-83"></span><span>
+</span><span id="line-84"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680436559"><span id="local-6989586621680436561"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-type">MarkupContent</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-85"></span><span>  </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-type">MarkupContent</span></a></span><span> </span><span class="annot"><span class="annottext">MarkupKind
+</span><a href="Language.LSP.Types.MarkupContent.html#MkPlainText"><span class="hs-identifier hs-var">MkPlainText</span></a></span><span> </span><span id="local-6989586621680436557"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680436557"><span class="hs-identifier hs-var">s1</span></a></span></span><span> </span><span id="local-6989586621680436556"><span class="annot"><span class="annottext">&lt;&gt; :: MarkupContent -&gt; MarkupContent -&gt; MarkupContent
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></span></span><span> </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-type">MarkupContent</span></a></span><span> </span><span class="annot"><span class="annottext">MarkupKind
+</span><a href="Language.LSP.Types.MarkupContent.html#MkPlainText"><span class="hs-identifier hs-var">MkPlainText</span></a></span><span> </span><span id="local-6989586621680436555"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680436555"><span class="hs-identifier hs-var">s2</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MarkupKind -&gt; Text -&gt; MarkupContent
+</span><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-var">MarkupContent</span></a></span><span> </span><span class="annot"><span class="annottext">MarkupKind
+</span><a href="Language.LSP.Types.MarkupContent.html#MkPlainText"><span class="hs-identifier hs-var">MkPlainText</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680436557"><span class="hs-identifier hs-var">s1</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Monoid a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">`mappend`</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680436555"><span class="hs-identifier hs-var">s2</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-86"></span><span>  </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-type">MarkupContent</span></a></span><span> </span><span class="annot"><span class="annottext">MarkupKind
+</span><a href="Language.LSP.Types.MarkupContent.html#MkMarkdown"><span class="hs-identifier hs-var">MkMarkdown</span></a></span><span>  </span><span id="local-6989586621680436554"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680436554"><span class="hs-identifier hs-var">s1</span></a></span></span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-type">MarkupContent</span></a></span><span> </span><span class="annot"><span class="annottext">MarkupKind
+</span><span class="hs-identifier">_</span></span><span>           </span><span id="local-6989586621680436553"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680436553"><span class="hs-identifier hs-var">s2</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MarkupKind -&gt; Text -&gt; MarkupContent
+</span><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-var">MarkupContent</span></a></span><span> </span><span class="annot"><span class="annottext">MarkupKind
+</span><a href="Language.LSP.Types.MarkupContent.html#MkMarkdown"><span class="hs-identifier hs-var">MkMarkdown</span></a></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680436554"><span class="hs-identifier hs-var">s1</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Monoid a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">`mappend`</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680436553"><span class="hs-identifier hs-var">s2</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-87"></span><span>  </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-type">MarkupContent</span></a></span><span> </span><span class="annot"><span class="annottext">MarkupKind
+</span><span class="hs-identifier">_</span></span><span>           </span><span id="local-6989586621680436552"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680436552"><span class="hs-identifier hs-var">s1</span></a></span></span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-type">MarkupContent</span></a></span><span> </span><span class="annot"><span class="annottext">MarkupKind
+</span><a href="Language.LSP.Types.MarkupContent.html#MkMarkdown"><span class="hs-identifier hs-var">MkMarkdown</span></a></span><span>  </span><span id="local-6989586621680436551"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680436551"><span class="hs-identifier hs-var">s2</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MarkupKind -&gt; Text -&gt; MarkupContent
+</span><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-var">MarkupContent</span></a></span><span> </span><span class="annot"><span class="annottext">MarkupKind
+</span><a href="Language.LSP.Types.MarkupContent.html#MkMarkdown"><span class="hs-identifier hs-var">MkMarkdown</span></a></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680436552"><span class="hs-identifier hs-var">s1</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Monoid a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">`mappend`</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680436551"><span class="hs-identifier hs-var">s2</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-88"></span><span>
+</span><span id="line-89"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680436545"><span id="local-6989586621680436547"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-type">MarkupContent</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-90"></span><span>  </span><span id="local-6989586621680436543"><span class="annot"><span class="annottext">mempty :: MarkupContent
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MarkupKind -&gt; Text -&gt; MarkupContent
+</span><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-var">MarkupContent</span></a></span><span> </span><span class="annot"><span class="annottext">MarkupKind
+</span><a href="Language.LSP.Types.MarkupContent.html#MkPlainText"><span class="hs-identifier hs-var">MkPlainText</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-91"></span><span>
+</span><span id="line-92"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-93"></span><span>
+</span><span id="line-94"></span></pre></body></html>

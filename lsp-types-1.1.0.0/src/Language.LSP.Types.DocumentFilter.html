@@ -1,0 +1,83 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell            #-}</span><span>
+</span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.DocumentFilter</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span>                      </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">Text</span></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Common.html"><span class="hs-identifier">Language.LSP.Types.Common</span></a></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">data</span><span> </span><span id="DocumentFilter"><span class="annot"><a href="Language.LSP.Types.DocumentFilter.html#DocumentFilter"><span class="hs-identifier hs-var">DocumentFilter</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-12"></span><span>  </span><span id="DocumentFilter"><span class="annot"><a href="Language.LSP.Types.DocumentFilter.html#DocumentFilter"><span class="hs-identifier hs-var">DocumentFilter</span></a></span></span><span>
+</span><span id="line-13"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | A language id, like `typescript`.</span><span>
+</span><span id="line-14"></span><span>      </span><span id="_language"><span class="annot"><span class="annottext">DocumentFilter -&gt; Maybe Text
+</span><a href="Language.LSP.Types.DocumentFilter.html#_language"><span class="hs-identifier hs-var hs-var">_language</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-15"></span><span>      </span><span class="hs-comment">-- | A Uri scheme, like @file@ or @untitled@.</span><span>
+</span><span id="line-16"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="_scheme"><span class="annot"><span class="annottext">DocumentFilter -&gt; Maybe Text
+</span><a href="Language.LSP.Types.DocumentFilter.html#_scheme"><span class="hs-identifier hs-var hs-var">_scheme</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-17"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-comment">-- | A glob pattern, like `*.{ts,js}`.</span><span>
+</span><span id="line-18"></span><span>      </span><span class="hs-comment">--</span><span>
+</span><span id="line-19"></span><span>      </span><span class="hs-comment">-- Glob patterns can have the following syntax:</span><span>
+</span><span id="line-20"></span><span>      </span><span class="hs-comment">-- - @*@ to match one or more characters in a path segment</span><span>
+</span><span id="line-21"></span><span>      </span><span class="hs-comment">-- - @?@ to match on one character in a path segment</span><span>
+</span><span id="line-22"></span><span>      </span><span class="hs-comment">-- - @**@ to match any number of path segments, including none</span><span>
+</span><span id="line-23"></span><span>      </span><span class="hs-comment">-- - @{}@ to group conditions (e.g. @**&#8203;/*.{ts,js}@ matches all TypeScript and JavaScript files)</span><span>
+</span><span id="line-24"></span><span>      </span><span class="hs-comment">-- - @[]@ to declare a range of characters to match in a path segment (e.g., @example.[0-9]@ to match on @example.0@, @example.1@, &#8230;)</span><span>
+</span><span id="line-25"></span><span>      </span><span class="hs-comment">-- - @[!...]@ to negate a range of characters to match in a path segment (e.g., @example.[!0-9]@ to match on @example.a@, @example.b@, but not @example.0@)</span><span>
+</span><span id="line-26"></span><span>      </span><span id="_pattern"><span class="annot"><span class="annottext">DocumentFilter -&gt; Maybe Text
+</span><a href="Language.LSP.Types.DocumentFilter.html#_pattern"><span class="hs-identifier hs-var hs-var">_pattern</span></a></span></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-27"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680436946"><span id="local-6989586621680436948"><span id="local-6989586621680436950"><span class="annot"><span class="annottext">Int -&gt; DocumentFilter -&gt; ShowS
+[DocumentFilter] -&gt; ShowS
+DocumentFilter -&gt; String
+(Int -&gt; DocumentFilter -&gt; ShowS)
+-&gt; (DocumentFilter -&gt; String)
+-&gt; ([DocumentFilter] -&gt; ShowS)
+-&gt; Show DocumentFilter
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [DocumentFilter] -&gt; ShowS
+$cshowList :: [DocumentFilter] -&gt; ShowS
+show :: DocumentFilter -&gt; String
+$cshow :: DocumentFilter -&gt; String
+showsPrec :: Int -&gt; DocumentFilter -&gt; ShowS
+$cshowsPrec :: Int -&gt; DocumentFilter -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680436937"><span id="local-6989586621680436939"><span id="local-6989586621680436941"><span id="local-6989586621680436943"><span class="annot"><span class="annottext">ReadPrec [DocumentFilter]
+ReadPrec DocumentFilter
+Int -&gt; ReadS DocumentFilter
+ReadS [DocumentFilter]
+(Int -&gt; ReadS DocumentFilter)
+-&gt; ReadS [DocumentFilter]
+-&gt; ReadPrec DocumentFilter
+-&gt; ReadPrec [DocumentFilter]
+-&gt; Read DocumentFilter
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [DocumentFilter]
+$creadListPrec :: ReadPrec [DocumentFilter]
+readPrec :: ReadPrec DocumentFilter
+$creadPrec :: ReadPrec DocumentFilter
+readList :: ReadS [DocumentFilter]
+$creadList :: ReadS [DocumentFilter]
+readsPrec :: Int -&gt; ReadS DocumentFilter
+$creadsPrec :: Int -&gt; ReadS DocumentFilter
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680436932"><span id="local-6989586621680436934"><span class="annot"><span class="annottext">DocumentFilter -&gt; DocumentFilter -&gt; Bool
+(DocumentFilter -&gt; DocumentFilter -&gt; Bool)
+-&gt; (DocumentFilter -&gt; DocumentFilter -&gt; Bool) -&gt; Eq DocumentFilter
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: DocumentFilter -&gt; DocumentFilter -&gt; Bool
+$c/= :: DocumentFilter -&gt; DocumentFilter -&gt; Bool
+== :: DocumentFilter -&gt; DocumentFilter -&gt; Bool
+$c== :: DocumentFilter -&gt; DocumentFilter -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span id="local-6989586621680436919"><span id="local-6989586621680436921"><span id="local-6989586621680436923"><span id="local-6989586621680436925"><span id="local-6989586621680436927"><span id="local-6989586621680436929"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentFilter</span></span></span></span></span></span></span><span>
+</span><span id="line-30"></span><span>
+</span><span id="line-31"></span><span class="hs-comment">{-
+A document selector is the combination of one or many document filters.
+
+export type DocumentSelector = DocumentFilter[];
+-}</span><span>
+</span><span id="line-36"></span><span class="hs-keyword">type</span><span> </span><span id="DocumentSelector"><span class="annot"><a href="Language.LSP.Types.DocumentFilter.html#DocumentSelector"><span class="hs-identifier hs-var">DocumentSelector</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentFilter.html#DocumentFilter"><span class="hs-identifier hs-type">DocumentFilter</span></a></span><span>
+</span><span id="line-37"></span></pre></body></html>

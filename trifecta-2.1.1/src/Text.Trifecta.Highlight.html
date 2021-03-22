@@ -1,0 +1,471 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# language CPP #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# language OverloadedStrings #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# language TemplateHaskell #-}</span><span class="hs-cpp">
+
+#ifndef MIN_VERSION_lens
+</span><span class="hs-cpp">#define MIN_VERSION_lens(x,y,z) 1
+</span><span class="hs-cpp">#endif
+</span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Copyright   :  (C) 2011-2019 Edward Kmett</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- License     :  BSD-style (see the file LICENSE)</span><span>
+</span><span id="line-12"></span><span class="hs-comment">--</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- Stability   :  experimental</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- Portability :  non-portable</span><span>
+</span><span id="line-16"></span><span class="hs-comment">--</span><span>
+</span><span id="line-17"></span><span class="hs-comment">----------------------------------------------------------------------------</span><span>
+</span><span id="line-18"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.Trifecta.Highlight</span><span>
+</span><span id="line-19"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">Highlight</span></span><span>
+</span><span id="line-20"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightedRope"><span class="hs-identifier">HighlightedRope</span></a></span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightedRope"><span class="hs-identifier">HighlightedRope</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#HasHighlightedRope"><span class="hs-identifier">HasHighlightedRope</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#withHighlight"><span class="hs-identifier">withHighlight</span></a></span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightDoc"><span class="hs-identifier">HighlightDoc</span></a></span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightDoc"><span class="hs-identifier">HighlightDoc</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#HasHighlightDoc"><span class="hs-identifier">HasHighlightDoc</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#doc"><span class="hs-identifier">doc</span></a></span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Lens</span></span><span class="hs-cpp">
+#if MIN_VERSION_lens(4,13,0) &amp;&amp; __GLASGOW_HASKELL__ &gt;= 710
+</span><span>  </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Empty</span></span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Foldable</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">F</span></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Int</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Int64</span></span><span class="hs-special">)</span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">sort</span></span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Semigroup</span></span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Semigroup.Union</span></span><span>
+</span><span id="line-37"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Prettyprint.Doc</span></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Prettyprint.Doc.Render.Terminal</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">color</span></span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Prettyprint.Doc.Render.Terminal</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Pretty</span></span><span>
+</span><span id="line-40"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Prelude</span></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">head</span></span><span class="hs-special">)</span><span>
+</span><span id="line-41"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Blaze</span></span><span>
+</span><span id="line-42"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Blaze.Html5</span></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">a</span></span><span class="hs-special">,</span><span class="annot"><span class="hs-identifier">b</span></span><span class="hs-special">,</span><span class="annot"><span class="hs-identifier">i</span></span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Text.Blaze.Html5</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Html5</span></span><span>
+</span><span id="line-44"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Blaze.Html5.Attributes</span></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">title</span></span><span class="hs-special">,</span><span class="annot"><span class="hs-identifier">id</span></span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Blaze.Internal</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MarkupM</span></span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Empty</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">Leaf</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-46"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Parser.Token.Highlight</span></span><span>
+</span><span id="line-47"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString.Lazy.Char8</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">L</span></span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html"><span class="hs-identifier">Text.Trifecta.Delta</span></a></span><span>
+</span><span id="line-50"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html"><span class="hs-identifier">Text.Trifecta.Rope</span></a></span><span>
+</span><span id="line-51"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.IntervalMap.html"><span class="hs-identifier">Text.Trifecta.Util.IntervalMap</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">IM</span></span><span>
+</span><span id="line-52"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.Pretty.html"><span class="hs-identifier">Text.Trifecta.Util.Pretty</span></a></span><span>
+</span><span id="line-53"></span><span>
+</span><span id="line-54"></span><span class="hs-comment">-- | Convert a 'Highlight' into a coloration on a 'Doc'.</span><span>
+</span><span id="line-55"></span><span class="annot"><a href="Text.Trifecta.Highlight.html#withHighlight"><span class="hs-identifier hs-type">withHighlight</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Highlight</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Doc</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">AnsiStyle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Doc</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">AnsiStyle</span></span><span>
+</span><span id="line-56"></span><span id="withHighlight"><span class="annot"><span class="annottext">withHighlight :: Highlight -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+</span><a href="Text.Trifecta.Highlight.html#withHighlight"><span class="hs-identifier hs-var hs-var">withHighlight</span></a></span></span><span> </span><span class="annot"><span class="annottext">Highlight
+</span><span class="hs-identifier hs-var">Comment</span></span><span>                     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall ann. ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">annotate</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Color -&gt; AnsiStyle
+</span><span class="hs-identifier hs-var">color</span></span><span> </span><span class="annot"><span class="annottext">Color
+</span><span class="hs-identifier hs-var">Pretty.Blue</span></span><span class="hs-special">)</span><span>
+</span><span id="line-57"></span><span class="annot"><a href="Text.Trifecta.Highlight.html#withHighlight"><span class="hs-identifier hs-var">withHighlight</span></a></span><span> </span><span class="annot"><span class="annottext">Highlight
+</span><span class="hs-identifier hs-var">ReservedIdentifier</span></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall ann. ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">annotate</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Color -&gt; AnsiStyle
+</span><span class="hs-identifier hs-var">color</span></span><span> </span><span class="annot"><span class="annottext">Color
+</span><span class="hs-identifier hs-var">Pretty.Magenta</span></span><span class="hs-special">)</span><span>
+</span><span id="line-58"></span><span class="annot"><a href="Text.Trifecta.Highlight.html#withHighlight"><span class="hs-identifier hs-var">withHighlight</span></a></span><span> </span><span class="annot"><span class="annottext">Highlight
+</span><span class="hs-identifier hs-var">ReservedConstructor</span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall ann. ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">annotate</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Color -&gt; AnsiStyle
+</span><span class="hs-identifier hs-var">color</span></span><span> </span><span class="annot"><span class="annottext">Color
+</span><span class="hs-identifier hs-var">Pretty.Magenta</span></span><span class="hs-special">)</span><span>
+</span><span id="line-59"></span><span class="annot"><a href="Text.Trifecta.Highlight.html#withHighlight"><span class="hs-identifier hs-var">withHighlight</span></a></span><span> </span><span class="annot"><span class="annottext">Highlight
+</span><span class="hs-identifier hs-var">EscapeCode</span></span><span>                  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall ann. ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">annotate</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Color -&gt; AnsiStyle
+</span><span class="hs-identifier hs-var">color</span></span><span> </span><span class="annot"><span class="annottext">Color
+</span><span class="hs-identifier hs-var">Pretty.Magenta</span></span><span class="hs-special">)</span><span>
+</span><span id="line-60"></span><span class="annot"><a href="Text.Trifecta.Highlight.html#withHighlight"><span class="hs-identifier hs-var">withHighlight</span></a></span><span> </span><span class="annot"><span class="annottext">Highlight
+</span><span class="hs-identifier hs-var">Operator</span></span><span>                    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall ann. ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">annotate</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Color -&gt; AnsiStyle
+</span><span class="hs-identifier hs-var">color</span></span><span> </span><span class="annot"><span class="annottext">Color
+</span><span class="hs-identifier hs-var">Pretty.Yellow</span></span><span class="hs-special">)</span><span>
+</span><span id="line-61"></span><span class="annot"><a href="Text.Trifecta.Highlight.html#withHighlight"><span class="hs-identifier hs-var">withHighlight</span></a></span><span> </span><span class="annot"><span class="annottext">Highlight
+</span><span class="hs-identifier hs-var">CharLiteral</span></span><span>                 </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall ann. ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">annotate</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Color -&gt; AnsiStyle
+</span><span class="hs-identifier hs-var">color</span></span><span> </span><span class="annot"><span class="annottext">Color
+</span><span class="hs-identifier hs-var">Pretty.Cyan</span></span><span class="hs-special">)</span><span>
+</span><span id="line-62"></span><span class="annot"><a href="Text.Trifecta.Highlight.html#withHighlight"><span class="hs-identifier hs-var">withHighlight</span></a></span><span> </span><span class="annot"><span class="annottext">Highlight
+</span><span class="hs-identifier hs-var">StringLiteral</span></span><span>               </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall ann. ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">annotate</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Color -&gt; AnsiStyle
+</span><span class="hs-identifier hs-var">color</span></span><span> </span><span class="annot"><span class="annottext">Color
+</span><span class="hs-identifier hs-var">Pretty.Cyan</span></span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span class="annot"><a href="Text.Trifecta.Highlight.html#withHighlight"><span class="hs-identifier hs-var">withHighlight</span></a></span><span> </span><span class="annot"><span class="annottext">Highlight
+</span><span class="hs-identifier hs-var">Constructor</span></span><span>                 </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall ann. ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">annotate</span></span><span> </span><span class="annot"><span class="annottext">AnsiStyle
+</span><span class="hs-identifier hs-var">Pretty.bold</span></span><span>
+</span><span id="line-64"></span><span class="annot"><a href="Text.Trifecta.Highlight.html#withHighlight"><span class="hs-identifier hs-var">withHighlight</span></a></span><span> </span><span class="annot"><span class="annottext">Highlight
+</span><span class="hs-identifier hs-var">ReservedOperator</span></span><span>            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall ann. ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">annotate</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Color -&gt; AnsiStyle
+</span><span class="hs-identifier hs-var">color</span></span><span> </span><span class="annot"><span class="annottext">Color
+</span><span class="hs-identifier hs-var">Pretty.Yellow</span></span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span class="annot"><a href="Text.Trifecta.Highlight.html#withHighlight"><span class="hs-identifier hs-var">withHighlight</span></a></span><span> </span><span class="annot"><span class="annottext">Highlight
+</span><span class="hs-identifier hs-var">ConstructorOperator</span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall ann. ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">annotate</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Color -&gt; AnsiStyle
+</span><span class="hs-identifier hs-var">color</span></span><span> </span><span class="annot"><span class="annottext">Color
+</span><span class="hs-identifier hs-var">Pretty.Yellow</span></span><span class="hs-special">)</span><span>
+</span><span id="line-66"></span><span class="annot"><a href="Text.Trifecta.Highlight.html#withHighlight"><span class="hs-identifier hs-var">withHighlight</span></a></span><span> </span><span class="annot"><span class="annottext">Highlight
+</span><span class="hs-identifier hs-var">ReservedConstructorOperator</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall ann. ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">annotate</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Color -&gt; AnsiStyle
+</span><span class="hs-identifier hs-var">color</span></span><span> </span><span class="annot"><span class="annottext">Color
+</span><span class="hs-identifier hs-var">Pretty.Yellow</span></span><span class="hs-special">)</span><span>
+</span><span id="line-67"></span><span class="annot"><a href="Text.Trifecta.Highlight.html#withHighlight"><span class="hs-identifier hs-var">withHighlight</span></a></span><span> </span><span class="annot"><span class="annottext">Highlight
+</span><span class="hs-identifier">_</span></span><span>                           </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; Doc AnsiStyle
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span>
+</span><span id="line-68"></span><span>
+</span><span id="line-69"></span><span class="hs-comment">-- | A 'HighlightedRope' is a 'Rope' with an associated 'IntervalMap' full of highlighted regions.</span><span>
+</span><span id="line-70"></span><span class="hs-keyword">data</span><span> </span><span id="HighlightedRope"><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightedRope"><span class="hs-identifier hs-var">HighlightedRope</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="HighlightedRope"><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightedRope"><span class="hs-identifier hs-var">HighlightedRope</span></a></span></span><span>
+</span><span id="line-71"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="_ropeHighlights"><span class="annot"><span class="annottext">HighlightedRope -&gt; IntervalMap Delta Highlight
+</span><a href="Text.Trifecta.Highlight.html#_ropeHighlights"><span class="hs-identifier hs-var hs-var">_ropeHighlights</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Util.IntervalMap.html#IntervalMap"><span class="hs-identifier hs-type">IM.IntervalMap</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Highlight</span></span><span class="hs-special">)</span><span>
+</span><span id="line-72"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_ropeContent"><span class="annot"><span class="annottext">HighlightedRope -&gt; Rope
+</span><a href="Text.Trifecta.Highlight.html#_ropeContent"><span class="hs-identifier hs-var hs-var">_ropeContent</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><a href="Text.Trifecta.Rope.html#Rope"><span class="hs-identifier hs-type">Rope</span></a></span><span>
+</span><span id="line-73"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-74"></span><span>
+</span><span id="line-75"></span><span id="ropeHighlights"><span id="ropeContent"><span id="highlightedRope"><span id="local-6989586621679239277"><span id="local-6989586621679239279"><span id="local-6989586621679239281"><span id="local-6989586621679239283"><span id="local-6989586621679239284"><span id="HasHighlightedRope"><span id="local-6989586621679239399"><span class="hs-identifier">makeClassy</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">HighlightedRope</span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-76"></span><span>
+</span><span id="line-77"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasDelta"><span class="hs-identifier hs-type">HasDelta</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightedRope"><span class="hs-identifier hs-type">HighlightedRope</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-78"></span><span>  </span><span id="local-6989586621679239270"><span class="annot"><span class="annottext">delta :: HighlightedRope -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var hs-var hs-var hs-var">delta</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope -&gt; Delta
+forall t. HasDelta t =&gt; t -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span><span> </span><span class="annot"><span class="annottext">(Rope -&gt; Delta)
+-&gt; (HighlightedRope -&gt; Rope) -&gt; HighlightedRope -&gt; Delta
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">HighlightedRope -&gt; Rope
+</span><a href="Text.Trifecta.Highlight.html#_ropeContent"><span class="hs-identifier hs-var hs-var">_ropeContent</span></a></span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasBytes"><span class="hs-identifier hs-type">HasBytes</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightedRope"><span class="hs-identifier hs-type">HighlightedRope</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-81"></span><span>  </span><span id="local-6989586621679239265"><span class="annot"><span class="annottext">bytes :: HighlightedRope -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#bytes"><span class="hs-identifier hs-var hs-var hs-var hs-var">bytes</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope -&gt; Int64
+forall t. HasBytes t =&gt; t -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#bytes"><span class="hs-identifier hs-var">bytes</span></a></span><span> </span><span class="annot"><span class="annottext">(Rope -&gt; Int64)
+-&gt; (HighlightedRope -&gt; Rope) -&gt; HighlightedRope -&gt; Int64
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">HighlightedRope -&gt; Rope
+</span><a href="Text.Trifecta.Highlight.html#_ropeContent"><span class="hs-identifier hs-var hs-var">_ropeContent</span></a></span><span>
+</span><span id="line-82"></span><span>
+</span><span id="line-83"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679239259"><span id="local-6989586621679239261"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightedRope"><span class="hs-identifier hs-type">HighlightedRope</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-84"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightedRope"><span class="hs-identifier hs-type">HighlightedRope</span></a></span><span> </span><span id="local-6989586621679239257"><span class="annot"><span class="annottext">IntervalMap Delta Highlight
+</span><a href="#local-6989586621679239257"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span id="local-6989586621679239256"><span class="annot"><span class="annottext">Rope
+</span><a href="#local-6989586621679239256"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span id="local-6989586621679239255"><span class="annot"><span class="annottext">&lt;&gt; :: HighlightedRope -&gt; HighlightedRope -&gt; HighlightedRope
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></span></span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightedRope"><span class="hs-identifier hs-type">HighlightedRope</span></a></span><span> </span><span id="local-6989586621679239254"><span class="annot"><span class="annottext">IntervalMap Delta Highlight
+</span><a href="#local-6989586621679239254"><span class="hs-identifier hs-var">h'</span></a></span></span><span> </span><span id="local-6989586621679239253"><span class="annot"><span class="annottext">Rope
+</span><a href="#local-6989586621679239253"><span class="hs-identifier hs-var">bs'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IntervalMap Delta Highlight -&gt; Rope -&gt; HighlightedRope
+</span><a href="Text.Trifecta.Highlight.html#HighlightedRope"><span class="hs-identifier hs-var">HighlightedRope</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">IntervalMap Delta Highlight
+</span><a href="#local-6989586621679239257"><span class="hs-identifier hs-var">h</span></a></span><span> </span><span class="annot"><span class="annottext">IntervalMap Delta Highlight
+-&gt; IntervalMap Delta Highlight -&gt; IntervalMap Delta Highlight
+forall f. HasUnion f =&gt; f -&gt; f -&gt; f
+</span><span class="hs-operator hs-var">`union`</span></span><span> </span><span class="annot"><span class="annottext">Delta -&gt; IntervalMap Delta Highlight -&gt; IntervalMap Delta Highlight
+forall v a.
+(Ord v, Monoid v) =&gt;
+v -&gt; IntervalMap v a -&gt; IntervalMap v a
+</span><a href="Text.Trifecta.Util.IntervalMap.html#offset"><span class="hs-identifier hs-var">IM.offset</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Rope -&gt; Delta
+forall t. HasDelta t =&gt; t -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span><span> </span><span class="annot"><span class="annottext">Rope
+</span><a href="#local-6989586621679239256"><span class="hs-identifier hs-var">bs</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">IntervalMap Delta Highlight
+</span><a href="#local-6989586621679239254"><span class="hs-identifier hs-var">h'</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Rope
+</span><a href="#local-6989586621679239256"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="annot"><span class="annottext">Rope -&gt; Rope -&gt; Rope
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Rope
+</span><a href="#local-6989586621679239253"><span class="hs-identifier hs-var">bs'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-85"></span><span>
+</span><span id="line-86"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679239246"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightedRope"><span class="hs-identifier hs-type">HighlightedRope</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-87"></span><span>  </span><span id="local-6989586621679239244"><span class="annot"><span class="annottext">mappend :: HighlightedRope -&gt; HighlightedRope -&gt; HighlightedRope
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mappend</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">HighlightedRope -&gt; HighlightedRope -&gt; HighlightedRope
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(&lt;&gt;)</span></span><span>
+</span><span id="line-88"></span><span>  </span><span id="local-6989586621679239243"><span class="annot"><span class="annottext">mempty :: HighlightedRope
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IntervalMap Delta Highlight -&gt; Rope -&gt; HighlightedRope
+</span><a href="Text.Trifecta.Highlight.html#HighlightedRope"><span class="hs-identifier hs-var">HighlightedRope</span></a></span><span> </span><span class="annot"><span class="annottext">IntervalMap Delta Highlight
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="annot"><span class="annottext">Rope
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-89"></span><span>
+</span><span id="line-90"></span><span class="hs-keyword">data</span><span> </span><span id="Located"><span class="annot"><a href="Text.Trifecta.Highlight.html#Located"><span class="hs-identifier hs-var">Located</span></a></span></span><span> </span><span id="local-6989586621679239343"><span class="annot"><a href="#local-6989586621679239343"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679239343"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span id="%3A%40"><span class="annot"><a href="Text.Trifecta.Highlight.html#%3A%40"><span class="hs-operator hs-var">:@</span></a></span></span><span> </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span>
+</span><span id="line-91"></span><span class="hs-keyword">infix</span><span> </span><span class="hs-number">5</span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#%3A%40"><span class="hs-operator hs-type">:@</span></a></span><span>
+</span><span id="line-92"></span><span id="local-6989586621679239241"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679239238"><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Highlight.html#Located"><span class="hs-identifier hs-type">Located</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239241"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-93"></span><span>  </span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#%3A%40"><span class="hs-operator hs-type">:@</span></a></span><span> </span><span id="local-6989586621679239236"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679239236"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span id="local-6989586621679239235"><span class="annot"><span class="annottext">== :: Located a -&gt; Located a -&gt; Bool
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">==</span></span></span><span> </span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#%3A%40"><span class="hs-operator hs-type">:@</span></a></span><span> </span><span id="local-6989586621679239234"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679239234"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679239236"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679239234"><span class="hs-identifier hs-var">n</span></a></span></span><span>
+</span><span id="line-94"></span><span id="local-6989586621679239233"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679239219"><span id="local-6989586621679239221"><span id="local-6989586621679239223"><span id="local-6989586621679239225"><span id="local-6989586621679239227"><span id="local-6989586621679239229"><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Highlight.html#Located"><span class="hs-identifier hs-type">Located</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239233"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-95"></span><span>  </span><span id="local-6989586621679239217"><span class="annot"><span class="annottext">compare :: Located a -&gt; Located a -&gt; Ordering
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">compare</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#%3A%40"><span class="hs-operator hs-type">:@</span></a></span><span> </span><span id="local-6989586621679239215"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679239215"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#%3A%40"><span class="hs-operator hs-type">:@</span></a></span><span> </span><span id="local-6989586621679239214"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679239214"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span><span class="hs-identifier hs-var">compare</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679239215"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679239214"><span class="hs-identifier hs-var">n</span></a></span></span><span>
+</span><span id="line-96"></span><span>
+</span><span id="line-97"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679239211"><span class="annot"><span class="hs-identifier hs-type">ToMarkup</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightedRope"><span class="hs-identifier hs-type">HighlightedRope</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-98"></span><span>  </span><span id="local-6989586621679239209"><span class="annot"><span class="annottext">toMarkup :: HighlightedRope -&gt; Markup
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">toMarkup</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightedRope"><span class="hs-identifier hs-type">HighlightedRope</span></a></span><span> </span><span id="local-6989586621679239207"><span class="annot"><span class="annottext">IntervalMap Delta Highlight
+</span><a href="#local-6989586621679239207"><span class="hs-identifier hs-var">intervals</span></a></span></span><span> </span><span id="local-6989586621679239206"><span class="annot"><span class="annottext">Rope
+</span><a href="#local-6989586621679239206"><span class="hs-identifier hs-var">r</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Markup -&gt; Markup
+</span><span class="hs-identifier hs-var">Html5.pre</span></span><span> </span><span class="annot"><span class="annottext">(Markup -&gt; Markup) -&gt; Markup -&gt; Markup
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; ByteString -&gt; [Located Markup] -&gt; Markup
+forall a. Int64 -&gt; ByteString -&gt; [Located (MarkupM a)] -&gt; Markup
+</span><a href="#local-6989586621679239204"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239203"><span class="hs-identifier hs-var">lbs</span></a></span><span> </span><span class="annot"><span class="annottext">[Located Markup]
+</span><a href="#local-6989586621679239202"><span class="hs-identifier hs-var">effects</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-99"></span><span>    </span><span id="local-6989586621679239203"><span class="annot"><span class="annottext">lbs :: ByteString
+</span><a href="#local-6989586621679239203"><span class="hs-identifier hs-var hs-var">lbs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[ByteString] -&gt; ByteString
+</span><span class="hs-identifier hs-var">L.fromChunks</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239200"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><a href="Text.Trifecta.Rope.html#Strand"><span class="hs-identifier hs-type">Strand</span></a></span><span> </span><span id="local-6989586621679239200"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239200"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">FingerTree Delta Strand -&gt; [Strand]
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; [a]
+</span><span class="hs-identifier hs-var">F.toList</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Rope -&gt; FingerTree Delta Strand
+</span><a href="Text.Trifecta.Rope.html#strands"><span class="hs-identifier hs-var">strands</span></a></span><span> </span><span class="annot"><span class="annottext">Rope
+</span><a href="#local-6989586621679239206"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-100"></span><span>    </span><span id="local-6989586621679239196"><span class="annot"><span class="annottext">ln :: a -&gt; Markup
+</span><a href="#local-6989586621679239196"><span class="hs-identifier hs-var hs-var">ln</span></a></span></span><span> </span><span id="local-6989586621679239195"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679239195"><span class="hs-identifier hs-var">no</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Markup -&gt; Markup
+</span><span class="hs-identifier hs-var">Html5.a</span></span><span> </span><span class="annot"><span class="annottext">(Markup -&gt; Markup) -&gt; Attribute -&gt; Markup -&gt; Markup
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-glyph hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">name</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char] -&gt; AttributeValue
+forall a. ToValue a =&gt; a -&gt; AttributeValue
+</span><span class="hs-identifier hs-var">toValue</span></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; AttributeValue) -&gt; [Char] -&gt; AttributeValue
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;line-&quot;</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; [Char]
+forall a. Show a =&gt; a -&gt; [Char]
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679239195"><span class="hs-identifier hs-var">no</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Markup -&gt; Markup) -&gt; Markup -&gt; Markup
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Markup
+</span><a href="#local-6989586621679239190"><span class="hs-identifier hs-var">emptyMarkup</span></a></span><span>
+</span><span id="line-101"></span><span>    </span><span id="local-6989586621679239202"><span class="annot"><span class="annottext">effects :: [Located Markup]
+</span><a href="#local-6989586621679239202"><span class="hs-identifier hs-var hs-var">effects</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Located Markup] -&gt; [Located Markup]
+forall a. Ord a =&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">sort</span></span><span> </span><span class="annot"><span class="annottext">([Located Markup] -&gt; [Located Markup])
+-&gt; [Located Markup] -&gt; [Located Markup]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Located Markup
+</span><a href="#local-6989586621679239189"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Util.IntervalMap.html#Interval"><span class="hs-identifier hs-type">Interval</span></a></span><span> </span><span id="local-6989586621679239187"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679239187"><span class="hs-identifier hs-var">lo</span></a></span></span><span> </span><span id="local-6989586621679239186"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679239186"><span class="hs-identifier hs-var">hi</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679239185"><span class="annot"><span class="annottext">Highlight
+</span><a href="#local-6989586621679239185"><span class="hs-identifier hs-var">tok</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Delta
+-&gt; Delta
+-&gt; IntervalMap Delta Highlight
+-&gt; [(Interval Delta, Highlight)]
+forall v a. Ord v =&gt; v -&gt; v -&gt; IntervalMap v a -&gt; [(Interval v, a)]
+</span><a href="Text.Trifecta.Util.IntervalMap.html#intersections"><span class="hs-identifier hs-var">intersections</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Rope -&gt; Delta
+forall t. HasDelta t =&gt; t -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span><span> </span><span class="annot"><span class="annottext">Rope
+</span><a href="#local-6989586621679239206"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">IntervalMap Delta Highlight
+</span><a href="#local-6989586621679239207"><span class="hs-identifier hs-var">intervals</span></a></span><span>
+</span><span id="line-102"></span><span>                     </span><span class="hs-special">,</span><span> </span><span id="local-6989586621679239189"><span class="annot"><span class="annottext">Located Markup
+</span><a href="#local-6989586621679239189"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">StaticString -&gt; StaticString -&gt; StaticString -&gt; Markup
+</span><a href="#local-6989586621679239183"><span class="hs-identifier hs-var">leafMarkup</span></a></span><span> </span><span class="annot"><span class="annottext">StaticString
+</span><span class="hs-string">&quot;span&quot;</span></span><span> </span><span class="annot"><span class="annottext">StaticString
+</span><span class="hs-string">&quot;&lt;span&quot;</span></span><span> </span><span class="annot"><span class="annottext">StaticString
+</span><span class="hs-string">&quot;&gt;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Markup -&gt; Attribute -&gt; Markup
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-glyph hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">class_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char] -&gt; AttributeValue
+forall a. ToValue a =&gt; a -&gt; AttributeValue
+</span><span class="hs-identifier hs-var">toValue</span></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; AttributeValue) -&gt; [Char] -&gt; AttributeValue
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Highlight -&gt; [Char]
+forall a. Show a =&gt; a -&gt; [Char]
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Highlight
+</span><a href="#local-6989586621679239185"><span class="hs-identifier hs-var">tok</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Markup -&gt; Int64 -&gt; Located Markup
+forall a. a -&gt; Int64 -&gt; Located a
+</span><a href="Text.Trifecta.Highlight.html#%3A%40"><span class="hs-operator hs-var">:@</span></a></span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Int64
+forall t. HasBytes t =&gt; t -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#bytes"><span class="hs-identifier hs-var">bytes</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679239187"><span class="hs-identifier hs-var">lo</span></a></span><span>
+</span><span id="line-103"></span><span>                            </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Markup
+forall a. ToMarkup a =&gt; a -&gt; Markup
+</span><span class="hs-identifier hs-var">preEscapedToHtml</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;&lt;/span&gt;&quot;</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Markup -&gt; Int64 -&gt; Located Markup
+forall a. a -&gt; Int64 -&gt; Located a
+</span><a href="Text.Trifecta.Highlight.html#%3A%40"><span class="hs-operator hs-var">:@</span></a></span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Int64
+forall t. HasBytes t =&gt; t -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#bytes"><span class="hs-identifier hs-var">bytes</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679239186"><span class="hs-identifier hs-var">hi</span></a></span><span>
+</span><span id="line-104"></span><span>                            </span><span class="hs-special">]</span><span>
+</span><span id="line-105"></span><span>                     </span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">[Located Markup] -&gt; [Located Markup] -&gt; [Located Markup]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Int64 -&gt; Located Markup) -&gt; [Int64] -&gt; [Located Markup]
+forall i (f :: * -&gt; *) a b.
+FunctorWithIndex i f =&gt;
+(i -&gt; a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">imap</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679239178"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679239178"><span class="hs-identifier hs-var">k</span></a></span></span><span> </span><span id="local-6989586621679239177"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679239177"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Markup
+forall a. Show a =&gt; a -&gt; Markup
+</span><a href="#local-6989586621679239196"><span class="hs-identifier hs-var">ln</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679239178"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">Markup -&gt; Int64 -&gt; Located Markup
+forall a. a -&gt; Int64 -&gt; Located a
+</span><a href="Text.Trifecta.Highlight.html#%3A%40"><span class="hs-operator hs-var">:@</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679239177"><span class="hs-identifier hs-var">i</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; ByteString -&gt; [Int64]
+</span><span class="hs-identifier hs-var">L.elemIndices</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\n'</span></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239203"><span class="hs-identifier hs-var">lbs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-106"></span><span>    </span><span id="local-6989586621679239204"><span class="annot"><span class="annottext">go :: Int64 -&gt; ByteString -&gt; [Located (MarkupM a)] -&gt; Markup
+</span><a href="#local-6989586621679239204"><span class="hs-identifier hs-var hs-var">go</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679239175"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239175"><span class="hs-identifier hs-var">cs</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Markup
+</span><span class="hs-identifier hs-var">unsafeLazyByteString</span></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239175"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-107"></span><span>    </span><span class="annot"><a href="#local-6989586621679239204"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span id="local-6989586621679239173"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679239173"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span id="local-6989586621679239172"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239172"><span class="hs-identifier hs-var">cs</span></a></span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span id="local-6989586621679239171"><span class="annot"><span class="annottext">MarkupM a
+</span><a href="#local-6989586621679239171"><span class="hs-identifier hs-var">eff</span></a></span></span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#%3A%40"><span class="hs-operator hs-type">:@</span></a></span><span> </span><span id="local-6989586621679239170"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679239170"><span class="hs-identifier hs-var">eb</span></a></span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679239169"><span class="annot"><span class="annottext">[Located (MarkupM a)]
+</span><a href="#local-6989586621679239169"><span class="hs-identifier hs-var">es</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-108"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679239170"><span class="hs-identifier hs-var">eb</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;=</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679239173"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MarkupM a
+</span><a href="#local-6989586621679239171"><span class="hs-identifier hs-var">eff</span></a></span><span> </span><span class="annot"><span class="annottext">MarkupM a -&gt; Markup -&gt; Markup
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; ByteString -&gt; [Located (MarkupM a)] -&gt; Markup
+</span><a href="#local-6989586621679239204"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679239173"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239172"><span class="hs-identifier hs-var">cs</span></a></span><span> </span><span class="annot"><span class="annottext">[Located (MarkupM a)]
+</span><a href="#local-6989586621679239169"><span class="hs-identifier hs-var">es</span></a></span><span>
+</span><span id="line-109"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Markup
+</span><span class="hs-identifier hs-var">unsafeLazyByteString</span></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239167"><span class="hs-identifier hs-var">om</span></a></span><span> </span><span class="annot"><span class="annottext">Markup -&gt; Markup -&gt; Markup
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; ByteString -&gt; [Located (MarkupM a)] -&gt; Markup
+</span><a href="#local-6989586621679239204"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679239170"><span class="hs-identifier hs-var">eb</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239166"><span class="hs-identifier hs-var">nom</span></a></span><span> </span><span class="annot"><span class="annottext">[Located (MarkupM a)]
+</span><a href="#local-6989586621679239169"><span class="hs-identifier hs-var">es</span></a></span><span>
+</span><span id="line-110"></span><span>         </span><span class="hs-keyword">where</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679239167"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239167"><span class="hs-identifier hs-var">om</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679239166"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239166"><span class="hs-identifier hs-var">nom</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; ByteString -&gt; (ByteString, ByteString)
+</span><span class="hs-identifier hs-var">L.splitAt</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64 -&gt; Int64
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679239170"><span class="hs-identifier hs-var">eb</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679239173"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239172"><span class="hs-identifier hs-var">cs</span></a></span><span class="hs-cpp">
+
+#if MIN_VERSION_blaze_markup(0,8,0)
+</span><span>    </span><span id="local-6989586621679239190"><span class="annot"><span class="annottext">emptyMarkup :: Markup
+</span><a href="#local-6989586621679239190"><span class="hs-identifier hs-var hs-var">emptyMarkup</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">() -&gt; Markup
+forall a. a -&gt; MarkupM a
+</span><span class="hs-identifier hs-var">Empty</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-114"></span><span>    </span><span id="local-6989586621679239183"><span class="annot"><span class="annottext">leafMarkup :: StaticString -&gt; StaticString -&gt; StaticString -&gt; Markup
+</span><a href="#local-6989586621679239183"><span class="hs-identifier hs-var hs-var">leafMarkup</span></a></span></span><span> </span><span id="local-6989586621679239164"><span class="annot"><span class="annottext">StaticString
+</span><a href="#local-6989586621679239164"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679239163"><span class="annot"><span class="annottext">StaticString
+</span><a href="#local-6989586621679239163"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span id="local-6989586621679239162"><span class="annot"><span class="annottext">StaticString
+</span><a href="#local-6989586621679239162"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">StaticString -&gt; StaticString -&gt; StaticString -&gt; () -&gt; Markup
+forall a.
+StaticString -&gt; StaticString -&gt; StaticString -&gt; a -&gt; MarkupM a
+</span><span class="hs-identifier hs-var">Leaf</span></span><span> </span><span class="annot"><span class="annottext">StaticString
+</span><a href="#local-6989586621679239164"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">StaticString
+</span><a href="#local-6989586621679239163"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">StaticString
+</span><a href="#local-6989586621679239162"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span>    </span><span class="hs-identifier">emptyMarkup</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">Empty</span><span>
+</span><span id="line-117"></span><span>    </span><span class="hs-identifier">leafMarkup</span><span> </span><span class="hs-identifier">a</span><span> </span><span class="hs-identifier">b</span><span> </span><span class="hs-identifier">c</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">Leaf</span><span> </span><span class="hs-identifier">a</span><span> </span><span class="hs-identifier">b</span><span> </span><span class="hs-identifier">c</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-120"></span><span class="hs-comment">-- | Represents a source file like an HsColour rendered document</span><span>
+</span><span id="line-121"></span><span class="hs-keyword">data</span><span> </span><span id="HighlightDoc"><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightDoc"><span class="hs-identifier hs-var">HighlightDoc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="HighlightDoc"><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightDoc"><span class="hs-identifier hs-var">HighlightDoc</span></a></span></span><span>
+</span><span id="line-122"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="_docTitle"><span class="annot"><span class="annottext">HighlightDoc -&gt; [Char]
+</span><a href="Text.Trifecta.Highlight.html#_docTitle"><span class="hs-identifier hs-var hs-var">_docTitle</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-123"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_docCss"><span class="annot"><span class="annottext">HighlightDoc -&gt; [Char]
+</span><a href="Text.Trifecta.Highlight.html#_docCss"><span class="hs-identifier hs-var hs-var">_docCss</span></a></span></span><span>     </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-comment">-- href for the css file</span><span>
+</span><span id="line-124"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_docContent"><span class="annot"><span class="annottext">HighlightDoc -&gt; HighlightedRope
+</span><a href="Text.Trifecta.Highlight.html#_docContent"><span class="hs-identifier hs-var hs-var">_docContent</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightedRope"><span class="hs-identifier hs-type">HighlightedRope</span></a></span><span>
+</span><span id="line-125"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-126"></span><span>
+</span><span id="line-127"></span><span id="docTitle"><span id="docCss"><span id="docContent"><span id="highlightDoc"><span id="local-6989586621679239148"><span id="local-6989586621679239150"><span id="local-6989586621679239152"><span id="local-6989586621679239154"><span id="local-6989586621679239156"><span id="local-6989586621679239157"><span id="local-6989586621679239158"><span id="HasHighlightDoc"><span id="local-6989586621679239327"><span class="hs-identifier">makeClassy</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">HighlightDoc</span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-128"></span><span>
+</span><span id="line-129"></span><span class="hs-comment">-- | Generate an HTML document from a title and a 'HighlightedRope'.</span><span>
+</span><span id="line-130"></span><span class="annot"><a href="Text.Trifecta.Highlight.html#doc"><span class="hs-identifier hs-type">doc</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightedRope"><span class="hs-identifier hs-type">HighlightedRope</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightDoc"><span class="hs-identifier hs-type">HighlightDoc</span></a></span><span>
+</span><span id="line-131"></span><span id="doc"><span class="annot"><span class="annottext">doc :: [Char] -&gt; HighlightedRope -&gt; HighlightDoc
+</span><a href="Text.Trifecta.Highlight.html#doc"><span class="hs-identifier hs-var hs-var">doc</span></a></span></span><span> </span><span id="local-6989586621679239142"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679239142"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span id="local-6989586621679239141"><span class="annot"><span class="annottext">HighlightedRope
+</span><a href="#local-6989586621679239141"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; HighlightedRope -&gt; HighlightDoc
+</span><a href="Text.Trifecta.Highlight.html#HighlightDoc"><span class="hs-identifier hs-var">HighlightDoc</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679239142"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;trifecta.css&quot;</span></span><span> </span><span class="annot"><span class="annottext">HighlightedRope
+</span><a href="#local-6989586621679239141"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-132"></span><span>
+</span><span id="line-133"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679239138"><span class="annot"><span class="hs-identifier hs-type">ToMarkup</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightDoc"><span class="hs-identifier hs-type">HighlightDoc</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-134"></span><span>  </span><span id="local-6989586621679239137"><span class="annot"><span class="annottext">toMarkup :: HighlightDoc -&gt; Markup
+</span><a href="#local-6989586621679239137"><span class="hs-identifier hs-var hs-var hs-var hs-var">toMarkup</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Highlight.html#HighlightDoc"><span class="hs-identifier hs-type">HighlightDoc</span></a></span><span> </span><span id="local-6989586621679239136"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679239136"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span id="local-6989586621679239135"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679239135"><span class="hs-identifier hs-var">css</span></a></span></span><span> </span><span id="local-6989586621679239134"><span class="annot"><span class="annottext">HighlightedRope
+</span><a href="#local-6989586621679239134"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Markup -&gt; Markup
+</span><span class="hs-identifier hs-var">docTypeHtml</span></span><span> </span><span class="annot"><span class="annottext">(Markup -&gt; Markup) -&gt; Markup -&gt; Markup
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-135"></span><span>    </span><span class="annot"><span class="annottext">Markup -&gt; Markup
+</span><span class="hs-identifier hs-var">head</span></span><span> </span><span class="annot"><span class="annottext">(Markup -&gt; Markup) -&gt; Markup -&gt; Markup
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-136"></span><span>      </span><span class="annot"><span class="annottext">[Char] -&gt; Markup
+forall a. ToMarkup a =&gt; a -&gt; Markup
+</span><span class="hs-identifier hs-var">preEscapedToHtml</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;&lt;!-- Generated by trifecta, http://github.com/ekmett/trifecta/ --&gt;\n&quot;</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span>
+</span><span id="line-137"></span><span>      </span><span class="annot"><span class="annottext">Markup -&gt; Markup
+</span><span class="hs-identifier hs-var">title</span></span><span> </span><span class="annot"><span class="annottext">(Markup -&gt; Markup) -&gt; Markup -&gt; Markup
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Markup
+forall a. ToMarkup a =&gt; a -&gt; Markup
+</span><span class="hs-identifier hs-var">toHtml</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679239136"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-138"></span><span>      </span><span class="annot"><span class="annottext">Markup
+</span><span class="hs-identifier hs-var">link</span></span><span> </span><span class="annot"><span class="annottext">Markup -&gt; Attribute -&gt; Markup
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-glyph hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">rel</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;stylesheet&quot;</span></span><span> </span><span class="annot"><span class="annottext">Markup -&gt; Attribute -&gt; Markup
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-glyph hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">type_</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;text/css&quot;</span></span><span> </span><span class="annot"><span class="annottext">Markup -&gt; Attribute -&gt; Markup
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-glyph hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">href</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char] -&gt; AttributeValue
+forall a. ToValue a =&gt; a -&gt; AttributeValue
+</span><span class="hs-identifier hs-var">toValue</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679239135"><span class="hs-identifier hs-var">css</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-139"></span><span>    </span><span class="annot"><span class="annottext">Markup -&gt; Markup
+</span><span class="hs-identifier hs-var">body</span></span><span> </span><span class="annot"><span class="annottext">(Markup -&gt; Markup) -&gt; Markup -&gt; Markup
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">HighlightedRope -&gt; Markup
+forall a. ToMarkup a =&gt; a -&gt; Markup
+</span><span class="hs-identifier hs-var">toHtml</span></span><span> </span><span class="annot"><span class="annottext">HighlightedRope
+</span><a href="#local-6989586621679239134"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-140"></span></pre></body></html>

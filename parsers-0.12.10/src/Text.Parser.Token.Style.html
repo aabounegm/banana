@@ -1,0 +1,815 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveDataTypeable #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE ScopedTypeVariables #-}</span><span class="hs-cpp">
+#if defined(__GLASGOW_HASKELL__) &amp;&amp; __GLASGOW_HASKELL__ &gt;= 702
+</span><span class="hs-pragma">{-# LANGUAGE Trustworthy #-}</span><span class="hs-cpp">
+#endif
+</span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- Module      :  Text.Parser.Token.Style</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Copyright   :  (c) Edward Kmett 2011-2012</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- License     :  BSD3</span><span>
+</span><span id="line-12"></span><span class="hs-comment">--</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- Maintainer  :  ekmett@gmail.com</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- Stability   :  provisional</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- Portability :  non-portable</span><span>
+</span><span id="line-16"></span><span class="hs-comment">--</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- A toolbox for specifying comment and identifier styles</span><span>
+</span><span id="line-18"></span><span class="hs-comment">--</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- This must be imported directly as it is not re-exported elsewhere</span><span>
+</span><span id="line-20"></span><span class="hs-comment">--</span><span>
+</span><span id="line-21"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.Parser.Token.Style</span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-special">(</span><span>
+</span><span id="line-24"></span><span>  </span><span class="annot"><span class="hs-comment">-- * Comment and white space styles</span></span><span>
+</span><span id="line-25"></span><span>    </span><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier">CommentStyle</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span>  </span><span class="annot"><span class="hs-comment">-- ** Lenses</span></span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#commentStart"><span class="hs-identifier">commentStart</span></a></span><span>
+</span><span id="line-28"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#commentEnd"><span class="hs-identifier">commentEnd</span></a></span><span>
+</span><span id="line-29"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#commentLine"><span class="hs-identifier">commentLine</span></a></span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#commentNesting"><span class="hs-identifier">commentNesting</span></a></span><span>
+</span><span id="line-31"></span><span>  </span><span class="annot"><span class="hs-comment">-- ** Common Comment Styles</span></span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#emptyCommentStyle"><span class="hs-identifier">emptyCommentStyle</span></a></span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#javaCommentStyle"><span class="hs-identifier">javaCommentStyle</span></a></span><span>
+</span><span id="line-34"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#scalaCommentStyle"><span class="hs-identifier">scalaCommentStyle</span></a></span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#haskellCommentStyle"><span class="hs-identifier">haskellCommentStyle</span></a></span><span>
+</span><span id="line-36"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#buildSomeSpaceParser"><span class="hs-identifier">buildSomeSpaceParser</span></a></span><span>
+</span><span id="line-37"></span><span>  </span><span class="annot"><span class="hs-comment">-- * Identifier Styles</span></span><span>
+</span><span id="line-38"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#emptyIdents"><span class="hs-identifier">emptyIdents</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#haskellIdents"><span class="hs-identifier">haskellIdents</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#haskell98Idents"><span class="hs-identifier">haskell98Idents</span></a></span><span>
+</span><span id="line-39"></span><span>  </span><span class="annot"><span class="hs-comment">-- * Operator Styles</span></span><span>
+</span><span id="line-40"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#emptyOps"><span class="hs-identifier">emptyOps</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#haskellOps"><span class="hs-identifier">haskellOps</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#haskell98Ops"><span class="hs-identifier">haskell98Ops</span></a></span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-42"></span><span>
+</span><span id="line-43"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Applicative</span></span><span>
+</span><span id="line-44"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.HashSet</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">HashSet</span></span><span>
+</span><span id="line-45"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.HashSet</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HashSet</span></span><span class="hs-special">)</span><span class="hs-cpp">
+#if __GLASGOW_HASKELL__ &lt; 710
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Monoid</span><span class="hs-cpp">
+#endif
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Data</span></span><span>
+</span><span id="line-50"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Parser.Combinators.html"><span class="hs-identifier">Text.Parser.Combinators</span></a></span><span>
+</span><span id="line-51"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Parser.Char.html"><span class="hs-identifier">Text.Parser.Char</span></a></span><span>
+</span><span id="line-52"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Parser.Token.html"><span class="hs-identifier">Text.Parser.Token</span></a></span><span>
+</span><span id="line-53"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Parser.Token.Highlight.html"><span class="hs-identifier">Text.Parser.Token.Highlight</span></a></span><span>
+</span><span id="line-54"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">nub</span></span><span class="hs-special">)</span><span>
+</span><span id="line-55"></span><span>
+</span><span id="line-56"></span><span class="hs-comment">-- | How to deal with comments.</span><span>
+</span><span id="line-57"></span><span class="hs-keyword">data</span><span> </span><span id="CommentStyle"><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-var">CommentStyle</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="CommentStyle"><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-var">CommentStyle</span></a></span></span><span>
+</span><span id="line-58"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="_commentStart"><span class="annot"><span class="annottext">CommentStyle -&gt; String
+</span><a href="Text.Parser.Token.Style.html#_commentStart"><span class="hs-identifier hs-var hs-var">_commentStart</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-comment">-- ^ String that starts a multiline comment</span><span>
+</span><span id="line-59"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_commentEnd"><span class="annot"><span class="annottext">CommentStyle -&gt; String
+</span><a href="Text.Parser.Token.Style.html#_commentEnd"><span class="hs-identifier hs-var hs-var">_commentEnd</span></a></span></span><span>     </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-comment">-- ^ String that ends a multiline comment</span><span>
+</span><span id="line-60"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_commentLine"><span class="annot"><span class="annottext">CommentStyle -&gt; String
+</span><a href="Text.Parser.Token.Style.html#_commentLine"><span class="hs-identifier hs-var hs-var">_commentLine</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-comment">-- ^ String that starts a single line comment</span><span>
+</span><span id="line-61"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_commentNesting"><span class="annot"><span class="annottext">CommentStyle -&gt; Bool
+</span><a href="Text.Parser.Token.Style.html#_commentNesting"><span class="hs-identifier hs-var hs-var">_commentNesting</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>   </span><span class="hs-comment">-- ^ Can we nest multiline comments?</span><span>
+</span><span id="line-62"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679072889"><span id="local-6989586621679072891"><span class="annot"><span class="annottext">CommentStyle -&gt; CommentStyle -&gt; Bool
+(CommentStyle -&gt; CommentStyle -&gt; Bool)
+-&gt; (CommentStyle -&gt; CommentStyle -&gt; Bool) -&gt; Eq CommentStyle
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CommentStyle -&gt; CommentStyle -&gt; Bool
+$c/= :: CommentStyle -&gt; CommentStyle -&gt; Bool
+== :: CommentStyle -&gt; CommentStyle -&gt; Bool
+$c== :: CommentStyle -&gt; CommentStyle -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679072873"><span id="local-6989586621679072875"><span id="local-6989586621679072877"><span id="local-6989586621679072879"><span id="local-6989586621679072881"><span id="local-6989586621679072883"><span id="local-6989586621679072885"><span class="annot"><span class="annottext">Eq CommentStyle
+Eq CommentStyle
+-&gt; (CommentStyle -&gt; CommentStyle -&gt; Ordering)
+-&gt; (CommentStyle -&gt; CommentStyle -&gt; Bool)
+-&gt; (CommentStyle -&gt; CommentStyle -&gt; Bool)
+-&gt; (CommentStyle -&gt; CommentStyle -&gt; Bool)
+-&gt; (CommentStyle -&gt; CommentStyle -&gt; Bool)
+-&gt; (CommentStyle -&gt; CommentStyle -&gt; CommentStyle)
+-&gt; (CommentStyle -&gt; CommentStyle -&gt; CommentStyle)
+-&gt; Ord CommentStyle
+CommentStyle -&gt; CommentStyle -&gt; Bool
+CommentStyle -&gt; CommentStyle -&gt; Ordering
+CommentStyle -&gt; CommentStyle -&gt; CommentStyle
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: CommentStyle -&gt; CommentStyle -&gt; CommentStyle
+$cmin :: CommentStyle -&gt; CommentStyle -&gt; CommentStyle
+max :: CommentStyle -&gt; CommentStyle -&gt; CommentStyle
+$cmax :: CommentStyle -&gt; CommentStyle -&gt; CommentStyle
+&gt;= :: CommentStyle -&gt; CommentStyle -&gt; Bool
+$c&gt;= :: CommentStyle -&gt; CommentStyle -&gt; Bool
+&gt; :: CommentStyle -&gt; CommentStyle -&gt; Bool
+$c&gt; :: CommentStyle -&gt; CommentStyle -&gt; Bool
+&lt;= :: CommentStyle -&gt; CommentStyle -&gt; Bool
+$c&lt;= :: CommentStyle -&gt; CommentStyle -&gt; Bool
+&lt; :: CommentStyle -&gt; CommentStyle -&gt; Bool
+$c&lt; :: CommentStyle -&gt; CommentStyle -&gt; Bool
+compare :: CommentStyle -&gt; CommentStyle -&gt; Ordering
+$ccompare :: CommentStyle -&gt; CommentStyle -&gt; Ordering
+$cp1Ord :: Eq CommentStyle
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679072866"><span id="local-6989586621679072868"><span id="local-6989586621679072870"><span class="annot"><span class="annottext">Int -&gt; CommentStyle -&gt; ShowS
+[CommentStyle] -&gt; ShowS
+CommentStyle -&gt; String
+(Int -&gt; CommentStyle -&gt; ShowS)
+-&gt; (CommentStyle -&gt; String)
+-&gt; ([CommentStyle] -&gt; ShowS)
+-&gt; Show CommentStyle
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CommentStyle] -&gt; ShowS
+$cshowList :: [CommentStyle] -&gt; ShowS
+show :: CommentStyle -&gt; String
+$cshow :: CommentStyle -&gt; String
+showsPrec :: Int -&gt; CommentStyle -&gt; ShowS
+$cshowsPrec :: Int -&gt; CommentStyle -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679072857"><span id="local-6989586621679072859"><span id="local-6989586621679072861"><span id="local-6989586621679072863"><span class="annot"><span class="annottext">ReadPrec [CommentStyle]
+ReadPrec CommentStyle
+Int -&gt; ReadS CommentStyle
+ReadS [CommentStyle]
+(Int -&gt; ReadS CommentStyle)
+-&gt; ReadS [CommentStyle]
+-&gt; ReadPrec CommentStyle
+-&gt; ReadPrec [CommentStyle]
+-&gt; Read CommentStyle
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CommentStyle]
+$creadListPrec :: ReadPrec [CommentStyle]
+readPrec :: ReadPrec CommentStyle
+$creadPrec :: ReadPrec CommentStyle
+readList :: ReadS [CommentStyle]
+$creadList :: ReadS [CommentStyle]
+readsPrec :: Int -&gt; ReadS CommentStyle
+$creadsPrec :: Int -&gt; ReadS CommentStyle
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="%24cCommentStyle"><span id="%24tCommentStyle"><span id="local-6989586621679072827"><span id="local-6989586621679072829"><span id="local-6989586621679072831"><span id="local-6989586621679072833"><span id="local-6989586621679072835"><span id="local-6989586621679072837"><span id="local-6989586621679072839"><span id="local-6989586621679072841"><span id="local-6989586621679072843"><span id="local-6989586621679072845"><span id="local-6989586621679072847"><span id="local-6989586621679072849"><span id="local-6989586621679072851"><span id="local-6989586621679072853"><span class="annot"><span class="annottext">Typeable CommentStyle
+DataType
+Constr
+Typeable CommentStyle
+-&gt; (forall (c :: * -&gt; *).
+    (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+    -&gt; (forall g. g -&gt; c g) -&gt; CommentStyle -&gt; c CommentStyle)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c CommentStyle)
+-&gt; (CommentStyle -&gt; Constr)
+-&gt; (CommentStyle -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c CommentStyle))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e))
+    -&gt; Maybe (c CommentStyle))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; CommentStyle -&gt; CommentStyle)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; CommentStyle -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; CommentStyle -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; CommentStyle -&gt; [u])
+-&gt; (forall u.
+    Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; CommentStyle -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; CommentStyle -&gt; m CommentStyle)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; CommentStyle -&gt; m CommentStyle)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; CommentStyle -&gt; m CommentStyle)
+-&gt; Data CommentStyle
+CommentStyle -&gt; DataType
+CommentStyle -&gt; Constr
+(forall b. Data b =&gt; b -&gt; b) -&gt; CommentStyle -&gt; CommentStyle
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; CommentStyle -&gt; c CommentStyle
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c CommentStyle
+forall a.
+Typeable a
+-&gt; (forall (c :: * -&gt; *).
+    (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+    -&gt; (forall g. g -&gt; c g) -&gt; a -&gt; c a)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c a)
+-&gt; (a -&gt; Constr)
+-&gt; (a -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c a))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c a))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; a -&gt; a)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; Data a
+forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; CommentStyle -&gt; u
+forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; CommentStyle -&gt; [u]
+forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; CommentStyle -&gt; r
+forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; CommentStyle -&gt; r
+forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; CommentStyle -&gt; m CommentStyle
+forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; CommentStyle -&gt; m CommentStyle
+forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c CommentStyle
+forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; CommentStyle -&gt; c CommentStyle
+forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c CommentStyle)
+forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c CommentStyle)
+$cCommentStyle :: Constr
+$tCommentStyle :: DataType
+gmapMo :: (forall d. Data d =&gt; d -&gt; m d) -&gt; CommentStyle -&gt; m CommentStyle
+$cgmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; CommentStyle -&gt; m CommentStyle
+gmapMp :: (forall d. Data d =&gt; d -&gt; m d) -&gt; CommentStyle -&gt; m CommentStyle
+$cgmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; CommentStyle -&gt; m CommentStyle
+gmapM :: (forall d. Data d =&gt; d -&gt; m d) -&gt; CommentStyle -&gt; m CommentStyle
+$cgmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; CommentStyle -&gt; m CommentStyle
+gmapQi :: Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; CommentStyle -&gt; u
+$cgmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; CommentStyle -&gt; u
+gmapQ :: (forall d. Data d =&gt; d -&gt; u) -&gt; CommentStyle -&gt; [u]
+$cgmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; CommentStyle -&gt; [u]
+gmapQr :: (r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; CommentStyle -&gt; r
+$cgmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; CommentStyle -&gt; r
+gmapQl :: (r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; CommentStyle -&gt; r
+$cgmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; CommentStyle -&gt; r
+gmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; CommentStyle -&gt; CommentStyle
+$cgmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; CommentStyle -&gt; CommentStyle
+dataCast2 :: (forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c CommentStyle)
+$cdataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c CommentStyle)
+dataCast1 :: (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c CommentStyle)
+$cdataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c CommentStyle)
+dataTypeOf :: CommentStyle -&gt; DataType
+$cdataTypeOf :: CommentStyle -&gt; DataType
+toConstr :: CommentStyle -&gt; Constr
+$ctoConstr :: CommentStyle -&gt; Constr
+gunfold :: (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c CommentStyle
+$cgunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c CommentStyle
+gfoldl :: (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; CommentStyle -&gt; c CommentStyle
+$cgfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; CommentStyle -&gt; c CommentStyle
+$cp1Data :: Typeable CommentStyle
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Data</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span class="annot"><span class="hs-identifier hs-type">Typeable</span></span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- | This is a lens that can edit the string that starts a multiline comment.</span><span>
+</span><span id="line-65"></span><span class="hs-comment">--</span><span>
+</span><span id="line-66"></span><span class="hs-comment">-- @'commentStart' :: Lens' 'CommentStyle' 'String'@</span><span>
+</span><span id="line-67"></span><span id="local-6989586621679072823"><span class="annot"><a href="Text.Parser.Token.Style.html#commentStart"><span class="hs-identifier hs-type">commentStart</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Functor</span></span><span> </span><span class="annot"><a href="#local-6989586621679072823"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072823"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-type">CommentStyle</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072823"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-type">CommentStyle</span></a></span></span><span>
+</span><span id="line-68"></span><span id="commentStart"><span class="annot"><span class="annottext">commentStart :: (String -&gt; f String) -&gt; CommentStyle -&gt; f CommentStyle
+</span><a href="Text.Parser.Token.Style.html#commentStart"><span class="hs-identifier hs-var hs-var">commentStart</span></a></span></span><span> </span><span id="local-6989586621679072822"><span class="annot"><span class="annottext">String -&gt; f String
+</span><a href="#local-6989586621679072822"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-type">CommentStyle</span></a></span><span> </span><span id="local-6989586621679072821"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072821"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679072820"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072820"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span id="local-6989586621679072819"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072819"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679072818"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679072818"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679072817"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072817"><span class="hs-identifier hs-var">s'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String -&gt; Bool -&gt; CommentStyle
+</span><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-var">CommentStyle</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072817"><span class="hs-identifier hs-var">s'</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072820"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072819"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679072818"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(String -&gt; CommentStyle) -&gt; f String -&gt; f CommentStyle
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; f String
+</span><a href="#local-6989586621679072822"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072821"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-69"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#commentStart"><span class="hs-pragma hs-type">commentStart</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-70"></span><span>
+</span><span id="line-71"></span><span class="hs-comment">-- | This is a lens that can edit the string that ends a multiline comment.</span><span>
+</span><span id="line-72"></span><span class="hs-comment">--</span><span>
+</span><span id="line-73"></span><span class="hs-comment">-- @'commentEnd' :: Lens' 'CommentStyle' 'String'@</span><span>
+</span><span id="line-74"></span><span id="local-6989586621679072815"><span class="annot"><a href="Text.Parser.Token.Style.html#commentEnd"><span class="hs-identifier hs-type">commentEnd</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Functor</span></span><span> </span><span class="annot"><a href="#local-6989586621679072815"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072815"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-type">CommentStyle</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072815"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-type">CommentStyle</span></a></span></span><span>
+</span><span id="line-75"></span><span id="commentEnd"><span class="annot"><span class="annottext">commentEnd :: (String -&gt; f String) -&gt; CommentStyle -&gt; f CommentStyle
+</span><a href="Text.Parser.Token.Style.html#commentEnd"><span class="hs-identifier hs-var hs-var">commentEnd</span></a></span></span><span> </span><span id="local-6989586621679072814"><span class="annot"><span class="annottext">String -&gt; f String
+</span><a href="#local-6989586621679072814"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-type">CommentStyle</span></a></span><span> </span><span id="local-6989586621679072813"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072813"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679072812"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072812"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span id="local-6989586621679072811"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072811"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679072810"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679072810"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679072809"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072809"><span class="hs-identifier hs-var">e'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String -&gt; Bool -&gt; CommentStyle
+</span><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-var">CommentStyle</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072813"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072809"><span class="hs-identifier hs-var">e'</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072811"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679072810"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(String -&gt; CommentStyle) -&gt; f String -&gt; f CommentStyle
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; f String
+</span><a href="#local-6989586621679072814"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072812"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-76"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#commentEnd"><span class="hs-pragma hs-type">commentEnd</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-77"></span><span>
+</span><span id="line-78"></span><span class="hs-comment">-- | This is a lens that can edit the string that starts a single line comment.</span><span>
+</span><span id="line-79"></span><span class="hs-comment">--</span><span>
+</span><span id="line-80"></span><span class="hs-comment">-- @'commentLine' :: Lens' 'CommentStyle' 'String'@</span><span>
+</span><span id="line-81"></span><span id="local-6989586621679072808"><span class="annot"><a href="Text.Parser.Token.Style.html#commentLine"><span class="hs-identifier hs-type">commentLine</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Functor</span></span><span> </span><span class="annot"><a href="#local-6989586621679072808"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072808"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-type">CommentStyle</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072808"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-type">CommentStyle</span></a></span></span><span>
+</span><span id="line-82"></span><span id="commentLine"><span class="annot"><span class="annottext">commentLine :: (String -&gt; f String) -&gt; CommentStyle -&gt; f CommentStyle
+</span><a href="Text.Parser.Token.Style.html#commentLine"><span class="hs-identifier hs-var hs-var">commentLine</span></a></span></span><span> </span><span id="local-6989586621679072807"><span class="annot"><span class="annottext">String -&gt; f String
+</span><a href="#local-6989586621679072807"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-type">CommentStyle</span></a></span><span> </span><span id="local-6989586621679072806"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072806"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679072805"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072805"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span id="local-6989586621679072804"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072804"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679072803"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679072803"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679072802"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072802"><span class="hs-identifier hs-var">l'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String -&gt; Bool -&gt; CommentStyle
+</span><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-var">CommentStyle</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072806"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072805"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072802"><span class="hs-identifier hs-var">l'</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679072803"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(String -&gt; CommentStyle) -&gt; f String -&gt; f CommentStyle
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; f String
+</span><a href="#local-6989586621679072807"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072804"><span class="hs-identifier hs-var">l</span></a></span><span>
+</span><span id="line-83"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#commentLine"><span class="hs-pragma hs-type">commentLine</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-84"></span><span>
+</span><span id="line-85"></span><span class="hs-comment">-- | This is a lens that can edit whether we can nest multiline comments.</span><span>
+</span><span id="line-86"></span><span class="hs-comment">--</span><span>
+</span><span id="line-87"></span><span class="hs-comment">-- @'commentNesting' :: Lens' 'CommentStyle' 'Bool'@</span><span>
+</span><span id="line-88"></span><span id="local-6989586621679072801"><span class="annot"><a href="Text.Parser.Token.Style.html#commentNesting"><span class="hs-identifier hs-type">commentNesting</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Functor</span></span><span> </span><span class="annot"><a href="#local-6989586621679072801"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072801"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-type">CommentStyle</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072801"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-type">CommentStyle</span></a></span></span><span>
+</span><span id="line-89"></span><span id="commentNesting"><span class="annot"><span class="annottext">commentNesting :: (Bool -&gt; f Bool) -&gt; CommentStyle -&gt; f CommentStyle
+</span><a href="Text.Parser.Token.Style.html#commentNesting"><span class="hs-identifier hs-var hs-var">commentNesting</span></a></span></span><span> </span><span id="local-6989586621679072800"><span class="annot"><span class="annottext">Bool -&gt; f Bool
+</span><a href="#local-6989586621679072800"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-type">CommentStyle</span></a></span><span> </span><span id="local-6989586621679072799"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072799"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679072798"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072798"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span id="local-6989586621679072797"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072797"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679072796"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679072796"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String -&gt; Bool -&gt; CommentStyle
+</span><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-var">CommentStyle</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072799"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072798"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072797"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">(Bool -&gt; CommentStyle) -&gt; f Bool -&gt; f CommentStyle
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; f Bool
+</span><a href="#local-6989586621679072800"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679072796"><span class="hs-identifier hs-var">n</span></a></span><span>
+</span><span id="line-90"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#commentNesting"><span class="hs-pragma hs-type">commentNesting</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-91"></span><span>
+</span><span id="line-92"></span><span class="hs-comment">-- | No comments at all</span><span>
+</span><span id="line-93"></span><span class="annot"><a href="Text.Parser.Token.Style.html#emptyCommentStyle"><span class="hs-identifier hs-type">emptyCommentStyle</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-type">CommentStyle</span></a></span><span>
+</span><span id="line-94"></span><span id="emptyCommentStyle"><span class="annot"><span class="annottext">emptyCommentStyle :: CommentStyle
+</span><a href="Text.Parser.Token.Style.html#emptyCommentStyle"><span class="hs-identifier hs-var hs-var">emptyCommentStyle</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String -&gt; Bool -&gt; CommentStyle
+</span><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-var">CommentStyle</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-95"></span><span>
+</span><span id="line-96"></span><span class="hs-comment">-- | Use java-style comments</span><span>
+</span><span id="line-97"></span><span class="annot"><a href="Text.Parser.Token.Style.html#javaCommentStyle"><span class="hs-identifier hs-type">javaCommentStyle</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-type">CommentStyle</span></a></span><span>
+</span><span id="line-98"></span><span id="javaCommentStyle"><span class="annot"><span class="annottext">javaCommentStyle :: CommentStyle
+</span><a href="Text.Parser.Token.Style.html#javaCommentStyle"><span class="hs-identifier hs-var hs-var">javaCommentStyle</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String -&gt; Bool -&gt; CommentStyle
+</span><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-var">CommentStyle</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;/*&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;*/&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;//&quot;</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-99"></span><span>
+</span><span id="line-100"></span><span class="hs-comment">-- | Use scala-style comments</span><span>
+</span><span id="line-101"></span><span class="annot"><a href="Text.Parser.Token.Style.html#scalaCommentStyle"><span class="hs-identifier hs-type">scalaCommentStyle</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-type">CommentStyle</span></a></span><span>
+</span><span id="line-102"></span><span id="scalaCommentStyle"><span class="annot"><span class="annottext">scalaCommentStyle :: CommentStyle
+</span><a href="Text.Parser.Token.Style.html#scalaCommentStyle"><span class="hs-identifier hs-var hs-var">scalaCommentStyle</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String -&gt; Bool -&gt; CommentStyle
+</span><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-var">CommentStyle</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;/*&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;*/&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;//&quot;</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-103"></span><span>
+</span><span id="line-104"></span><span class="hs-comment">-- | Use haskell-style comments</span><span>
+</span><span id="line-105"></span><span class="annot"><a href="Text.Parser.Token.Style.html#haskellCommentStyle"><span class="hs-identifier hs-type">haskellCommentStyle</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-type">CommentStyle</span></a></span><span>
+</span><span id="line-106"></span><span id="haskellCommentStyle"><span class="annot"><span class="annottext">haskellCommentStyle :: CommentStyle
+</span><a href="Text.Parser.Token.Style.html#haskellCommentStyle"><span class="hs-identifier hs-var hs-var">haskellCommentStyle</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String -&gt; Bool -&gt; CommentStyle
+</span><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-var">CommentStyle</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;{-&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;-}&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;--&quot;</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-107"></span><span>
+</span><span id="line-108"></span><span class="hs-comment">-- | Use this to easily build the definition of whiteSpace for your MonadParser</span><span>
+</span><span id="line-109"></span><span class="hs-comment">--   given a comment style and an underlying someWhiteSpace parser</span><span>
+</span><span id="line-110"></span><span class="annot"><a href="Text.Parser.Token.Style.html#buildSomeSpaceParser"><span class="hs-identifier hs-type">buildSomeSpaceParser</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679072795"><span class="annot"><a href="#local-6989586621679072795"><span class="hs-identifier hs-type">m</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="annot"><a href="Text.Parser.Char.html#CharParsing"><span class="hs-identifier hs-type">CharParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679072795"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072795"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-type">CommentStyle</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072795"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-111"></span><span id="buildSomeSpaceParser"><span class="annot"><span class="annottext">buildSomeSpaceParser :: m () -&gt; CommentStyle -&gt; m ()
+</span><a href="Text.Parser.Token.Style.html#buildSomeSpaceParser"><span class="hs-identifier hs-var hs-var">buildSomeSpaceParser</span></a></span></span><span> </span><span id="local-6989586621679072794"><span class="annot"><span class="annottext">m ()
+</span><a href="#local-6989586621679072794"><span class="hs-identifier hs-var">simpleSpace</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Parser.Token.Style.html#CommentStyle"><span class="hs-identifier hs-type">CommentStyle</span></a></span><span> </span><span id="local-6989586621679072793"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072793"><span class="hs-identifier hs-var">startStyle</span></a></span></span><span> </span><span id="local-6989586621679072792"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072792"><span class="hs-identifier hs-var">endStyle</span></a></span></span><span> </span><span id="local-6989586621679072791"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072791"><span class="hs-identifier hs-var">lineStyle</span></a></span></span><span> </span><span id="local-6989586621679072790"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679072790"><span class="hs-identifier hs-var">nestingStyle</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-112"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679072789"><span class="hs-identifier hs-var">noLine</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679072787"><span class="hs-identifier hs-var">noMulti</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; m ()
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; m ()
+</span><a href="Text.Parser.Combinators.html#skipSome"><span class="hs-identifier hs-var">skipSome</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">m ()
+</span><a href="#local-6989586621679072794"><span class="hs-identifier hs-var">simpleSpace</span></a></span><span> </span><span class="annot"><span class="annottext">m () -&gt; String -&gt; m ()
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; String -&gt; m a
+</span><a href="Text.Parser.Combinators.html#%3C%3F%3E"><span class="hs-operator hs-var">&lt;?&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-113"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679072789"><span class="hs-identifier hs-var">noLine</span></a></span><span>             </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; m ()
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; m ()
+</span><a href="Text.Parser.Combinators.html#skipSome"><span class="hs-identifier hs-var">skipSome</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">m ()
+</span><a href="#local-6989586621679072794"><span class="hs-identifier hs-var">simpleSpace</span></a></span><span> </span><span class="annot"><span class="annottext">m () -&gt; m () -&gt; m ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ()
+</span><a href="#local-6989586621679072783"><span class="hs-identifier hs-var">multiLineComment</span></a></span><span> </span><span class="annot"><span class="annottext">m () -&gt; String -&gt; m ()
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; String -&gt; m a
+</span><a href="Text.Parser.Combinators.html#%3C%3F%3E"><span class="hs-operator hs-var">&lt;?&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-114"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679072787"><span class="hs-identifier hs-var">noMulti</span></a></span><span>            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; m ()
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; m ()
+</span><a href="Text.Parser.Combinators.html#skipSome"><span class="hs-identifier hs-var">skipSome</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">m ()
+</span><a href="#local-6989586621679072794"><span class="hs-identifier hs-var">simpleSpace</span></a></span><span> </span><span class="annot"><span class="annottext">m () -&gt; m () -&gt; m ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ()
+</span><a href="#local-6989586621679072782"><span class="hs-identifier hs-var">oneLineComment</span></a></span><span> </span><span class="annot"><span class="annottext">m () -&gt; String -&gt; m ()
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; String -&gt; m a
+</span><a href="Text.Parser.Combinators.html#%3C%3F%3E"><span class="hs-operator hs-var">&lt;?&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-115"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; m ()
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; m ()
+</span><a href="Text.Parser.Combinators.html#skipSome"><span class="hs-identifier hs-var">skipSome</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">m ()
+</span><a href="#local-6989586621679072794"><span class="hs-identifier hs-var">simpleSpace</span></a></span><span> </span><span class="annot"><span class="annottext">m () -&gt; m () -&gt; m ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ()
+</span><a href="#local-6989586621679072782"><span class="hs-identifier hs-var">oneLineComment</span></a></span><span> </span><span class="annot"><span class="annottext">m () -&gt; m () -&gt; m ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ()
+</span><a href="#local-6989586621679072783"><span class="hs-identifier hs-var">multiLineComment</span></a></span><span> </span><span class="annot"><span class="annottext">m () -&gt; String -&gt; m ()
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; String -&gt; m a
+</span><a href="Text.Parser.Combinators.html#%3C%3F%3E"><span class="hs-operator hs-var">&lt;?&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-116"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-117"></span><span>    </span><span id="local-6989586621679072789"><span class="annot"><span class="annottext">noLine :: Bool
+</span><a href="#local-6989586621679072789"><span class="hs-identifier hs-var hs-var">noLine</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072791"><span class="hs-identifier hs-var">lineStyle</span></a></span><span>
+</span><span id="line-118"></span><span>    </span><span id="local-6989586621679072787"><span class="annot"><span class="annottext">noMulti :: Bool
+</span><a href="#local-6989586621679072787"><span class="hs-identifier hs-var hs-var">noMulti</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072793"><span class="hs-identifier hs-var">startStyle</span></a></span><span>
+</span><span id="line-119"></span><span>
+</span><span id="line-120"></span><span>    </span><span class="annot"><a href="#local-6989586621679072782"><span class="hs-identifier hs-type">oneLineComment</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679072783"><span class="hs-identifier hs-type">multiLineComment</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679072780"><span class="hs-identifier hs-type">inComment</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679072779"><span class="hs-identifier hs-type">inCommentMulti</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679072795"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-121"></span><span>    </span><span id="local-6989586621679072782"><span class="annot"><span class="annottext">oneLineComment :: m ()
+</span><a href="#local-6989586621679072782"><span class="hs-identifier hs-var hs-var">oneLineComment</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m String -&gt; m String
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; m a
+</span><a href="Text.Parser.Combinators.html#try"><span class="hs-identifier hs-var">try</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; m String
+forall (m :: * -&gt; *). CharParsing m =&gt; String -&gt; m String
+</span><a href="Text.Parser.Char.html#string"><span class="hs-identifier hs-var">string</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072791"><span class="hs-identifier hs-var">lineStyle</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">m String -&gt; m () -&gt; m ()
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m Char -&gt; m ()
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; m ()
+</span><a href="Text.Parser.Combinators.html#skipMany"><span class="hs-identifier hs-var">skipMany</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; m Char
+forall (m :: * -&gt; *). CharParsing m =&gt; (Char -&gt; Bool) -&gt; m Char
+</span><a href="Text.Parser.Char.html#satisfy"><span class="hs-identifier hs-var">satisfy</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\n'</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-122"></span><span>    </span><span id="local-6989586621679072783"><span class="annot"><span class="annottext">multiLineComment :: m ()
+</span><a href="#local-6989586621679072783"><span class="hs-identifier hs-var hs-var">multiLineComment</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m String -&gt; m String
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; m a
+</span><a href="Text.Parser.Combinators.html#try"><span class="hs-identifier hs-var">try</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; m String
+forall (m :: * -&gt; *). CharParsing m =&gt; String -&gt; m String
+</span><a href="Text.Parser.Char.html#string"><span class="hs-identifier hs-var">string</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072793"><span class="hs-identifier hs-var">startStyle</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">m String -&gt; m () -&gt; m ()
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ()
+</span><a href="#local-6989586621679072780"><span class="hs-identifier hs-var">inComment</span></a></span><span>
+</span><span id="line-123"></span><span>    </span><span id="local-6989586621679072780"><span class="annot"><span class="annottext">inComment :: m ()
+</span><a href="#local-6989586621679072780"><span class="hs-identifier hs-var hs-var">inComment</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679072790"><span class="hs-identifier hs-var">nestingStyle</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">m ()
+</span><a href="#local-6989586621679072779"><span class="hs-identifier hs-var">inCommentMulti</span></a></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">m ()
+</span><a href="#local-6989586621679072773"><span class="hs-identifier hs-var">inCommentSingle</span></a></span><span>
+</span><span id="line-124"></span><span>    </span><span id="local-6989586621679072779"><span class="annot"><span class="annottext">inCommentMulti :: m ()
+</span><a href="#local-6989586621679072779"><span class="hs-identifier hs-var hs-var">inCommentMulti</span></a></span></span><span>
+</span><span id="line-125"></span><span>      </span><span class="hs-glyph">=</span><span>   </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">() -&gt; m String -&gt; m ()
+forall (f :: * -&gt; *) a b. Functor f =&gt; a -&gt; f b -&gt; f a
+</span><span class="hs-operator hs-var">&lt;$</span></span><span> </span><span class="annot"><span class="annottext">m String -&gt; m String
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; m a
+</span><a href="Text.Parser.Combinators.html#try"><span class="hs-identifier hs-var">try</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; m String
+forall (m :: * -&gt; *). CharParsing m =&gt; String -&gt; m String
+</span><a href="Text.Parser.Char.html#string"><span class="hs-identifier hs-var">string</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072792"><span class="hs-identifier hs-var">endStyle</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-126"></span><span>      </span><span class="annot"><span class="annottext">m () -&gt; m () -&gt; m ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ()
+</span><a href="#local-6989586621679072783"><span class="hs-identifier hs-var">multiLineComment</span></a></span><span> </span><span class="annot"><span class="annottext">m () -&gt; m () -&gt; m ()
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ()
+</span><a href="#local-6989586621679072779"><span class="hs-identifier hs-var">inCommentMulti</span></a></span><span>
+</span><span id="line-127"></span><span>      </span><span class="annot"><span class="annottext">m () -&gt; m () -&gt; m ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">m Char -&gt; m ()
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; m ()
+</span><a href="Text.Parser.Combinators.html#skipSome"><span class="hs-identifier hs-var">skipSome</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; m Char
+forall (m :: * -&gt; *). CharParsing m =&gt; String -&gt; m Char
+</span><a href="Text.Parser.Char.html#noneOf"><span class="hs-identifier hs-var">noneOf</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072770"><span class="hs-identifier hs-var">startEnd</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">m () -&gt; m () -&gt; m ()
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ()
+</span><a href="#local-6989586621679072779"><span class="hs-identifier hs-var">inCommentMulti</span></a></span><span>
+</span><span id="line-128"></span><span>      </span><span class="annot"><span class="annottext">m () -&gt; m () -&gt; m ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; m Char
+forall (m :: * -&gt; *). CharParsing m =&gt; String -&gt; m Char
+</span><a href="Text.Parser.Char.html#oneOf"><span class="hs-identifier hs-var">oneOf</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072770"><span class="hs-identifier hs-var">startEnd</span></a></span><span> </span><span class="annot"><span class="annottext">m Char -&gt; m () -&gt; m ()
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ()
+</span><a href="#local-6989586621679072779"><span class="hs-identifier hs-var">inCommentMulti</span></a></span><span>
+</span><span id="line-129"></span><span>      </span><span class="annot"><span class="annottext">m () -&gt; String -&gt; m ()
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; String -&gt; m a
+</span><a href="Text.Parser.Combinators.html#%3C%3F%3E"><span class="hs-operator hs-var">&lt;?&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;end of comment&quot;</span></span><span>
+</span><span id="line-130"></span><span>
+</span><span id="line-131"></span><span>    </span><span id="local-6989586621679072770"><span class="annot"><span class="annottext">startEnd :: String
+</span><a href="#local-6989586621679072770"><span class="hs-identifier hs-var hs-var">startEnd</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ShowS
+forall a. Eq a =&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">nub</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072792"><span class="hs-identifier hs-var">endStyle</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072793"><span class="hs-identifier hs-var">startStyle</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-132"></span><span>
+</span><span id="line-133"></span><span>    </span><span class="annot"><a href="#local-6989586621679072773"><span class="hs-identifier hs-type">inCommentSingle</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679072795"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-134"></span><span>    </span><span id="local-6989586621679072773"><span class="annot"><span class="annottext">inCommentSingle :: m ()
+</span><a href="#local-6989586621679072773"><span class="hs-identifier hs-var hs-var">inCommentSingle</span></a></span></span><span>
+</span><span id="line-135"></span><span>      </span><span class="hs-glyph">=</span><span>   </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">() -&gt; m String -&gt; m ()
+forall (f :: * -&gt; *) a b. Functor f =&gt; a -&gt; f b -&gt; f a
+</span><span class="hs-operator hs-var">&lt;$</span></span><span> </span><span class="annot"><span class="annottext">m String -&gt; m String
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; m a
+</span><a href="Text.Parser.Combinators.html#try"><span class="hs-identifier hs-var">try</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; m String
+forall (m :: * -&gt; *). CharParsing m =&gt; String -&gt; m String
+</span><a href="Text.Parser.Char.html#string"><span class="hs-identifier hs-var">string</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072792"><span class="hs-identifier hs-var">endStyle</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-136"></span><span>      </span><span class="annot"><span class="annottext">m () -&gt; m () -&gt; m ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">m Char -&gt; m ()
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; m ()
+</span><a href="Text.Parser.Combinators.html#skipSome"><span class="hs-identifier hs-var">skipSome</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; m Char
+forall (m :: * -&gt; *). CharParsing m =&gt; String -&gt; m Char
+</span><a href="Text.Parser.Char.html#noneOf"><span class="hs-identifier hs-var">noneOf</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072770"><span class="hs-identifier hs-var">startEnd</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">m () -&gt; m () -&gt; m ()
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ()
+</span><a href="#local-6989586621679072773"><span class="hs-identifier hs-var">inCommentSingle</span></a></span><span>
+</span><span id="line-137"></span><span>      </span><span class="annot"><span class="annottext">m () -&gt; m () -&gt; m ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; m Char
+forall (m :: * -&gt; *). CharParsing m =&gt; String -&gt; m Char
+</span><a href="Text.Parser.Char.html#oneOf"><span class="hs-identifier hs-var">oneOf</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072770"><span class="hs-identifier hs-var">startEnd</span></a></span><span> </span><span class="annot"><span class="annottext">m Char -&gt; m () -&gt; m ()
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ()
+</span><a href="#local-6989586621679072773"><span class="hs-identifier hs-var">inCommentSingle</span></a></span><span>
+</span><span id="line-138"></span><span>      </span><span class="annot"><span class="annottext">m () -&gt; String -&gt; m ()
+forall (m :: * -&gt; *) a. Parsing m =&gt; m a -&gt; String -&gt; m a
+</span><a href="Text.Parser.Combinators.html#%3C%3F%3E"><span class="hs-operator hs-var">&lt;?&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;end of comment&quot;</span></span><span>
+</span><span id="line-139"></span><span>
+</span><span id="line-140"></span><span class="annot"><a href="Text.Parser.Token.Style.html#set"><span class="hs-identifier hs-type">set</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HashSet</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-141"></span><span id="set"><span class="annot"><span class="annottext">set :: [String] -&gt; HashSet String
+</span><a href="Text.Parser.Token.Style.html#set"><span class="hs-identifier hs-var hs-var">set</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; HashSet String
+forall a. (Eq a, Hashable a) =&gt; [a] -&gt; HashSet a
+</span><span class="hs-identifier hs-var">HashSet.fromList</span></span><span>
+</span><span id="line-142"></span><span>
+</span><span id="line-143"></span><span class="hs-comment">-- | A simple operator style based on haskell with no reserved operators</span><span>
+</span><span id="line-144"></span><span id="local-6989586621679072926"><span class="annot"><a href="Text.Parser.Token.Style.html#emptyOps"><span class="hs-identifier hs-type">emptyOps</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Parser.Token.html#TokenParsing"><span class="hs-identifier hs-type">TokenParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679072926"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Parser.Token.html#IdentifierStyle"><span class="hs-identifier hs-type">IdentifierStyle</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679072926"><span class="hs-identifier hs-type">m</span></a></span></span><span>
+</span><span id="line-145"></span><span id="emptyOps"><span class="annot"><span class="annottext">emptyOps :: IdentifierStyle m
+</span><a href="Text.Parser.Token.Style.html#emptyOps"><span class="hs-identifier hs-var hs-var">emptyOps</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IdentifierStyle :: forall (m :: * -&gt; *).
+String
+-&gt; m Char
+-&gt; m Char
+-&gt; HashSet String
+-&gt; Highlight
+-&gt; Highlight
+-&gt; IdentifierStyle m
+</span><a href="Text.Parser.Token.html#IdentifierStyle"><span class="hs-identifier hs-type">IdentifierStyle</span></a></span><span>
+</span><span id="line-146"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">_styleName :: String
+</span><a href="Text.Parser.Token.html#_styleName"><span class="hs-identifier hs-var">_styleName</span></a></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;operator&quot;</span></span><span>
+</span><span id="line-147"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_styleStart :: m Char
+</span><a href="Text.Parser.Token.html#_styleStart"><span class="hs-identifier hs-var">_styleStart</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IdentifierStyle m -&gt; m Char
+forall (m :: * -&gt; *). IdentifierStyle m -&gt; m Char
+</span><a href="Text.Parser.Token.html#_styleLetter"><span class="hs-identifier hs-var hs-var">_styleLetter</span></a></span><span> </span><span class="annot"><span class="annottext">IdentifierStyle m
+forall (m :: * -&gt; *). TokenParsing m =&gt; IdentifierStyle m
+</span><a href="Text.Parser.Token.Style.html#emptyOps"><span class="hs-identifier hs-var">emptyOps</span></a></span><span>
+</span><span id="line-148"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_styleLetter :: m Char
+</span><a href="Text.Parser.Token.html#_styleLetter"><span class="hs-identifier hs-var">_styleLetter</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; m Char
+forall (m :: * -&gt; *). CharParsing m =&gt; String -&gt; m Char
+</span><a href="Text.Parser.Char.html#oneOf"><span class="hs-identifier hs-var">oneOf</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;:!#$%&amp;*+./&lt;=&gt;?@\\^|-~&quot;</span></span><span>
+</span><span id="line-149"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_styleReserved :: HashSet String
+</span><a href="Text.Parser.Token.html#_styleReserved"><span class="hs-identifier hs-var">_styleReserved</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">HashSet String
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-150"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_styleHighlight :: Highlight
+</span><a href="Text.Parser.Token.html#_styleHighlight"><span class="hs-identifier hs-var">_styleHighlight</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Highlight
+</span><a href="Text.Parser.Token.Highlight.html#Operator"><span class="hs-identifier hs-var">Operator</span></a></span><span>
+</span><span id="line-151"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_styleReservedHighlight :: Highlight
+</span><a href="Text.Parser.Token.html#_styleReservedHighlight"><span class="hs-identifier hs-var">_styleReservedHighlight</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Highlight
+</span><a href="Text.Parser.Token.Highlight.html#ReservedOperator"><span class="hs-identifier hs-var">ReservedOperator</span></a></span><span>
+</span><span id="line-152"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-153"></span><span class="hs-comment">-- | A simple operator style based on haskell with the operators from Haskell 98.</span><span>
+</span><span id="line-154"></span><span id="local-6989586621679072757"><span class="annot"><a href="Text.Parser.Token.Style.html#haskell98Ops"><span class="hs-identifier hs-type">haskell98Ops</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Parser.Token.Style.html#haskellOps"><span class="hs-identifier hs-type">haskellOps</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Parser.Token.html#TokenParsing"><span class="hs-identifier hs-type">TokenParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679072757"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Parser.Token.html#IdentifierStyle"><span class="hs-identifier hs-type">IdentifierStyle</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679072757"><span class="hs-identifier hs-type">m</span></a></span></span><span>
+</span><span id="line-155"></span><span id="haskell98Ops"><span class="annot"><span class="annottext">haskell98Ops :: IdentifierStyle m
+</span><a href="Text.Parser.Token.Style.html#haskell98Ops"><span class="hs-identifier hs-var hs-var">haskell98Ops</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IdentifierStyle m
+forall (m :: * -&gt; *). TokenParsing m =&gt; IdentifierStyle m
+</span><a href="Text.Parser.Token.Style.html#emptyOps"><span class="hs-identifier hs-var">emptyOps</span></a></span><span>
+</span><span id="line-156"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">_styleReserved :: HashSet String
+</span><a href="Text.Parser.Token.html#_styleReserved"><span class="hs-identifier hs-var">_styleReserved</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; HashSet String
+</span><a href="Text.Parser.Token.Style.html#set"><span class="hs-identifier hs-var">set</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;::&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;..&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;=&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\\&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;|&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&lt;-&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;-&gt;&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;@&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;~&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;=&gt;&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-157"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-158"></span><span id="haskellOps"><span class="annot"><span class="annottext">haskellOps :: IdentifierStyle m
+</span><a href="Text.Parser.Token.Style.html#haskellOps"><span class="hs-identifier hs-var hs-var">haskellOps</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IdentifierStyle m
+forall (m :: * -&gt; *). TokenParsing m =&gt; IdentifierStyle m
+</span><a href="Text.Parser.Token.Style.html#haskell98Ops"><span class="hs-identifier hs-var">haskell98Ops</span></a></span><span>
+</span><span id="line-159"></span><span>
+</span><span id="line-160"></span><span class="hs-comment">-- | A simple identifier style based on haskell with no reserve words</span><span>
+</span><span id="line-161"></span><span id="local-6989586621679072756"><span class="annot"><a href="Text.Parser.Token.Style.html#emptyIdents"><span class="hs-identifier hs-type">emptyIdents</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Parser.Token.html#TokenParsing"><span class="hs-identifier hs-type">TokenParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679072756"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Parser.Token.html#IdentifierStyle"><span class="hs-identifier hs-type">IdentifierStyle</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679072756"><span class="hs-identifier hs-type">m</span></a></span></span><span>
+</span><span id="line-162"></span><span id="emptyIdents"><span class="annot"><span class="annottext">emptyIdents :: IdentifierStyle m
+</span><a href="Text.Parser.Token.Style.html#emptyIdents"><span class="hs-identifier hs-var hs-var">emptyIdents</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IdentifierStyle :: forall (m :: * -&gt; *).
+String
+-&gt; m Char
+-&gt; m Char
+-&gt; HashSet String
+-&gt; Highlight
+-&gt; Highlight
+-&gt; IdentifierStyle m
+</span><a href="Text.Parser.Token.html#IdentifierStyle"><span class="hs-identifier hs-type">IdentifierStyle</span></a></span><span>
+</span><span id="line-163"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">_styleName :: String
+</span><a href="Text.Parser.Token.html#_styleName"><span class="hs-identifier hs-var">_styleName</span></a></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;identifier&quot;</span></span><span>
+</span><span id="line-164"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_styleStart :: m Char
+</span><a href="Text.Parser.Token.html#_styleStart"><span class="hs-identifier hs-var">_styleStart</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Char
+forall (m :: * -&gt; *). CharParsing m =&gt; m Char
+</span><a href="Text.Parser.Char.html#letter"><span class="hs-identifier hs-var">letter</span></a></span><span> </span><span class="annot"><span class="annottext">m Char -&gt; m Char -&gt; m Char
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; m Char
+forall (m :: * -&gt; *). CharParsing m =&gt; Char -&gt; m Char
+</span><a href="Text.Parser.Char.html#char"><span class="hs-identifier hs-var">char</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'_'</span></span><span>
+</span><span id="line-165"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_styleLetter :: m Char
+</span><a href="Text.Parser.Token.html#_styleLetter"><span class="hs-identifier hs-var">_styleLetter</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Char
+forall (m :: * -&gt; *). CharParsing m =&gt; m Char
+</span><a href="Text.Parser.Char.html#alphaNum"><span class="hs-identifier hs-var">alphaNum</span></a></span><span> </span><span class="annot"><span class="annottext">m Char -&gt; m Char -&gt; m Char
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; m Char
+forall (m :: * -&gt; *). CharParsing m =&gt; String -&gt; m Char
+</span><a href="Text.Parser.Char.html#oneOf"><span class="hs-identifier hs-var">oneOf</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;_'&quot;</span></span><span>
+</span><span id="line-166"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_styleReserved :: HashSet String
+</span><a href="Text.Parser.Token.html#_styleReserved"><span class="hs-identifier hs-var">_styleReserved</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; HashSet String
+</span><a href="Text.Parser.Token.Style.html#set"><span class="hs-identifier hs-var">set</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-167"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_styleHighlight :: Highlight
+</span><a href="Text.Parser.Token.html#_styleHighlight"><span class="hs-identifier hs-var">_styleHighlight</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Highlight
+</span><a href="Text.Parser.Token.Highlight.html#Identifier"><span class="hs-identifier hs-var">Identifier</span></a></span><span>
+</span><span id="line-168"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_styleReservedHighlight :: Highlight
+</span><a href="Text.Parser.Token.html#_styleReservedHighlight"><span class="hs-identifier hs-var">_styleReservedHighlight</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Highlight
+</span><a href="Text.Parser.Token.Highlight.html#ReservedIdentifier"><span class="hs-identifier hs-var">ReservedIdentifier</span></a></span><span>
+</span><span id="line-169"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-170"></span><span>
+</span><span id="line-171"></span><span class="hs-comment">-- | A simple identifier style based on haskell with only the reserved words from Haskell 98.</span><span>
+</span><span id="line-172"></span><span id="local-6989586621679072750"><span class="annot"><a href="Text.Parser.Token.Style.html#haskell98Idents"><span class="hs-identifier hs-type">haskell98Idents</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Parser.Token.html#TokenParsing"><span class="hs-identifier hs-type">TokenParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679072750"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Parser.Token.html#IdentifierStyle"><span class="hs-identifier hs-type">IdentifierStyle</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679072750"><span class="hs-identifier hs-type">m</span></a></span></span><span>
+</span><span id="line-173"></span><span id="haskell98Idents"><span class="annot"><span class="annottext">haskell98Idents :: IdentifierStyle m
+</span><a href="Text.Parser.Token.Style.html#haskell98Idents"><span class="hs-identifier hs-var hs-var">haskell98Idents</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IdentifierStyle m
+forall (m :: * -&gt; *). TokenParsing m =&gt; IdentifierStyle m
+</span><a href="Text.Parser.Token.Style.html#emptyIdents"><span class="hs-identifier hs-var">emptyIdents</span></a></span><span>
+</span><span id="line-174"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">_styleReserved :: HashSet String
+</span><a href="Text.Parser.Token.html#_styleReserved"><span class="hs-identifier hs-var">_styleReserved</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; HashSet String
+</span><a href="Text.Parser.Token.Style.html#set"><span class="hs-identifier hs-var">set</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="Text.Parser.Token.Style.html#haskell98ReservedIdents"><span class="hs-identifier hs-var">haskell98ReservedIdents</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-175"></span><span>
+</span><span id="line-176"></span><span class="hs-comment">-- | A simple identifier style based on haskell with the reserved words from Haskell 98 and some common extensions.</span><span>
+</span><span id="line-177"></span><span id="local-6989586621679072748"><span class="annot"><a href="Text.Parser.Token.Style.html#haskellIdents"><span class="hs-identifier hs-type">haskellIdents</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Parser.Token.html#TokenParsing"><span class="hs-identifier hs-type">TokenParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679072748"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Parser.Token.html#IdentifierStyle"><span class="hs-identifier hs-type">IdentifierStyle</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679072748"><span class="hs-identifier hs-type">m</span></a></span></span><span>
+</span><span id="line-178"></span><span id="haskellIdents"><span class="annot"><span class="annottext">haskellIdents :: IdentifierStyle m
+</span><a href="Text.Parser.Token.Style.html#haskellIdents"><span class="hs-identifier hs-var hs-var">haskellIdents</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IdentifierStyle m
+forall (m :: * -&gt; *). TokenParsing m =&gt; IdentifierStyle m
+</span><a href="Text.Parser.Token.Style.html#haskell98Idents"><span class="hs-identifier hs-var">haskell98Idents</span></a></span><span>
+</span><span id="line-179"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">_styleLetter :: m Char
+</span><a href="Text.Parser.Token.html#_styleLetter"><span class="hs-identifier hs-var">_styleLetter</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IdentifierStyle m -&gt; m Char
+forall (m :: * -&gt; *). IdentifierStyle m -&gt; m Char
+</span><a href="Text.Parser.Token.html#_styleLetter"><span class="hs-identifier hs-var hs-var">_styleLetter</span></a></span><span> </span><span class="annot"><span class="annottext">IdentifierStyle m
+forall (m :: * -&gt; *). TokenParsing m =&gt; IdentifierStyle m
+</span><a href="Text.Parser.Token.Style.html#haskell98Idents"><span class="hs-identifier hs-var">haskell98Idents</span></a></span><span> </span><span class="annot"><span class="annottext">m Char -&gt; m Char -&gt; m Char
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; m Char
+forall (m :: * -&gt; *). CharParsing m =&gt; Char -&gt; m Char
+</span><a href="Text.Parser.Char.html#char"><span class="hs-identifier hs-var">char</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'#'</span></span><span>
+</span><span id="line-180"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_styleReserved :: HashSet String
+</span><a href="Text.Parser.Token.html#_styleReserved"><span class="hs-identifier hs-var">_styleReserved</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; HashSet String
+</span><a href="Text.Parser.Token.Style.html#set"><span class="hs-identifier hs-var">set</span></a></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; HashSet String) -&gt; [String] -&gt; HashSet String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="Text.Parser.Token.Style.html#haskell98ReservedIdents"><span class="hs-identifier hs-var">haskell98ReservedIdents</span></a></span><span> </span><span class="annot"><span class="annottext">[String] -&gt; [String] -&gt; [String]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span>
+</span><span id="line-181"></span><span>      </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;foreign&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;import&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;export&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;primitive&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;_ccall_&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;_casm_&quot;</span></span><span> </span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;forall&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-182"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-183"></span><span>
+</span><span id="line-184"></span><span class="annot"><a href="Text.Parser.Token.Style.html#haskell98ReservedIdents"><span class="hs-identifier hs-type">haskell98ReservedIdents</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span>
+</span><span id="line-185"></span><span id="haskell98ReservedIdents"><span class="annot"><span class="annottext">haskell98ReservedIdents :: [String]
+</span><a href="Text.Parser.Token.Style.html#haskell98ReservedIdents"><span class="hs-identifier hs-var hs-var">haskell98ReservedIdents</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-186"></span><span>  </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;let&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;in&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;case&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;of&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;if&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;then&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;else&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;data&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;type&quot;</span></span><span>
+</span><span id="line-187"></span><span>  </span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;class&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;default&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;deriving&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;do&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;import&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;infix&quot;</span></span><span>
+</span><span id="line-188"></span><span>  </span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;infixl&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;infixr&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;instance&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;module&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;newtype&quot;</span></span><span>
+</span><span id="line-189"></span><span>  </span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;where&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;primitive&quot;</span></span><span> </span><span class="hs-comment">-- &quot;as&quot;,&quot;qualified&quot;,&quot;hiding&quot;</span><span>
+</span><span id="line-190"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-191"></span></pre></body></html>

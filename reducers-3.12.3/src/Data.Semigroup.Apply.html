@@ -1,0 +1,189 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, GeneralizedNewtypeDeriving, FlexibleContexts #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE MonoLocalBinds #-}</span><span class="hs-cpp">
+#if __GLASGOW_HASKELL__ &gt;= 702
+</span><span class="hs-pragma">{-# LANGUAGE Trustworthy #-}</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Module      :  Data.Semigroup.Apply</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- Copyright   :  (c) Edward Kmett 2009-2011</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- License     :  BSD-style</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- Maintainer  :  ekmett@gmail.com</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- Stability   :  experimental</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- Portability :  non-portable (MPTCs)</span><span>
+</span><span id="line-16"></span><span class="hs-comment">--</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- Semigroups for working with 'Apply'</span><span>
+</span><span id="line-18"></span><span class="hs-comment">--</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.Semigroup.Apply</span><span>
+</span><span id="line-22"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Data.Semigroup.Apply.html#Trav"><span class="hs-identifier">Trav</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Apply.html#App"><span class="hs-identifier">App</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span class="hs-cpp">
+
+#if __GLASGOW_HASKELL__ &lt; 710
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Functor</span><span class="hs-cpp">
+#endif
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Functor.Apply</span></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Semigroup</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Semigroup</span></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html"><span class="hs-identifier">Data.Semigroup.Reducer</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier">Reducer</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span class="hs-comment">-- | A 'Trav' uses an glues together 'Applicative' actions with (*&gt;)</span><span>
+</span><span id="line-34"></span><span class="hs-comment">--   in the manner of 'traverse_' from &quot;Data.Foldable&quot;. Any values returned by</span><span>
+</span><span id="line-35"></span><span class="hs-comment">--   reduced actions are discarded.</span><span>
+</span><span id="line-36"></span><span class="hs-keyword">newtype</span><span> </span><span id="Trav"><span class="annot"><a href="Data.Semigroup.Apply.html#Trav"><span class="hs-identifier hs-var">Trav</span></a></span></span><span> </span><span id="local-6989586621679078162"><span class="annot"><a href="#local-6989586621679078162"><span class="hs-identifier hs-type">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Trav"><span class="annot"><a href="Data.Semigroup.Apply.html#Trav"><span class="hs-identifier hs-var">Trav</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="getTrav"><span class="annot"><span class="annottext">Trav f -&gt; f ()
+</span><a href="Data.Semigroup.Apply.html#getTrav"><span class="hs-identifier hs-var hs-var">getTrav</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679078162"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span id="local-6989586621679078109"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679078104"><span id="local-6989586621679078106"><span class="annot"><span class="hs-identifier hs-type">Apply</span></span><span> </span><span class="annot"><a href="#local-6989586621679078109"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Apply.html#Trav"><span class="hs-identifier hs-type">Trav</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078109"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-39"></span><span>  </span><span class="annot"><a href="Data.Semigroup.Apply.html#Trav"><span class="hs-identifier hs-type">Trav</span></a></span><span> </span><span id="local-6989586621679078102"><span class="annot"><span class="annottext">f ()
+</span><a href="#local-6989586621679078102"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679078101"><span class="annot"><span class="annottext">&lt;&gt; :: Trav f -&gt; Trav f -&gt; Trav f
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></span></span><span> </span><span class="annot"><a href="Data.Semigroup.Apply.html#Trav"><span class="hs-identifier hs-type">Trav</span></a></span><span> </span><span id="local-6989586621679078100"><span class="annot"><span class="annottext">f ()
+</span><a href="#local-6989586621679078100"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">f () -&gt; Trav f
+forall (f :: * -&gt; *). f () -&gt; Trav f
+</span><a href="Data.Semigroup.Apply.html#Trav"><span class="hs-identifier hs-var">Trav</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">f ()
+</span><a href="#local-6989586621679078102"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">f () -&gt; f () -&gt; f ()
+forall (f :: * -&gt; *) a b. Apply f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">.&gt;</span></span><span> </span><span class="annot"><span class="annottext">f ()
+</span><a href="#local-6989586621679078100"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span id="local-6989586621679078097"><span id="local-6989586621679078098"><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Apply</span></span><span> </span><span class="annot"><a href="#local-6989586621679078098"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679078098"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078097"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Apply.html#Trav"><span class="hs-identifier hs-type">Trav</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078098"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-42"></span><span>    </span><span id="local-6989586621679078091"><span class="annot"><span class="annottext">unit :: f a -&gt; Trav f
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">f () -&gt; Trav f
+forall (f :: * -&gt; *). f () -&gt; Trav f
+</span><a href="Data.Semigroup.Apply.html#Trav"><span class="hs-identifier hs-var">Trav</span></a></span><span> </span><span class="annot"><span class="annottext">(f () -&gt; Trav f) -&gt; (f a -&gt; f ()) -&gt; f a -&gt; Trav f
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">() -&gt; f a -&gt; f ()
+forall (f :: * -&gt; *) a b. Functor f =&gt; a -&gt; f b -&gt; f a
+</span><span class="hs-operator hs-var">&lt;$</span></span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span>    </span><span id="local-6989586621679078087"><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078087"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679078086"><span class="annot"><span class="annottext">cons :: f a -&gt; Trav f -&gt; Trav f
+</span><a href="Data.Semigroup.Reducer.html#cons"><span class="hs-operator hs-var hs-var hs-var hs-var">`cons`</span></a></span></span><span> </span><span class="annot"><a href="Data.Semigroup.Apply.html#Trav"><span class="hs-identifier hs-type">Trav</span></a></span><span> </span><span id="local-6989586621679078084"><span class="annot"><span class="annottext">f ()
+</span><a href="#local-6989586621679078084"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">f () -&gt; Trav f
+forall (f :: * -&gt; *). f () -&gt; Trav f
+</span><a href="Data.Semigroup.Apply.html#Trav"><span class="hs-identifier hs-var">Trav</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078087"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">f a -&gt; f () -&gt; f ()
+forall (f :: * -&gt; *) a b. Apply f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">.&gt;</span></span><span> </span><span class="annot"><span class="annottext">f ()
+</span><a href="#local-6989586621679078084"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span>    </span><span class="annot"><a href="Data.Semigroup.Apply.html#Trav"><span class="hs-identifier hs-type">Trav</span></a></span><span> </span><span id="local-6989586621679078083"><span class="annot"><span class="annottext">f ()
+</span><a href="#local-6989586621679078083"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679078082"><span class="annot"><span class="annottext">snoc :: Trav f -&gt; f a -&gt; Trav f
+</span><a href="Data.Semigroup.Reducer.html#snoc"><span class="hs-operator hs-var hs-var hs-var hs-var">`snoc`</span></a></span></span><span> </span><span id="local-6989586621679078080"><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078080"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">f () -&gt; Trav f
+forall (f :: * -&gt; *). f () -&gt; Trav f
+</span><a href="Data.Semigroup.Apply.html#Trav"><span class="hs-identifier hs-var">Trav</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">() -&gt; f a -&gt; f ()
+forall (f :: * -&gt; *) a b. Functor f =&gt; a -&gt; f b -&gt; f a
+</span><span class="hs-operator hs-var">&lt;$</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">f ()
+</span><a href="#local-6989586621679078083"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">f () -&gt; f a -&gt; f a
+forall (f :: * -&gt; *) a b. Apply f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">.&gt;</span></span><span> </span><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078080"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- | Efficiently avoid needlessly rebinding when using 'snoc' on an action that already returns ()</span><span>
+</span><span id="line-47"></span><span class="hs-comment">--   A rewrite rule automatically applies this when possible</span><span>
+</span><span id="line-48"></span><span id="local-6989586621679078079"><span class="annot"><a href="Data.Semigroup.Apply.html#snocTrav"><span class="hs-identifier hs-type">snocTrav</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679078079"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Apply.html#Trav"><span class="hs-identifier hs-type">Trav</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078079"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Apply.html#Trav"><span class="hs-identifier hs-type">Trav</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078079"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679078079"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Apply.html#Trav"><span class="hs-identifier hs-type">Trav</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078079"><span class="hs-identifier hs-type">f</span></a></span></span><span>
+</span><span id="line-49"></span><span id="snocTrav"><span class="annot"><span class="annottext">snocTrav :: Trav f -&gt; f () -&gt; Trav f
+</span><a href="Data.Semigroup.Apply.html#snocTrav"><span class="hs-identifier hs-var hs-var">snocTrav</span></a></span></span><span> </span><span id="local-6989586621679078077"><span class="annot"><span class="annottext">Trav f
+</span><a href="#local-6989586621679078077"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Trav f -&gt; Trav f -&gt; Trav f
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(&lt;&gt;)</span></span><span> </span><span class="annot"><span class="annottext">Trav f
+</span><a href="#local-6989586621679078077"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">(Trav f -&gt; Trav f) -&gt; (f () -&gt; Trav f) -&gt; f () -&gt; Trav f
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">f () -&gt; Trav f
+forall (f :: * -&gt; *). f () -&gt; Trav f
+</span><a href="Data.Semigroup.Apply.html#Trav"><span class="hs-identifier hs-var">Trav</span></a></span><span>
+</span><span id="line-50"></span><span class="hs-pragma">{-# RULES</span><span> </span><span class="annot"><span class="hs-pragma">&quot;unitTrav&quot;</span></span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-pragma hs-type">unit</span></a></span><span> </span><span class="hs-pragma">=</span><span> </span><span class="annot"><a href="Data.Semigroup.Apply.html#Trav"><span class="hs-pragma hs-type">Trav</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-51"></span><span class="hs-pragma">{-# RULES</span><span> </span><span class="annot"><span class="hs-pragma">&quot;snocTrav&quot;</span></span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#snoc"><span class="hs-pragma hs-type">snoc</span></a></span><span> </span><span class="hs-pragma">=</span><span> </span><span class="annot"><a href="Data.Semigroup.Apply.html#snocTrav"><span class="hs-pragma hs-type">snocTrav</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-52"></span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- | A 'App' turns any 'Apply' wrapped around a 'Semigroup' into a 'Semigroup'</span><span>
+</span><span id="line-54"></span><span>
+</span><span id="line-55"></span><span class="hs-keyword">newtype</span><span> </span><span id="App"><span class="annot"><a href="Data.Semigroup.Apply.html#App"><span class="hs-identifier hs-var">App</span></a></span></span><span> </span><span id="local-6989586621679078113"><span class="annot"><a href="#local-6989586621679078113"><span class="hs-identifier hs-type">f</span></a></span></span><span> </span><span id="local-6989586621679078112"><span class="annot"><a href="#local-6989586621679078112"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="App"><span class="annot"><a href="Data.Semigroup.Apply.html#App"><span class="hs-identifier hs-var">App</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="getApp"><span class="annot"><span class="annottext">App f m -&gt; f m
+</span><a href="Data.Semigroup.Apply.html#getApp"><span class="hs-identifier hs-var hs-var">getApp</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679078113"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078112"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-56"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679078071"><span id="local-6989586621679078073"><span class="annot"><span class="annottext">a -&gt; App f b -&gt; App f a
+(a -&gt; b) -&gt; App f a -&gt; App f b
+(forall a b. (a -&gt; b) -&gt; App f a -&gt; App f b)
+-&gt; (forall a b. a -&gt; App f b -&gt; App f a) -&gt; Functor (App f)
+forall a b. a -&gt; App f b -&gt; App f a
+forall a b. (a -&gt; b) -&gt; App f a -&gt; App f b
+forall (f :: * -&gt; *) a b. Functor f =&gt; a -&gt; App f b -&gt; App f a
+forall (f :: * -&gt; *) a b.
+Functor f =&gt;
+(a -&gt; b) -&gt; App f a -&gt; App f b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+&lt;$ :: a -&gt; App f b -&gt; App f a
+$c&lt;$ :: forall (f :: * -&gt; *) a b. Functor f =&gt; a -&gt; App f b -&gt; App f a
+fmap :: (a -&gt; b) -&gt; App f a -&gt; App f b
+$cfmap :: forall (f :: * -&gt; *) a b.
+Functor f =&gt;
+(a -&gt; b) -&gt; App f a -&gt; App f b
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Functor</span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679078061"><span id="local-6989586621679078063"><span id="local-6989586621679078065"><span id="local-6989586621679078067"><span class="annot"><span class="annottext">Functor (App f)
+Functor (App f)
+-&gt; (forall a b. App f (a -&gt; b) -&gt; App f a -&gt; App f b)
+-&gt; (forall a b. App f a -&gt; App f b -&gt; App f b)
+-&gt; (forall a b. App f a -&gt; App f b -&gt; App f a)
+-&gt; (forall a b c. (a -&gt; b -&gt; c) -&gt; App f a -&gt; App f b -&gt; App f c)
+-&gt; Apply (App f)
+App f a -&gt; App f b -&gt; App f b
+App f a -&gt; App f b -&gt; App f a
+App f (a -&gt; b) -&gt; App f a -&gt; App f b
+(a -&gt; b -&gt; c) -&gt; App f a -&gt; App f b -&gt; App f c
+forall a b. App f a -&gt; App f b -&gt; App f a
+forall a b. App f a -&gt; App f b -&gt; App f b
+forall a b. App f (a -&gt; b) -&gt; App f a -&gt; App f b
+forall a b c. (a -&gt; b -&gt; c) -&gt; App f a -&gt; App f b -&gt; App f c
+forall (f :: * -&gt; *).
+Functor f
+-&gt; (forall a b. f (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. f a -&gt; f b -&gt; f b)
+-&gt; (forall a b. f a -&gt; f b -&gt; f a)
+-&gt; (forall a b c. (a -&gt; b -&gt; c) -&gt; f a -&gt; f b -&gt; f c)
+-&gt; Apply f
+forall (f :: * -&gt; *). Apply f =&gt; Functor (App f)
+forall (f :: * -&gt; *) a b. Apply f =&gt; App f a -&gt; App f b -&gt; App f a
+forall (f :: * -&gt; *) a b. Apply f =&gt; App f a -&gt; App f b -&gt; App f b
+forall (f :: * -&gt; *) a b.
+Apply f =&gt;
+App f (a -&gt; b) -&gt; App f a -&gt; App f b
+forall (f :: * -&gt; *) a b c.
+Apply f =&gt;
+(a -&gt; b -&gt; c) -&gt; App f a -&gt; App f b -&gt; App f c
+liftF2 :: (a -&gt; b -&gt; c) -&gt; App f a -&gt; App f b -&gt; App f c
+$cliftF2 :: forall (f :: * -&gt; *) a b c.
+Apply f =&gt;
+(a -&gt; b -&gt; c) -&gt; App f a -&gt; App f b -&gt; App f c
+&lt;. :: App f a -&gt; App f b -&gt; App f a
+$c&lt;. :: forall (f :: * -&gt; *) a b. Apply f =&gt; App f a -&gt; App f b -&gt; App f a
+.&gt; :: App f a -&gt; App f b -&gt; App f b
+$c.&gt; :: forall (f :: * -&gt; *) a b. Apply f =&gt; App f a -&gt; App f b -&gt; App f b
+&lt;.&gt; :: App f (a -&gt; b) -&gt; App f a -&gt; App f b
+$c&lt;.&gt; :: forall (f :: * -&gt; *) a b.
+Apply f =&gt;
+App f (a -&gt; b) -&gt; App f a -&gt; App f b
+$cp1Apply :: forall (f :: * -&gt; *). Apply f =&gt; Functor (App f)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Apply</span></span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-57"></span><span>
+</span><span id="line-58"></span><span id="local-6989586621679078058"><span id="local-6989586621679078059"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679078053"><span id="local-6989586621679078055"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Apply</span></span><span> </span><span class="annot"><a href="#local-6989586621679078059"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="#local-6989586621679078058"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Apply.html#App"><span class="hs-identifier hs-type">App</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078059"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078058"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-59"></span><span>  </span><span id="local-6989586621679078052"><span class="annot"><span class="annottext">&lt;&gt; :: App f m -&gt; App f m -&gt; App f m
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">(&lt;&gt;)</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(m -&gt; m -&gt; m) -&gt; App f m -&gt; App f m -&gt; App f m
+forall (f :: * -&gt; *) a b c.
+Apply f =&gt;
+(a -&gt; b -&gt; c) -&gt; f a -&gt; f b -&gt; f c
+</span><span class="hs-identifier hs-var">liftF2</span></span><span> </span><span class="annot"><span class="annottext">m -&gt; m -&gt; m
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(&lt;&gt;)</span></span></span></span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span id="local-6989586621679078048"><span id="local-6989586621679078049"><span id="local-6989586621679078050"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679078042"><span id="local-6989586621679078044"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Apply</span></span><span> </span><span class="annot"><a href="#local-6989586621679078050"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078049"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078048"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679078050"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078049"><span class="hs-identifier hs-type">c</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Apply.html#App"><span class="hs-identifier hs-type">App</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078050"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078048"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-62"></span><span>  </span><span id="local-6989586621679078041"><span class="annot"><span class="annottext">unit :: f c -&gt; App f m
+</span><a href="#local-6989586621679078041"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(c -&gt; m) -&gt; App f c -&gt; App f m
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">c -&gt; m
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span><span> </span><span class="annot"><span class="annottext">(App f c -&gt; App f m) -&gt; (f c -&gt; App f c) -&gt; f c -&gt; App f m
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">f c -&gt; App f c
+forall (f :: * -&gt; *) m. f m -&gt; App f m
+</span><a href="Data.Semigroup.Apply.html#App"><span class="hs-identifier hs-var">App</span></a></span></span></span></span><span>
+</span><span id="line-63"></span></pre></body></html>

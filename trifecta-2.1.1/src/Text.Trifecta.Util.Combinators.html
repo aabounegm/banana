@@ -1,0 +1,116 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- Copyright   :  (C) 2011-2019 Edward Kmett</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- License     :  BSD-style (see the file LICENSE)</span><span>
+</span><span id="line-5"></span><span class="hs-comment">--</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- Stability   :  experimental</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- Portability :  non-portable</span><span>
+</span><span id="line-9"></span><span class="hs-comment">--</span><span>
+</span><span id="line-10"></span><span class="hs-comment">----------------------------------------------------------------------------</span><span>
+</span><span id="line-11"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.Trifecta.Util.Combinators</span><span>
+</span><span id="line-12"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.Combinators.html#argmin"><span class="hs-identifier">argmin</span></a></span><span>
+</span><span id="line-13"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.Combinators.html#argmax"><span class="hs-identifier">argmax</span></a></span><span>
+</span><span id="line-14"></span><span>  </span><span class="annot"><span class="hs-comment">-- * ByteString conversions</span></span><span>
+</span><span id="line-15"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.Combinators.html#fromLazy"><span class="hs-identifier">fromLazy</span></a></span><span>
+</span><span id="line-16"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.Combinators.html#toLazy"><span class="hs-identifier">toLazy</span></a></span><span>
+</span><span id="line-17"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.Combinators.html#takeLine"><span class="hs-identifier">takeLine</span></a></span><span>
+</span><span id="line-18"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.Combinators.html#%3C%24%21%3E"><span class="hs-operator">(&lt;$!&gt;)</span></a></span><span>
+</span><span id="line-19"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString</span></span><span>      </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Strict</span></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString.Lazy</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Lazy</span></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span id="local-6989586621679235056"><span id="local-6989586621679235057"><span class="annot"><a href="Text.Trifecta.Util.Combinators.html#argmin"><span class="hs-identifier hs-type">argmin</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="#local-6989586621679235057"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679235056"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679235057"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679235056"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679235056"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679235056"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-25"></span><span id="argmin"><span class="annot"><span class="annottext">argmin :: (a -&gt; b) -&gt; a -&gt; a -&gt; a
+</span><a href="Text.Trifecta.Util.Combinators.html#argmin"><span class="hs-identifier hs-var hs-var">argmin</span></a></span></span><span> </span><span id="local-6989586621679235055"><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679235055"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679235054"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679235054"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679235053"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679235053"><span class="hs-identifier hs-var">b</span></a></span></span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679235055"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679235054"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">b -&gt; b -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;=</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679235055"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679235053"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679235054"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679235053"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-28"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.Combinators.html#argmin"><span class="hs-pragma hs-type">argmin</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span id="local-6989586621679235050"><span id="local-6989586621679235051"><span class="annot"><a href="Text.Trifecta.Util.Combinators.html#argmax"><span class="hs-identifier hs-type">argmax</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="#local-6989586621679235051"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679235050"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679235051"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679235050"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679235050"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679235050"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-31"></span><span id="argmax"><span class="annot"><span class="annottext">argmax :: (a -&gt; b) -&gt; a -&gt; a -&gt; a
+</span><a href="Text.Trifecta.Util.Combinators.html#argmax"><span class="hs-identifier hs-var hs-var">argmax</span></a></span></span><span> </span><span id="local-6989586621679235049"><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679235049"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679235048"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679235048"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679235047"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679235047"><span class="hs-identifier hs-var">b</span></a></span></span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679235049"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679235048"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">b -&gt; b -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679235049"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679235047"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679235048"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679235047"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-34"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.Combinators.html#argmax"><span class="hs-pragma hs-type">argmax</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span class="annot"><a href="Text.Trifecta.Util.Combinators.html#fromLazy"><span class="hs-identifier hs-type">fromLazy</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Lazy.ByteString</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Strict.ByteString</span></span><span>
+</span><span id="line-37"></span><span id="fromLazy"><span class="annot"><span class="annottext">fromLazy :: ByteString -&gt; ByteString
+</span><a href="Text.Trifecta.Util.Combinators.html#fromLazy"><span class="hs-identifier hs-var hs-var">fromLazy</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[ByteString] -&gt; ByteString
+</span><span class="hs-identifier hs-var">Strict.concat</span></span><span> </span><span class="annot"><span class="annottext">([ByteString] -&gt; ByteString)
+-&gt; (ByteString -&gt; [ByteString]) -&gt; ByteString -&gt; ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; [ByteString]
+</span><span class="hs-identifier hs-var">Lazy.toChunks</span></span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="annot"><a href="Text.Trifecta.Util.Combinators.html#toLazy"><span class="hs-identifier hs-type">toLazy</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Strict.ByteString</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Lazy.ByteString</span></span><span>
+</span><span id="line-40"></span><span id="toLazy"><span class="annot"><span class="annottext">toLazy :: ByteString -&gt; ByteString
+</span><a href="Text.Trifecta.Util.Combinators.html#toLazy"><span class="hs-identifier hs-var hs-var">toLazy</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[ByteString] -&gt; ByteString
+</span><span class="hs-identifier hs-var">Lazy.fromChunks</span></span><span> </span><span class="annot"><span class="annottext">([ByteString] -&gt; ByteString)
+-&gt; (ByteString -&gt; [ByteString]) -&gt; ByteString -&gt; ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; [ByteString]
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span class="annot"><a href="Text.Trifecta.Util.Combinators.html#takeLine"><span class="hs-identifier hs-type">takeLine</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Lazy.ByteString</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Lazy.ByteString</span></span><span>
+</span><span id="line-43"></span><span id="takeLine"><span class="annot"><span class="annottext">takeLine :: ByteString -&gt; ByteString
+</span><a href="Text.Trifecta.Util.Combinators.html#takeLine"><span class="hs-identifier hs-var hs-var">takeLine</span></a></span></span><span> </span><span id="local-6989586621679235041"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679235041"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Word8 -&gt; ByteString -&gt; Maybe Int64
+</span><span class="hs-identifier hs-var">Lazy.elemIndex</span></span><span> </span><span class="annot"><span class="annottext">Word8
+</span><span class="hs-number">10</span></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679235041"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-44"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679235039"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679235039"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; ByteString -&gt; ByteString
+</span><span class="hs-identifier hs-var">Lazy.take</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679235039"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679235041"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-45"></span><span>  </span><span class="annot"><span class="annottext">Maybe Int64
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679235041"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-46"></span><span>
+</span><span id="line-47"></span><span class="hs-keyword">infixl</span><span> </span><span class="hs-number">4</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.Combinators.html#%3C%24%21%3E"><span class="hs-operator hs-type">&lt;$!&gt;</span></a></span><span>
+</span><span id="line-48"></span><span id="local-6989586621679235034"><span id="local-6989586621679235035"><span id="local-6989586621679235036"><span class="annot"><a href="Text.Trifecta.Util.Combinators.html#%3C%24%21%3E"><span class="hs-operator hs-type">(&lt;$!&gt;)</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679235036"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679235035"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679235034"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679235036"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679235035"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679235036"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679235034"><span class="hs-identifier hs-type">b</span></a></span></span></span></span><span>
+</span><span id="line-49"></span><span id="local-6989586621679235033"><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679235033"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="%3C%24%21%3E"><span class="annot"><span class="annottext">&lt;$!&gt; :: (a -&gt; b) -&gt; m a -&gt; m b
+</span><a href="Text.Trifecta.Util.Combinators.html#%3C%24%21%3E"><span class="hs-operator hs-var hs-var">&lt;$!&gt;</span></a></span></span><span> </span><span id="local-6989586621679235032"><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679235032"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-50"></span><span>  </span><span id="local-6989586621679235031"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679235031"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679235032"><span class="hs-identifier hs-var">m</span></a></span><span>
+</span><span id="line-51"></span><span>  </span><span class="annot"><span class="annottext">b -&gt; m b
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(b -&gt; m b) -&gt; b -&gt; m b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$!</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679235033"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679235031"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-52"></span></pre></body></html>

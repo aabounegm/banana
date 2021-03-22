@@ -1,0 +1,1275 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="%24con2tag_BkqFdMZzanQ2r4U0EnVfB2"></span><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields      #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE OverloadedStrings          #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell            #-}</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.Completion</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Applicative</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson</span></span><span>                    </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">A</span></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Scientific</span></span><span>                </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">Scientific</span></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span>                      </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">Text</span></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Command.html"><span class="hs-identifier">Language.LSP.Types.Command</span></a></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Common.html"><span class="hs-identifier">Language.LSP.Types.Common</span></a></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html"><span class="hs-identifier">Language.LSP.Types.MarkupContent</span></a></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Progress.html"><span class="hs-identifier">Language.LSP.Types.Progress</span></a></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.TextDocument.html"><span class="hs-identifier">Language.LSP.Types.TextDocument</span></a></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.WorkspaceEdit.html"><span class="hs-identifier">Language.LSP.Types.WorkspaceEdit</span></a></span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">data</span><span> </span><span id="CompletionItemKind"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItemKind"><span class="hs-identifier hs-var">CompletionItemKind</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="CiText"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiText"><span class="hs-identifier hs-var">CiText</span></a></span></span><span>
+</span><span id="line-20"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiMethod"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiMethod"><span class="hs-identifier hs-var">CiMethod</span></a></span></span><span>
+</span><span id="line-21"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiFunction"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiFunction"><span class="hs-identifier hs-var">CiFunction</span></a></span></span><span>
+</span><span id="line-22"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiConstructor"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiConstructor"><span class="hs-identifier hs-var">CiConstructor</span></a></span></span><span>
+</span><span id="line-23"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiField"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiField"><span class="hs-identifier hs-var">CiField</span></a></span></span><span>
+</span><span id="line-24"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiVariable"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiVariable"><span class="hs-identifier hs-var">CiVariable</span></a></span></span><span>
+</span><span id="line-25"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiClass"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiClass"><span class="hs-identifier hs-var">CiClass</span></a></span></span><span>
+</span><span id="line-26"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiInterface"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiInterface"><span class="hs-identifier hs-var">CiInterface</span></a></span></span><span>
+</span><span id="line-27"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiModule"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiModule"><span class="hs-identifier hs-var">CiModule</span></a></span></span><span>
+</span><span id="line-28"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiProperty"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiProperty"><span class="hs-identifier hs-var">CiProperty</span></a></span></span><span>
+</span><span id="line-29"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiUnit"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiUnit"><span class="hs-identifier hs-var">CiUnit</span></a></span></span><span>
+</span><span id="line-30"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiValue"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiValue"><span class="hs-identifier hs-var">CiValue</span></a></span></span><span>
+</span><span id="line-31"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiEnum"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiEnum"><span class="hs-identifier hs-var">CiEnum</span></a></span></span><span>
+</span><span id="line-32"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiKeyword"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiKeyword"><span class="hs-identifier hs-var">CiKeyword</span></a></span></span><span>
+</span><span id="line-33"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiSnippet"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiSnippet"><span class="hs-identifier hs-var">CiSnippet</span></a></span></span><span>
+</span><span id="line-34"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiColor"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiColor"><span class="hs-identifier hs-var">CiColor</span></a></span></span><span>
+</span><span id="line-35"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiFile"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiFile"><span class="hs-identifier hs-var">CiFile</span></a></span></span><span>
+</span><span id="line-36"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiReference"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiReference"><span class="hs-identifier hs-var">CiReference</span></a></span></span><span>
+</span><span id="line-37"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiFolder"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiFolder"><span class="hs-identifier hs-var">CiFolder</span></a></span></span><span>
+</span><span id="line-38"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiEnumMember"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiEnumMember"><span class="hs-identifier hs-var">CiEnumMember</span></a></span></span><span>
+</span><span id="line-39"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiConstant"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiConstant"><span class="hs-identifier hs-var">CiConstant</span></a></span></span><span>
+</span><span id="line-40"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiStruct"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiStruct"><span class="hs-identifier hs-var">CiStruct</span></a></span></span><span>
+</span><span id="line-41"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiEvent"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiEvent"><span class="hs-identifier hs-var">CiEvent</span></a></span></span><span>
+</span><span id="line-42"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiOperator"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiOperator"><span class="hs-identifier hs-var">CiOperator</span></a></span></span><span>
+</span><span id="line-43"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="CiTypeParameter"><span class="annot"><a href="Language.LSP.Types.Completion.html#CiTypeParameter"><span class="hs-identifier hs-var">CiTypeParameter</span></a></span></span><span>
+</span><span id="line-44"></span><span>         </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680444186"><span id="local-6989586621680444188"><span id="local-6989586621680444190"><span id="local-6989586621680444192"><span class="annot"><span class="annottext">ReadPrec [CompletionItemKind]
+ReadPrec CompletionItemKind
+Int -&gt; ReadS CompletionItemKind
+ReadS [CompletionItemKind]
+(Int -&gt; ReadS CompletionItemKind)
+-&gt; ReadS [CompletionItemKind]
+-&gt; ReadPrec CompletionItemKind
+-&gt; ReadPrec [CompletionItemKind]
+-&gt; Read CompletionItemKind
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CompletionItemKind]
+$creadListPrec :: ReadPrec [CompletionItemKind]
+readPrec :: ReadPrec CompletionItemKind
+$creadPrec :: ReadPrec CompletionItemKind
+readList :: ReadS [CompletionItemKind]
+$creadList :: ReadS [CompletionItemKind]
+readsPrec :: Int -&gt; ReadS CompletionItemKind
+$creadsPrec :: Int -&gt; ReadS CompletionItemKind
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680444179"><span id="local-6989586621680444181"><span id="local-6989586621680444183"><span class="annot"><span class="annottext">Int -&gt; CompletionItemKind -&gt; ShowS
+[CompletionItemKind] -&gt; ShowS
+CompletionItemKind -&gt; String
+(Int -&gt; CompletionItemKind -&gt; ShowS)
+-&gt; (CompletionItemKind -&gt; String)
+-&gt; ([CompletionItemKind] -&gt; ShowS)
+-&gt; Show CompletionItemKind
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CompletionItemKind] -&gt; ShowS
+$cshowList :: [CompletionItemKind] -&gt; ShowS
+show :: CompletionItemKind -&gt; String
+$cshow :: CompletionItemKind -&gt; String
+showsPrec :: Int -&gt; CompletionItemKind -&gt; ShowS
+$cshowsPrec :: Int -&gt; CompletionItemKind -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680444174"><span id="local-6989586621680444176"><span class="annot"><span class="annottext">CompletionItemKind -&gt; CompletionItemKind -&gt; Bool
+(CompletionItemKind -&gt; CompletionItemKind -&gt; Bool)
+-&gt; (CompletionItemKind -&gt; CompletionItemKind -&gt; Bool)
+-&gt; Eq CompletionItemKind
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CompletionItemKind -&gt; CompletionItemKind -&gt; Bool
+$c/= :: CompletionItemKind -&gt; CompletionItemKind -&gt; Bool
+== :: CompletionItemKind -&gt; CompletionItemKind -&gt; Bool
+$c== :: CompletionItemKind -&gt; CompletionItemKind -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680444158"><span id="local-6989586621680444160"><span id="local-6989586621680444162"><span id="local-6989586621680444164"><span id="local-6989586621680444166"><span id="local-6989586621680444168"><span id="local-6989586621680444170"><span class="annot"><span class="annottext">Eq CompletionItemKind
+Eq CompletionItemKind
+-&gt; (CompletionItemKind -&gt; CompletionItemKind -&gt; Ordering)
+-&gt; (CompletionItemKind -&gt; CompletionItemKind -&gt; Bool)
+-&gt; (CompletionItemKind -&gt; CompletionItemKind -&gt; Bool)
+-&gt; (CompletionItemKind -&gt; CompletionItemKind -&gt; Bool)
+-&gt; (CompletionItemKind -&gt; CompletionItemKind -&gt; Bool)
+-&gt; (CompletionItemKind -&gt; CompletionItemKind -&gt; CompletionItemKind)
+-&gt; (CompletionItemKind -&gt; CompletionItemKind -&gt; CompletionItemKind)
+-&gt; Ord CompletionItemKind
+CompletionItemKind -&gt; CompletionItemKind -&gt; Bool
+CompletionItemKind -&gt; CompletionItemKind -&gt; Ordering
+CompletionItemKind -&gt; CompletionItemKind -&gt; CompletionItemKind
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: CompletionItemKind -&gt; CompletionItemKind -&gt; CompletionItemKind
+$cmin :: CompletionItemKind -&gt; CompletionItemKind -&gt; CompletionItemKind
+max :: CompletionItemKind -&gt; CompletionItemKind -&gt; CompletionItemKind
+$cmax :: CompletionItemKind -&gt; CompletionItemKind -&gt; CompletionItemKind
+&gt;= :: CompletionItemKind -&gt; CompletionItemKind -&gt; Bool
+$c&gt;= :: CompletionItemKind -&gt; CompletionItemKind -&gt; Bool
+&gt; :: CompletionItemKind -&gt; CompletionItemKind -&gt; Bool
+$c&gt; :: CompletionItemKind -&gt; CompletionItemKind -&gt; Bool
+&lt;= :: CompletionItemKind -&gt; CompletionItemKind -&gt; Bool
+$c&lt;= :: CompletionItemKind -&gt; CompletionItemKind -&gt; Bool
+&lt; :: CompletionItemKind -&gt; CompletionItemKind -&gt; Bool
+$c&lt; :: CompletionItemKind -&gt; CompletionItemKind -&gt; Bool
+compare :: CompletionItemKind -&gt; CompletionItemKind -&gt; Ordering
+$ccompare :: CompletionItemKind -&gt; CompletionItemKind -&gt; Ordering
+$cp1Ord :: Eq CompletionItemKind
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680444150"><span id="local-6989586621680444152"><span id="local-6989586621680444154"><span class="annot"><span class="hs-identifier hs-type">A.ToJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItemKind"><span class="hs-identifier hs-type">CompletionItemKind</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-47"></span><span>  </span><span id="local-6989586621680444148"><span class="annot"><span class="annottext">toJSON :: CompletionItemKind -&gt; Value
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiText"><span class="hs-identifier hs-var">CiText</span></a></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-48"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiMethod"><span class="hs-identifier hs-var">CiMethod</span></a></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">2</span></span><span>
+</span><span id="line-49"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiFunction"><span class="hs-identifier hs-var">CiFunction</span></a></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">3</span></span><span>
+</span><span id="line-50"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiConstructor"><span class="hs-identifier hs-var">CiConstructor</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">4</span></span><span>
+</span><span id="line-51"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiField"><span class="hs-identifier hs-var">CiField</span></a></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">5</span></span><span>
+</span><span id="line-52"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiVariable"><span class="hs-identifier hs-var">CiVariable</span></a></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">6</span></span><span>
+</span><span id="line-53"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiClass"><span class="hs-identifier hs-var">CiClass</span></a></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">7</span></span><span>
+</span><span id="line-54"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiInterface"><span class="hs-identifier hs-var">CiInterface</span></a></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">8</span></span><span>
+</span><span id="line-55"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiModule"><span class="hs-identifier hs-var">CiModule</span></a></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">9</span></span><span>
+</span><span id="line-56"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiProperty"><span class="hs-identifier hs-var">CiProperty</span></a></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">10</span></span><span>
+</span><span id="line-57"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiUnit"><span class="hs-identifier hs-var">CiUnit</span></a></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">11</span></span><span>
+</span><span id="line-58"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiValue"><span class="hs-identifier hs-var">CiValue</span></a></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">12</span></span><span>
+</span><span id="line-59"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiEnum"><span class="hs-identifier hs-var">CiEnum</span></a></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">13</span></span><span>
+</span><span id="line-60"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiKeyword"><span class="hs-identifier hs-var">CiKeyword</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">14</span></span><span>
+</span><span id="line-61"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiSnippet"><span class="hs-identifier hs-var">CiSnippet</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">15</span></span><span>
+</span><span id="line-62"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiColor"><span class="hs-identifier hs-var">CiColor</span></a></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">16</span></span><span>
+</span><span id="line-63"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiFile"><span class="hs-identifier hs-var">CiFile</span></a></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">17</span></span><span>
+</span><span id="line-64"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiReference"><span class="hs-identifier hs-var">CiReference</span></a></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">18</span></span><span>
+</span><span id="line-65"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiFolder"><span class="hs-identifier hs-var">CiFolder</span></a></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">19</span></span><span>
+</span><span id="line-66"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiEnumMember"><span class="hs-identifier hs-var">CiEnumMember</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">20</span></span><span>
+</span><span id="line-67"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiConstant"><span class="hs-identifier hs-var">CiConstant</span></a></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">21</span></span><span>
+</span><span id="line-68"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiStruct"><span class="hs-identifier hs-var">CiStruct</span></a></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">22</span></span><span>
+</span><span id="line-69"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiEvent"><span class="hs-identifier hs-var">CiEvent</span></a></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">23</span></span><span>
+</span><span id="line-70"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiOperator"><span class="hs-identifier hs-var">CiOperator</span></a></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">24</span></span><span>
+</span><span id="line-71"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiTypeParameter"><span class="hs-identifier hs-var">CiTypeParameter</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">25</span></span><span>
+</span><span id="line-72"></span><span>
+</span><span id="line-73"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680444143"><span class="annot"><span class="hs-identifier hs-type">A.FromJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItemKind"><span class="hs-identifier hs-type">CompletionItemKind</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-74"></span><span>  </span><span id="local-6989586621680444141"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser CompletionItemKind
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiText"><span class="hs-identifier hs-var">CiText</span></a></span><span>
+</span><span id="line-75"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">2</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiMethod"><span class="hs-identifier hs-var">CiMethod</span></a></span><span>
+</span><span id="line-76"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">3</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiFunction"><span class="hs-identifier hs-var">CiFunction</span></a></span><span>
+</span><span id="line-77"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">4</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiConstructor"><span class="hs-identifier hs-var">CiConstructor</span></a></span><span>
+</span><span id="line-78"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">5</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiField"><span class="hs-identifier hs-var">CiField</span></a></span><span>
+</span><span id="line-79"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">6</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiVariable"><span class="hs-identifier hs-var">CiVariable</span></a></span><span>
+</span><span id="line-80"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">7</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiClass"><span class="hs-identifier hs-var">CiClass</span></a></span><span>
+</span><span id="line-81"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">8</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiInterface"><span class="hs-identifier hs-var">CiInterface</span></a></span><span>
+</span><span id="line-82"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">9</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiModule"><span class="hs-identifier hs-var">CiModule</span></a></span><span>
+</span><span id="line-83"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">10</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiProperty"><span class="hs-identifier hs-var">CiProperty</span></a></span><span>
+</span><span id="line-84"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">11</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiUnit"><span class="hs-identifier hs-var">CiUnit</span></a></span><span>
+</span><span id="line-85"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">12</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiValue"><span class="hs-identifier hs-var">CiValue</span></a></span><span>
+</span><span id="line-86"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">13</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiEnum"><span class="hs-identifier hs-var">CiEnum</span></a></span><span>
+</span><span id="line-87"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">14</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiKeyword"><span class="hs-identifier hs-var">CiKeyword</span></a></span><span>
+</span><span id="line-88"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">15</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiSnippet"><span class="hs-identifier hs-var">CiSnippet</span></a></span><span>
+</span><span id="line-89"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">16</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiColor"><span class="hs-identifier hs-var">CiColor</span></a></span><span>
+</span><span id="line-90"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">17</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiFile"><span class="hs-identifier hs-var">CiFile</span></a></span><span>
+</span><span id="line-91"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">18</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiReference"><span class="hs-identifier hs-var">CiReference</span></a></span><span>
+</span><span id="line-92"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">19</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiFolder"><span class="hs-identifier hs-var">CiFolder</span></a></span><span>
+</span><span id="line-93"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">20</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiEnumMember"><span class="hs-identifier hs-var">CiEnumMember</span></a></span><span>
+</span><span id="line-94"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">21</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiConstant"><span class="hs-identifier hs-var">CiConstant</span></a></span><span>
+</span><span id="line-95"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">22</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiStruct"><span class="hs-identifier hs-var">CiStruct</span></a></span><span>
+</span><span id="line-96"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">23</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiEvent"><span class="hs-identifier hs-var">CiEvent</span></a></span><span>
+</span><span id="line-97"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">24</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiOperator"><span class="hs-identifier hs-var">CiOperator</span></a></span><span>
+</span><span id="line-98"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">25</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemKind -&gt; Parser CompletionItemKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#CiTypeParameter"><span class="hs-identifier hs-var">CiTypeParameter</span></a></span><span>
+</span><span id="line-99"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><span class="hs-identifier">_</span></span><span>             </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser CompletionItemKind
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-100"></span><span>
+</span><span id="line-101"></span><span class="hs-keyword">data</span><span> </span><span id="CompletionItemTag"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItemTag"><span class="hs-identifier hs-var">CompletionItemTag</span></a></span></span><span>
+</span><span id="line-102"></span><span>  </span><span class="hs-comment">-- | Render a completion as obsolete, usually using a strike-out.</span><span>
+</span><span id="line-103"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="CtDeprecated"><span class="annot"><a href="Language.LSP.Types.Completion.html#CtDeprecated"><span class="hs-identifier hs-var">CtDeprecated</span></a></span></span><span>
+</span><span id="line-104"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680444135"><span id="local-6989586621680444137"><span class="annot"><span class="annottext">CompletionItemTag -&gt; CompletionItemTag -&gt; Bool
+(CompletionItemTag -&gt; CompletionItemTag -&gt; Bool)
+-&gt; (CompletionItemTag -&gt; CompletionItemTag -&gt; Bool)
+-&gt; Eq CompletionItemTag
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CompletionItemTag -&gt; CompletionItemTag -&gt; Bool
+$c/= :: CompletionItemTag -&gt; CompletionItemTag -&gt; Bool
+== :: CompletionItemTag -&gt; CompletionItemTag -&gt; Bool
+$c== :: CompletionItemTag -&gt; CompletionItemTag -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444120"><span id="local-6989586621680444122"><span id="local-6989586621680444124"><span id="local-6989586621680444126"><span id="local-6989586621680444128"><span id="local-6989586621680444130"><span id="local-6989586621680444132"><span class="annot"><span class="annottext">Eq CompletionItemTag
+Eq CompletionItemTag
+-&gt; (CompletionItemTag -&gt; CompletionItemTag -&gt; Ordering)
+-&gt; (CompletionItemTag -&gt; CompletionItemTag -&gt; Bool)
+-&gt; (CompletionItemTag -&gt; CompletionItemTag -&gt; Bool)
+-&gt; (CompletionItemTag -&gt; CompletionItemTag -&gt; Bool)
+-&gt; (CompletionItemTag -&gt; CompletionItemTag -&gt; Bool)
+-&gt; (CompletionItemTag -&gt; CompletionItemTag -&gt; CompletionItemTag)
+-&gt; (CompletionItemTag -&gt; CompletionItemTag -&gt; CompletionItemTag)
+-&gt; Ord CompletionItemTag
+CompletionItemTag -&gt; CompletionItemTag -&gt; Bool
+CompletionItemTag -&gt; CompletionItemTag -&gt; Ordering
+CompletionItemTag -&gt; CompletionItemTag -&gt; CompletionItemTag
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: CompletionItemTag -&gt; CompletionItemTag -&gt; CompletionItemTag
+$cmin :: CompletionItemTag -&gt; CompletionItemTag -&gt; CompletionItemTag
+max :: CompletionItemTag -&gt; CompletionItemTag -&gt; CompletionItemTag
+$cmax :: CompletionItemTag -&gt; CompletionItemTag -&gt; CompletionItemTag
+&gt;= :: CompletionItemTag -&gt; CompletionItemTag -&gt; Bool
+$c&gt;= :: CompletionItemTag -&gt; CompletionItemTag -&gt; Bool
+&gt; :: CompletionItemTag -&gt; CompletionItemTag -&gt; Bool
+$c&gt; :: CompletionItemTag -&gt; CompletionItemTag -&gt; Bool
+&lt;= :: CompletionItemTag -&gt; CompletionItemTag -&gt; Bool
+$c&lt;= :: CompletionItemTag -&gt; CompletionItemTag -&gt; Bool
+&lt; :: CompletionItemTag -&gt; CompletionItemTag -&gt; Bool
+$c&lt; :: CompletionItemTag -&gt; CompletionItemTag -&gt; Bool
+compare :: CompletionItemTag -&gt; CompletionItemTag -&gt; Ordering
+$ccompare :: CompletionItemTag -&gt; CompletionItemTag -&gt; Ordering
+$cp1Ord :: Eq CompletionItemTag
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444114"><span id="local-6989586621680444116"><span id="local-6989586621680444118"><span class="annot"><span class="annottext">Int -&gt; CompletionItemTag -&gt; ShowS
+[CompletionItemTag] -&gt; ShowS
+CompletionItemTag -&gt; String
+(Int -&gt; CompletionItemTag -&gt; ShowS)
+-&gt; (CompletionItemTag -&gt; String)
+-&gt; ([CompletionItemTag] -&gt; ShowS)
+-&gt; Show CompletionItemTag
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CompletionItemTag] -&gt; ShowS
+$cshowList :: [CompletionItemTag] -&gt; ShowS
+show :: CompletionItemTag -&gt; String
+$cshow :: CompletionItemTag -&gt; String
+showsPrec :: Int -&gt; CompletionItemTag -&gt; ShowS
+$cshowsPrec :: Int -&gt; CompletionItemTag -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444106"><span id="local-6989586621680444108"><span id="local-6989586621680444110"><span id="local-6989586621680444112"><span class="annot"><span class="annottext">ReadPrec [CompletionItemTag]
+ReadPrec CompletionItemTag
+Int -&gt; ReadS CompletionItemTag
+ReadS [CompletionItemTag]
+(Int -&gt; ReadS CompletionItemTag)
+-&gt; ReadS [CompletionItemTag]
+-&gt; ReadPrec CompletionItemTag
+-&gt; ReadPrec [CompletionItemTag]
+-&gt; Read CompletionItemTag
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CompletionItemTag]
+$creadListPrec :: ReadPrec [CompletionItemTag]
+readPrec :: ReadPrec CompletionItemTag
+$creadPrec :: ReadPrec CompletionItemTag
+readList :: ReadS [CompletionItemTag]
+$creadList :: ReadS [CompletionItemTag]
+readsPrec :: Int -&gt; ReadS CompletionItemTag
+$creadsPrec :: Int -&gt; ReadS CompletionItemTag
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-105"></span><span>
+</span><span id="line-106"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680444099"><span id="local-6989586621680444101"><span id="local-6989586621680444103"><span class="annot"><span class="hs-identifier hs-type">A.ToJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItemTag"><span class="hs-identifier hs-type">CompletionItemTag</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-107"></span><span>  </span><span id="local-6989586621680444098"><span class="annot"><span class="annottext">toJSON :: CompletionItemTag -&gt; Value
+</span><a href="#local-6989586621680444098"><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></a></span></span><span> </span><span class="annot"><span class="annottext">CompletionItemTag
+</span><a href="Language.LSP.Types.Completion.html#CtDeprecated"><span class="hs-identifier hs-var">CtDeprecated</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-108"></span><span>
+</span><span id="line-109"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680444095"><span class="annot"><span class="hs-identifier hs-type">A.FromJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItemTag"><span class="hs-identifier hs-type">CompletionItemTag</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-110"></span><span>  </span><span id="local-6989586621680444094"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser CompletionItemTag
+</span><a href="#local-6989586621680444094"><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionItemTag -&gt; Parser CompletionItemTag
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionItemTag
+</span><a href="Language.LSP.Types.Completion.html#CtDeprecated"><span class="hs-identifier hs-var">CtDeprecated</span></a></span><span>
+</span><span id="line-111"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><span class="hs-identifier">_</span></span><span>            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser CompletionItemTag
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-112"></span><span>
+</span><span id="line-113"></span><span class="hs-keyword">data</span><span> </span><span id="CompletionItemTagsClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItemTagsClientCapabilities"><span class="hs-identifier hs-var">CompletionItemTagsClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-114"></span><span>  </span><span id="CompletionItemTagsClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItemTagsClientCapabilities"><span class="hs-identifier hs-var">CompletionItemTagsClientCapabilities</span></a></span></span><span>
+</span><span id="line-115"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The tag supported by the client.</span><span>
+</span><span id="line-116"></span><span>      </span><span id="%24sel%3A_valueSet%3ACompletionItemTagsClientCapabilities"><span class="annot"><span class="annottext">CompletionItemTagsClientCapabilities -&gt; List CompletionItemTag
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_valueSet%3ACompletionItemTagsClientCapabilities"><span class="hs-identifier hs-var hs-var">_valueSet</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItemTag"><span class="hs-identifier hs-type">CompletionItemTag</span></a></span><span>
+</span><span id="line-117"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680444086"><span id="local-6989586621680444088"><span id="local-6989586621680444090"><span class="annot"><span class="annottext">Int -&gt; CompletionItemTagsClientCapabilities -&gt; ShowS
+[CompletionItemTagsClientCapabilities] -&gt; ShowS
+CompletionItemTagsClientCapabilities -&gt; String
+(Int -&gt; CompletionItemTagsClientCapabilities -&gt; ShowS)
+-&gt; (CompletionItemTagsClientCapabilities -&gt; String)
+-&gt; ([CompletionItemTagsClientCapabilities] -&gt; ShowS)
+-&gt; Show CompletionItemTagsClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CompletionItemTagsClientCapabilities] -&gt; ShowS
+$cshowList :: [CompletionItemTagsClientCapabilities] -&gt; ShowS
+show :: CompletionItemTagsClientCapabilities -&gt; String
+$cshow :: CompletionItemTagsClientCapabilities -&gt; String
+showsPrec :: Int -&gt; CompletionItemTagsClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; CompletionItemTagsClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444078"><span id="local-6989586621680444080"><span id="local-6989586621680444082"><span id="local-6989586621680444084"><span class="annot"><span class="annottext">ReadPrec [CompletionItemTagsClientCapabilities]
+ReadPrec CompletionItemTagsClientCapabilities
+Int -&gt; ReadS CompletionItemTagsClientCapabilities
+ReadS [CompletionItemTagsClientCapabilities]
+(Int -&gt; ReadS CompletionItemTagsClientCapabilities)
+-&gt; ReadS [CompletionItemTagsClientCapabilities]
+-&gt; ReadPrec CompletionItemTagsClientCapabilities
+-&gt; ReadPrec [CompletionItemTagsClientCapabilities]
+-&gt; Read CompletionItemTagsClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CompletionItemTagsClientCapabilities]
+$creadListPrec :: ReadPrec [CompletionItemTagsClientCapabilities]
+readPrec :: ReadPrec CompletionItemTagsClientCapabilities
+$creadPrec :: ReadPrec CompletionItemTagsClientCapabilities
+readList :: ReadS [CompletionItemTagsClientCapabilities]
+$creadList :: ReadS [CompletionItemTagsClientCapabilities]
+readsPrec :: Int -&gt; ReadS CompletionItemTagsClientCapabilities
+$creadsPrec :: Int -&gt; ReadS CompletionItemTagsClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444074"><span id="local-6989586621680444076"><span class="annot"><span class="annottext">CompletionItemTagsClientCapabilities
+-&gt; CompletionItemTagsClientCapabilities -&gt; Bool
+(CompletionItemTagsClientCapabilities
+ -&gt; CompletionItemTagsClientCapabilities -&gt; Bool)
+-&gt; (CompletionItemTagsClientCapabilities
+    -&gt; CompletionItemTagsClientCapabilities -&gt; Bool)
+-&gt; Eq CompletionItemTagsClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CompletionItemTagsClientCapabilities
+-&gt; CompletionItemTagsClientCapabilities -&gt; Bool
+$c/= :: CompletionItemTagsClientCapabilities
+-&gt; CompletionItemTagsClientCapabilities -&gt; Bool
+== :: CompletionItemTagsClientCapabilities
+-&gt; CompletionItemTagsClientCapabilities -&gt; Bool
+$c== :: CompletionItemTagsClientCapabilities
+-&gt; CompletionItemTagsClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-118"></span><span>
+</span><span id="line-119"></span><span id="local-6989586621680444062"><span id="local-6989586621680444064"><span id="local-6989586621680444066"><span id="local-6989586621680444068"><span id="local-6989586621680444070"><span id="local-6989586621680444072"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CompletionItemTagsClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-120"></span><span>
+</span><span id="line-121"></span><span class="hs-keyword">data</span><span> </span><span id="CompletionItemClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItemClientCapabilities"><span class="hs-identifier hs-var">CompletionItemClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-122"></span><span>  </span><span id="CompletionItemClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItemClientCapabilities"><span class="hs-identifier hs-var">CompletionItemClientCapabilities</span></a></span></span><span>
+</span><span id="line-123"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Client supports snippets as insert text.</span><span>
+</span><span id="line-124"></span><span>      </span><span class="hs-comment">--</span><span>
+</span><span id="line-125"></span><span>      </span><span class="hs-comment">-- A snippet can define tab stops and placeholders with `$1`, `$2` and</span><span>
+</span><span id="line-126"></span><span>      </span><span class="hs-comment">-- `${3:foo}`. `$0` defines the final tab stop, it defaults to the end of</span><span>
+</span><span id="line-127"></span><span>      </span><span class="hs-comment">-- the snippet. Placeholders with equal identifiers are linked, that is</span><span>
+</span><span id="line-128"></span><span>      </span><span class="hs-comment">-- typing in one will update others too.</span><span>
+</span><span id="line-129"></span><span>      </span><span id="%24sel%3A_snippetSupport%3ACompletionItemClientCapabilities"><span class="annot"><span class="annottext">CompletionItemClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_snippetSupport%3ACompletionItemClientCapabilities"><span class="hs-identifier hs-var hs-var">_snippetSupport</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-130"></span><span>
+</span><span id="line-131"></span><span>      </span><span class="hs-comment">-- | Client supports commit characters on a completion item.</span><span>
+</span><span id="line-132"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_commitCharactersSupport%3ACompletionItemClientCapabilities"><span class="annot"><span class="annottext">CompletionItemClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_commitCharactersSupport%3ACompletionItemClientCapabilities"><span class="hs-identifier hs-var hs-var">_commitCharactersSupport</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-133"></span><span>
+</span><span id="line-134"></span><span>      </span><span class="hs-comment">-- | Client supports the follow content formats for the documentation</span><span>
+</span><span id="line-135"></span><span>      </span><span class="hs-comment">-- property. The order describes the preferred format of the client.</span><span>
+</span><span id="line-136"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_documentationFormat%3ACompletionItemClientCapabilities"><span class="annot"><span class="annottext">CompletionItemClientCapabilities -&gt; Maybe (List MarkupKind)
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_documentationFormat%3ACompletionItemClientCapabilities"><span class="hs-identifier hs-var hs-var">_documentationFormat</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupKind"><span class="hs-identifier hs-type">MarkupKind</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-137"></span><span>
+</span><span id="line-138"></span><span>      </span><span class="hs-comment">-- | Client supports the deprecated property on a completion item.</span><span>
+</span><span id="line-139"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_deprecatedSupport%3ACompletionItemClientCapabilities"><span class="annot"><span class="annottext">CompletionItemClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_deprecatedSupport%3ACompletionItemClientCapabilities"><span class="hs-identifier hs-var hs-var">_deprecatedSupport</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-140"></span><span>
+</span><span id="line-141"></span><span>      </span><span class="hs-comment">-- | Client supports the preselect property on a completion item.</span><span>
+</span><span id="line-142"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_preselectSupport%3ACompletionItemClientCapabilities"><span class="annot"><span class="annottext">CompletionItemClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_preselectSupport%3ACompletionItemClientCapabilities"><span class="hs-identifier hs-var hs-var">_preselectSupport</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-143"></span><span>
+</span><span id="line-144"></span><span>      </span><span class="hs-comment">-- | Client supports the tag property on a completion item. Clients</span><span>
+</span><span id="line-145"></span><span>      </span><span class="hs-comment">-- supporting tags have to handle unknown tags gracefully. Clients</span><span>
+</span><span id="line-146"></span><span>      </span><span class="hs-comment">-- especially need to preserve unknown tags when sending a</span><span>
+</span><span id="line-147"></span><span>      </span><span class="hs-comment">-- completion item back to the server in a resolve call.</span><span>
+</span><span id="line-148"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_tagSupport%3ACompletionItemClientCapabilities"><span class="annot"><span class="annottext">CompletionItemClientCapabilities
+-&gt; Maybe CompletionItemTagsClientCapabilities
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_tagSupport%3ACompletionItemClientCapabilities"><span class="hs-identifier hs-var hs-var">_tagSupport</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItemTagsClientCapabilities"><span class="hs-identifier hs-type">CompletionItemTagsClientCapabilities</span></a></span><span>
+</span><span id="line-149"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680444048"><span id="local-6989586621680444050"><span id="local-6989586621680444052"><span class="annot"><span class="annottext">Int -&gt; CompletionItemClientCapabilities -&gt; ShowS
+[CompletionItemClientCapabilities] -&gt; ShowS
+CompletionItemClientCapabilities -&gt; String
+(Int -&gt; CompletionItemClientCapabilities -&gt; ShowS)
+-&gt; (CompletionItemClientCapabilities -&gt; String)
+-&gt; ([CompletionItemClientCapabilities] -&gt; ShowS)
+-&gt; Show CompletionItemClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CompletionItemClientCapabilities] -&gt; ShowS
+$cshowList :: [CompletionItemClientCapabilities] -&gt; ShowS
+show :: CompletionItemClientCapabilities -&gt; String
+$cshow :: CompletionItemClientCapabilities -&gt; String
+showsPrec :: Int -&gt; CompletionItemClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; CompletionItemClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444040"><span id="local-6989586621680444042"><span id="local-6989586621680444044"><span id="local-6989586621680444046"><span class="annot"><span class="annottext">ReadPrec [CompletionItemClientCapabilities]
+ReadPrec CompletionItemClientCapabilities
+Int -&gt; ReadS CompletionItemClientCapabilities
+ReadS [CompletionItemClientCapabilities]
+(Int -&gt; ReadS CompletionItemClientCapabilities)
+-&gt; ReadS [CompletionItemClientCapabilities]
+-&gt; ReadPrec CompletionItemClientCapabilities
+-&gt; ReadPrec [CompletionItemClientCapabilities]
+-&gt; Read CompletionItemClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CompletionItemClientCapabilities]
+$creadListPrec :: ReadPrec [CompletionItemClientCapabilities]
+readPrec :: ReadPrec CompletionItemClientCapabilities
+$creadPrec :: ReadPrec CompletionItemClientCapabilities
+readList :: ReadS [CompletionItemClientCapabilities]
+$creadList :: ReadS [CompletionItemClientCapabilities]
+readsPrec :: Int -&gt; ReadS CompletionItemClientCapabilities
+$creadsPrec :: Int -&gt; ReadS CompletionItemClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444036"><span id="local-6989586621680444038"><span class="annot"><span class="annottext">CompletionItemClientCapabilities
+-&gt; CompletionItemClientCapabilities -&gt; Bool
+(CompletionItemClientCapabilities
+ -&gt; CompletionItemClientCapabilities -&gt; Bool)
+-&gt; (CompletionItemClientCapabilities
+    -&gt; CompletionItemClientCapabilities -&gt; Bool)
+-&gt; Eq CompletionItemClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CompletionItemClientCapabilities
+-&gt; CompletionItemClientCapabilities -&gt; Bool
+$c/= :: CompletionItemClientCapabilities
+-&gt; CompletionItemClientCapabilities -&gt; Bool
+== :: CompletionItemClientCapabilities
+-&gt; CompletionItemClientCapabilities -&gt; Bool
+$c== :: CompletionItemClientCapabilities
+-&gt; CompletionItemClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-150"></span><span>
+</span><span id="line-151"></span><span id="local-6989586621680444024"><span id="local-6989586621680444026"><span id="local-6989586621680444028"><span id="local-6989586621680444030"><span id="local-6989586621680444032"><span id="local-6989586621680444034"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CompletionItemClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-152"></span><span>
+</span><span id="line-153"></span><span class="hs-keyword">data</span><span> </span><span id="CompletionItemKindClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItemKindClientCapabilities"><span class="hs-identifier hs-var">CompletionItemKindClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-154"></span><span>  </span><span id="CompletionItemKindClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItemKindClientCapabilities"><span class="hs-identifier hs-var">CompletionItemKindClientCapabilities</span></a></span></span><span>
+</span><span id="line-155"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The completion item kind values the client supports. When this</span><span>
+</span><span id="line-156"></span><span>      </span><span class="hs-comment">-- property exists the client also guarantees that it will</span><span>
+</span><span id="line-157"></span><span>      </span><span class="hs-comment">--  handle values outside its set gracefully and falls back</span><span>
+</span><span id="line-158"></span><span>      </span><span class="hs-comment">--  to a default value when unknown.</span><span>
+</span><span id="line-159"></span><span>      </span><span id="%24sel%3A_valueSet%3ACompletionItemKindClientCapabilities"><span class="annot"><span class="annottext">CompletionItemKindClientCapabilities
+-&gt; Maybe (List CompletionItemKind)
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_valueSet%3ACompletionItemKindClientCapabilities"><span class="hs-identifier hs-var hs-var">_valueSet</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItemKind"><span class="hs-identifier hs-type">CompletionItemKind</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-160"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-161"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680444016"><span id="local-6989586621680444018"><span id="local-6989586621680444020"><span class="annot"><span class="annottext">Int -&gt; CompletionItemKindClientCapabilities -&gt; ShowS
+[CompletionItemKindClientCapabilities] -&gt; ShowS
+CompletionItemKindClientCapabilities -&gt; String
+(Int -&gt; CompletionItemKindClientCapabilities -&gt; ShowS)
+-&gt; (CompletionItemKindClientCapabilities -&gt; String)
+-&gt; ([CompletionItemKindClientCapabilities] -&gt; ShowS)
+-&gt; Show CompletionItemKindClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CompletionItemKindClientCapabilities] -&gt; ShowS
+$cshowList :: [CompletionItemKindClientCapabilities] -&gt; ShowS
+show :: CompletionItemKindClientCapabilities -&gt; String
+$cshow :: CompletionItemKindClientCapabilities -&gt; String
+showsPrec :: Int -&gt; CompletionItemKindClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; CompletionItemKindClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444008"><span id="local-6989586621680444010"><span id="local-6989586621680444012"><span id="local-6989586621680444014"><span class="annot"><span class="annottext">ReadPrec [CompletionItemKindClientCapabilities]
+ReadPrec CompletionItemKindClientCapabilities
+Int -&gt; ReadS CompletionItemKindClientCapabilities
+ReadS [CompletionItemKindClientCapabilities]
+(Int -&gt; ReadS CompletionItemKindClientCapabilities)
+-&gt; ReadS [CompletionItemKindClientCapabilities]
+-&gt; ReadPrec CompletionItemKindClientCapabilities
+-&gt; ReadPrec [CompletionItemKindClientCapabilities]
+-&gt; Read CompletionItemKindClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CompletionItemKindClientCapabilities]
+$creadListPrec :: ReadPrec [CompletionItemKindClientCapabilities]
+readPrec :: ReadPrec CompletionItemKindClientCapabilities
+$creadPrec :: ReadPrec CompletionItemKindClientCapabilities
+readList :: ReadS [CompletionItemKindClientCapabilities]
+$creadList :: ReadS [CompletionItemKindClientCapabilities]
+readsPrec :: Int -&gt; ReadS CompletionItemKindClientCapabilities
+$creadsPrec :: Int -&gt; ReadS CompletionItemKindClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680444004"><span id="local-6989586621680444006"><span class="annot"><span class="annottext">CompletionItemKindClientCapabilities
+-&gt; CompletionItemKindClientCapabilities -&gt; Bool
+(CompletionItemKindClientCapabilities
+ -&gt; CompletionItemKindClientCapabilities -&gt; Bool)
+-&gt; (CompletionItemKindClientCapabilities
+    -&gt; CompletionItemKindClientCapabilities -&gt; Bool)
+-&gt; Eq CompletionItemKindClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CompletionItemKindClientCapabilities
+-&gt; CompletionItemKindClientCapabilities -&gt; Bool
+$c/= :: CompletionItemKindClientCapabilities
+-&gt; CompletionItemKindClientCapabilities -&gt; Bool
+== :: CompletionItemKindClientCapabilities
+-&gt; CompletionItemKindClientCapabilities -&gt; Bool
+$c== :: CompletionItemKindClientCapabilities
+-&gt; CompletionItemKindClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-162"></span><span>
+</span><span id="line-163"></span><span id="local-6989586621680443992"><span id="local-6989586621680443994"><span id="local-6989586621680443996"><span id="local-6989586621680443998"><span id="local-6989586621680444000"><span id="local-6989586621680444002"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CompletionItemKindClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-164"></span><span>
+</span><span id="line-165"></span><span class="hs-keyword">data</span><span> </span><span id="CompletionClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionClientCapabilities"><span class="hs-identifier hs-var">CompletionClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-166"></span><span>  </span><span id="CompletionClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionClientCapabilities"><span class="hs-identifier hs-var">CompletionClientCapabilities</span></a></span></span><span>
+</span><span id="line-167"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_dynamicRegistration%3ACompletionClientCapabilities"><span class="annot"><span class="annottext">CompletionClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_dynamicRegistration%3ACompletionClientCapabilities"><span class="hs-identifier hs-var hs-var">_dynamicRegistration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-comment">-- ^ Whether completion supports dynamic</span><span>
+</span><span id="line-168"></span><span>                                         </span><span class="hs-comment">-- registration.</span><span>
+</span><span id="line-169"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_completionItem%3ACompletionClientCapabilities"><span class="annot"><span class="annottext">CompletionClientCapabilities
+-&gt; Maybe CompletionItemClientCapabilities
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_completionItem%3ACompletionClientCapabilities"><span class="hs-identifier hs-var hs-var">_completionItem</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItemClientCapabilities"><span class="hs-identifier hs-type">CompletionItemClientCapabilities</span></a></span><span>
+</span><span id="line-170"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_completionItemKind%3ACompletionClientCapabilities"><span class="annot"><span class="annottext">CompletionClientCapabilities
+-&gt; Maybe CompletionItemKindClientCapabilities
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_completionItemKind%3ACompletionClientCapabilities"><span class="hs-identifier hs-var hs-var">_completionItemKind</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItemKindClientCapabilities"><span class="hs-identifier hs-type">CompletionItemKindClientCapabilities</span></a></span><span>
+</span><span id="line-171"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_contextSupport%3ACompletionClientCapabilities"><span class="annot"><span class="annottext">CompletionClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_contextSupport%3ACompletionClientCapabilities"><span class="hs-identifier hs-var hs-var">_contextSupport</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-172"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680443981"><span id="local-6989586621680443983"><span id="local-6989586621680443985"><span class="annot"><span class="annottext">Int -&gt; CompletionClientCapabilities -&gt; ShowS
+[CompletionClientCapabilities] -&gt; ShowS
+CompletionClientCapabilities -&gt; String
+(Int -&gt; CompletionClientCapabilities -&gt; ShowS)
+-&gt; (CompletionClientCapabilities -&gt; String)
+-&gt; ([CompletionClientCapabilities] -&gt; ShowS)
+-&gt; Show CompletionClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CompletionClientCapabilities] -&gt; ShowS
+$cshowList :: [CompletionClientCapabilities] -&gt; ShowS
+show :: CompletionClientCapabilities -&gt; String
+$cshow :: CompletionClientCapabilities -&gt; String
+showsPrec :: Int -&gt; CompletionClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; CompletionClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680443973"><span id="local-6989586621680443975"><span id="local-6989586621680443977"><span id="local-6989586621680443979"><span class="annot"><span class="annottext">ReadPrec [CompletionClientCapabilities]
+ReadPrec CompletionClientCapabilities
+Int -&gt; ReadS CompletionClientCapabilities
+ReadS [CompletionClientCapabilities]
+(Int -&gt; ReadS CompletionClientCapabilities)
+-&gt; ReadS [CompletionClientCapabilities]
+-&gt; ReadPrec CompletionClientCapabilities
+-&gt; ReadPrec [CompletionClientCapabilities]
+-&gt; Read CompletionClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CompletionClientCapabilities]
+$creadListPrec :: ReadPrec [CompletionClientCapabilities]
+readPrec :: ReadPrec CompletionClientCapabilities
+$creadPrec :: ReadPrec CompletionClientCapabilities
+readList :: ReadS [CompletionClientCapabilities]
+$creadList :: ReadS [CompletionClientCapabilities]
+readsPrec :: Int -&gt; ReadS CompletionClientCapabilities
+$creadsPrec :: Int -&gt; ReadS CompletionClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680443969"><span id="local-6989586621680443971"><span class="annot"><span class="annottext">CompletionClientCapabilities
+-&gt; CompletionClientCapabilities -&gt; Bool
+(CompletionClientCapabilities
+ -&gt; CompletionClientCapabilities -&gt; Bool)
+-&gt; (CompletionClientCapabilities
+    -&gt; CompletionClientCapabilities -&gt; Bool)
+-&gt; Eq CompletionClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CompletionClientCapabilities
+-&gt; CompletionClientCapabilities -&gt; Bool
+$c/= :: CompletionClientCapabilities
+-&gt; CompletionClientCapabilities -&gt; Bool
+== :: CompletionClientCapabilities
+-&gt; CompletionClientCapabilities -&gt; Bool
+$c== :: CompletionClientCapabilities
+-&gt; CompletionClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-173"></span><span>
+</span><span id="line-174"></span><span id="local-6989586621680443957"><span id="local-6989586621680443959"><span id="local-6989586621680443961"><span id="local-6989586621680443963"><span id="local-6989586621680443965"><span id="local-6989586621680443967"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CompletionClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-175"></span><span>
+</span><span id="line-176"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-177"></span><span>
+</span><span id="line-178"></span><span class="hs-keyword">data</span><span> </span><span id="InsertTextFormat"><span class="annot"><a href="Language.LSP.Types.Completion.html#InsertTextFormat"><span class="hs-identifier hs-var">InsertTextFormat</span></a></span></span><span>
+</span><span id="line-179"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="PlainText"><span class="annot"><a href="Language.LSP.Types.Completion.html#PlainText"><span class="hs-identifier hs-var">PlainText</span></a></span></span><span> </span><span class="hs-comment">-- ^The primary text to be inserted is treated as a plain string.</span><span>
+</span><span id="line-180"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="Snippet"><span class="annot"><a href="Language.LSP.Types.Completion.html#Snippet"><span class="hs-identifier hs-var">Snippet</span></a></span></span><span>
+</span><span id="line-181"></span><span>      </span><span class="hs-comment">-- ^ The primary text to be inserted is treated as a snippet.</span><span>
+</span><span id="line-182"></span><span>      </span><span class="hs-comment">--</span><span>
+</span><span id="line-183"></span><span>      </span><span class="hs-comment">-- A snippet can define tab stops and placeholders with `$1`, `$2`</span><span>
+</span><span id="line-184"></span><span>      </span><span class="hs-comment">-- and `${3:foo}`. `$0` defines the final tab stop, it defaults to</span><span>
+</span><span id="line-185"></span><span>      </span><span class="hs-comment">-- the end of the snippet. Placeholders with equal identifiers are linked,</span><span>
+</span><span id="line-186"></span><span>      </span><span class="hs-comment">-- that is typing in one will update others too.</span><span>
+</span><span id="line-187"></span><span>      </span><span class="hs-comment">--</span><span>
+</span><span id="line-188"></span><span>      </span><span class="hs-comment">-- See also: https://github.com/Microsoft/vscode/blob/master/src/vs/editor/contrib/snippet/common/snippet.md</span><span>
+</span><span id="line-189"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680443949"><span id="local-6989586621680443951"><span id="local-6989586621680443953"><span class="annot"><span class="annottext">Int -&gt; InsertTextFormat -&gt; ShowS
+[InsertTextFormat] -&gt; ShowS
+InsertTextFormat -&gt; String
+(Int -&gt; InsertTextFormat -&gt; ShowS)
+-&gt; (InsertTextFormat -&gt; String)
+-&gt; ([InsertTextFormat] -&gt; ShowS)
+-&gt; Show InsertTextFormat
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [InsertTextFormat] -&gt; ShowS
+$cshowList :: [InsertTextFormat] -&gt; ShowS
+show :: InsertTextFormat -&gt; String
+$cshow :: InsertTextFormat -&gt; String
+showsPrec :: Int -&gt; InsertTextFormat -&gt; ShowS
+$cshowsPrec :: Int -&gt; InsertTextFormat -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680443941"><span id="local-6989586621680443943"><span id="local-6989586621680443945"><span id="local-6989586621680443947"><span class="annot"><span class="annottext">ReadPrec [InsertTextFormat]
+ReadPrec InsertTextFormat
+Int -&gt; ReadS InsertTextFormat
+ReadS [InsertTextFormat]
+(Int -&gt; ReadS InsertTextFormat)
+-&gt; ReadS [InsertTextFormat]
+-&gt; ReadPrec InsertTextFormat
+-&gt; ReadPrec [InsertTextFormat]
+-&gt; Read InsertTextFormat
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [InsertTextFormat]
+$creadListPrec :: ReadPrec [InsertTextFormat]
+readPrec :: ReadPrec InsertTextFormat
+$creadPrec :: ReadPrec InsertTextFormat
+readList :: ReadS [InsertTextFormat]
+$creadList :: ReadS [InsertTextFormat]
+readsPrec :: Int -&gt; ReadS InsertTextFormat
+$creadsPrec :: Int -&gt; ReadS InsertTextFormat
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680443937"><span id="local-6989586621680443939"><span class="annot"><span class="annottext">InsertTextFormat -&gt; InsertTextFormat -&gt; Bool
+(InsertTextFormat -&gt; InsertTextFormat -&gt; Bool)
+-&gt; (InsertTextFormat -&gt; InsertTextFormat -&gt; Bool)
+-&gt; Eq InsertTextFormat
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: InsertTextFormat -&gt; InsertTextFormat -&gt; Bool
+$c/= :: InsertTextFormat -&gt; InsertTextFormat -&gt; Bool
+== :: InsertTextFormat -&gt; InsertTextFormat -&gt; Bool
+$c== :: InsertTextFormat -&gt; InsertTextFormat -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-190"></span><span>
+</span><span id="line-191"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680443930"><span id="local-6989586621680443932"><span id="local-6989586621680443934"><span class="annot"><span class="hs-identifier hs-type">A.ToJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#InsertTextFormat"><span class="hs-identifier hs-type">InsertTextFormat</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-192"></span><span>  </span><span id="local-6989586621680443929"><span class="annot"><span class="annottext">toJSON :: InsertTextFormat -&gt; Value
+</span><a href="#local-6989586621680443929"><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></a></span></span><span> </span><span class="annot"><span class="annottext">InsertTextFormat
+</span><a href="Language.LSP.Types.Completion.html#PlainText"><span class="hs-identifier hs-var">PlainText</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-193"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">InsertTextFormat
+</span><a href="Language.LSP.Types.Completion.html#Snippet"><span class="hs-identifier hs-var">Snippet</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">2</span></span><span>
+</span><span id="line-194"></span><span>
+</span><span id="line-195"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680443926"><span class="annot"><span class="hs-identifier hs-type">A.FromJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#InsertTextFormat"><span class="hs-identifier hs-type">InsertTextFormat</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-196"></span><span>  </span><span id="local-6989586621680443925"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser InsertTextFormat
+</span><a href="#local-6989586621680443925"><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">InsertTextFormat -&gt; Parser InsertTextFormat
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">InsertTextFormat
+</span><a href="Language.LSP.Types.Completion.html#PlainText"><span class="hs-identifier hs-var">PlainText</span></a></span><span>
+</span><span id="line-197"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span>  </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">2</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">InsertTextFormat -&gt; Parser InsertTextFormat
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">InsertTextFormat
+</span><a href="Language.LSP.Types.Completion.html#Snippet"><span class="hs-identifier hs-var">Snippet</span></a></span><span>
+</span><span id="line-198"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><span class="hs-identifier">_</span></span><span>             </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser InsertTextFormat
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-199"></span><span>
+</span><span id="line-200"></span><span class="hs-keyword">data</span><span> </span><span id="CompletionDoc"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionDoc"><span class="hs-identifier hs-var">CompletionDoc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="CompletionDocString"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionDocString"><span class="hs-identifier hs-var">CompletionDocString</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-201"></span><span>                   </span><span class="hs-glyph">|</span><span> </span><span id="CompletionDocMarkup"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionDocMarkup"><span class="hs-identifier hs-var">CompletionDocMarkup</span></a></span></span><span> </span><span class="annot"><a href="Language.LSP.Types.MarkupContent.html#MarkupContent"><span class="hs-identifier hs-type">MarkupContent</span></a></span><span>
+</span><span id="line-202"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680443917"><span id="local-6989586621680443919"><span id="local-6989586621680443921"><span class="annot"><span class="annottext">Int -&gt; CompletionDoc -&gt; ShowS
+[CompletionDoc] -&gt; ShowS
+CompletionDoc -&gt; String
+(Int -&gt; CompletionDoc -&gt; ShowS)
+-&gt; (CompletionDoc -&gt; String)
+-&gt; ([CompletionDoc] -&gt; ShowS)
+-&gt; Show CompletionDoc
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CompletionDoc] -&gt; ShowS
+$cshowList :: [CompletionDoc] -&gt; ShowS
+show :: CompletionDoc -&gt; String
+$cshow :: CompletionDoc -&gt; String
+showsPrec :: Int -&gt; CompletionDoc -&gt; ShowS
+$cshowsPrec :: Int -&gt; CompletionDoc -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680443909"><span id="local-6989586621680443911"><span id="local-6989586621680443913"><span id="local-6989586621680443915"><span class="annot"><span class="annottext">ReadPrec [CompletionDoc]
+ReadPrec CompletionDoc
+Int -&gt; ReadS CompletionDoc
+ReadS [CompletionDoc]
+(Int -&gt; ReadS CompletionDoc)
+-&gt; ReadS [CompletionDoc]
+-&gt; ReadPrec CompletionDoc
+-&gt; ReadPrec [CompletionDoc]
+-&gt; Read CompletionDoc
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CompletionDoc]
+$creadListPrec :: ReadPrec [CompletionDoc]
+readPrec :: ReadPrec CompletionDoc
+$creadPrec :: ReadPrec CompletionDoc
+readList :: ReadS [CompletionDoc]
+$creadList :: ReadS [CompletionDoc]
+readsPrec :: Int -&gt; ReadS CompletionDoc
+$creadsPrec :: Int -&gt; ReadS CompletionDoc
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680443905"><span id="local-6989586621680443907"><span class="annot"><span class="annottext">CompletionDoc -&gt; CompletionDoc -&gt; Bool
+(CompletionDoc -&gt; CompletionDoc -&gt; Bool)
+-&gt; (CompletionDoc -&gt; CompletionDoc -&gt; Bool) -&gt; Eq CompletionDoc
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CompletionDoc -&gt; CompletionDoc -&gt; Bool
+$c/= :: CompletionDoc -&gt; CompletionDoc -&gt; Bool
+== :: CompletionDoc -&gt; CompletionDoc -&gt; Bool
+$c== :: CompletionDoc -&gt; CompletionDoc -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-203"></span><span>
+</span><span id="line-204"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680443898"><span id="local-6989586621680443900"><span id="local-6989586621680443902"><span class="annot"><span class="hs-identifier hs-type">A.ToJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionDoc"><span class="hs-identifier hs-type">CompletionDoc</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-205"></span><span>  </span><span id="local-6989586621680443897"><span class="annot"><span class="annottext">toJSON :: CompletionDoc -&gt; Value
+</span><a href="#local-6989586621680443897"><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionDocString"><span class="hs-identifier hs-type">CompletionDocString</span></a></span><span> </span><span id="local-6989586621680443896"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680443896"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+forall a. ToJSON a =&gt; a -&gt; Value
+</span><span class="hs-identifier hs-var">A.toJSON</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680443896"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-206"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionDocMarkup"><span class="hs-identifier hs-type">CompletionDocMarkup</span></a></span><span> </span><span id="local-6989586621680443895"><span class="annot"><span class="annottext">MarkupContent
+</span><a href="#local-6989586621680443895"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MarkupContent -&gt; Value
+forall a. ToJSON a =&gt; a -&gt; Value
+</span><span class="hs-identifier hs-var">A.toJSON</span></span><span> </span><span class="annot"><span class="annottext">MarkupContent
+</span><a href="#local-6989586621680443895"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-207"></span><span>
+</span><span id="line-208"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680443892"><span class="annot"><span class="hs-identifier hs-type">A.FromJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionDoc"><span class="hs-identifier hs-type">CompletionDoc</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-209"></span><span>  </span><span id="local-6989586621680443891"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser CompletionDoc
+</span><a href="#local-6989586621680443891"><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></a></span></span><span> </span><span id="local-6989586621680443890"><span class="annot"><span class="annottext">Value
+</span><a href="#local-6989586621680443890"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; CompletionDoc
+</span><a href="Language.LSP.Types.Completion.html#CompletionDocString"><span class="hs-identifier hs-var">CompletionDocString</span></a></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; CompletionDoc) -&gt; Parser Text -&gt; Parser CompletionDoc
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Value -&gt; Parser Text
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span><span class="hs-identifier hs-var">A.parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><a href="#local-6989586621680443890"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Parser CompletionDoc
+-&gt; Parser CompletionDoc -&gt; Parser CompletionDoc
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">MarkupContent -&gt; CompletionDoc
+</span><a href="Language.LSP.Types.Completion.html#CompletionDocMarkup"><span class="hs-identifier hs-var">CompletionDocMarkup</span></a></span><span> </span><span class="annot"><span class="annottext">(MarkupContent -&gt; CompletionDoc)
+-&gt; Parser MarkupContent -&gt; Parser CompletionDoc
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Value -&gt; Parser MarkupContent
+forall a. FromJSON a =&gt; Value -&gt; Parser a
+</span><span class="hs-identifier hs-var">A.parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><a href="#local-6989586621680443890"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-210"></span><span>
+</span><span id="line-211"></span><span class="hs-keyword">data</span><span> </span><span id="CompletionItem"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItem"><span class="hs-identifier hs-var">CompletionItem</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-212"></span><span>  </span><span id="CompletionItem"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItem"><span class="hs-identifier hs-var">CompletionItem</span></a></span></span><span>
+</span><span id="line-213"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_label%3ACompletionItem"><span class="annot"><span class="annottext">CompletionItem -&gt; Text
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_label%3ACompletionItem"><span class="hs-identifier hs-var hs-var">_label</span></a></span></span><span>               </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-comment">-- ^ The label of this completion item. By default also</span><span>
+</span><span id="line-214"></span><span>                       </span><span class="hs-comment">-- the text that is inserted when selecting this</span><span>
+</span><span id="line-215"></span><span>                       </span><span class="hs-comment">-- completion.</span><span>
+</span><span id="line-216"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_kind%3ACompletionItem"><span class="annot"><span class="annottext">CompletionItem -&gt; Maybe CompletionItemKind
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_kind%3ACompletionItem"><span class="hs-identifier hs-var hs-var">_kind</span></a></span></span><span>                </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItemKind"><span class="hs-identifier hs-type">CompletionItemKind</span></a></span><span>
+</span><span id="line-217"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_tags%3ACompletionItem"><span class="annot"><span class="annottext">CompletionItem -&gt; Maybe (List CompletionItemTag)
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_tags%3ACompletionItem"><span class="hs-identifier hs-var hs-var">_tags</span></a></span></span><span>                </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItemTag"><span class="hs-identifier hs-type">CompletionItemTag</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-comment">-- ^ Tags for this completion item.</span><span>
+</span><span id="line-218"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_detail%3ACompletionItem"><span class="annot"><span class="annottext">CompletionItem -&gt; Maybe Text
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_detail%3ACompletionItem"><span class="hs-identifier hs-var hs-var">_detail</span></a></span></span><span>              </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-comment">-- ^ A human-readable string with additional</span><span>
+</span><span id="line-219"></span><span>                              </span><span class="hs-comment">-- information about this item, like type or</span><span>
+</span><span id="line-220"></span><span>                              </span><span class="hs-comment">-- symbol information.</span><span>
+</span><span id="line-221"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_documentation%3ACompletionItem"><span class="annot"><span class="annottext">CompletionItem -&gt; Maybe CompletionDoc
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_documentation%3ACompletionItem"><span class="hs-identifier hs-var hs-var">_documentation</span></a></span></span><span>       </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionDoc"><span class="hs-identifier hs-type">CompletionDoc</span></a></span><span> </span><span class="hs-comment">-- ^ A human-readable string that represents</span><span>
+</span><span id="line-222"></span><span>                                                  </span><span class="hs-comment">-- a doc-comment.</span><span>
+</span><span id="line-223"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_deprecated%3ACompletionItem"><span class="annot"><span class="annottext">CompletionItem -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_deprecated%3ACompletionItem"><span class="hs-identifier hs-var hs-var">_deprecated</span></a></span></span><span>          </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-comment">-- ^ Indicates if this item is deprecated.</span><span>
+</span><span id="line-224"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_preselect%3ACompletionItem"><span class="annot"><span class="annottext">CompletionItem -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_preselect%3ACompletionItem"><span class="hs-identifier hs-var hs-var">_preselect</span></a></span></span><span>           </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-225"></span><span>         </span><span class="hs-comment">-- ^ Select this item when showing.</span><span>
+</span><span id="line-226"></span><span>         </span><span class="hs-comment">-- *Note* that only one completion item can be selected and that the</span><span>
+</span><span id="line-227"></span><span>         </span><span class="hs-comment">-- tool / client decides which item that is. The rule is that the *first*</span><span>
+</span><span id="line-228"></span><span>         </span><span class="hs-comment">-- item of those that match best is selected.</span><span>
+</span><span id="line-229"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_sortText%3ACompletionItem"><span class="annot"><span class="annottext">CompletionItem -&gt; Maybe Text
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_sortText%3ACompletionItem"><span class="hs-identifier hs-var hs-var">_sortText</span></a></span></span><span>            </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-comment">-- ^ A string that should be used when filtering</span><span>
+</span><span id="line-230"></span><span>                                </span><span class="hs-comment">-- a set of completion items. When `falsy` the</span><span>
+</span><span id="line-231"></span><span>                                </span><span class="hs-comment">-- label is used.</span><span>
+</span><span id="line-232"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_filterText%3ACompletionItem"><span class="annot"><span class="annottext">CompletionItem -&gt; Maybe Text
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_filterText%3ACompletionItem"><span class="hs-identifier hs-var hs-var">_filterText</span></a></span></span><span>          </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-comment">-- ^ A string that should be used when</span><span>
+</span><span id="line-233"></span><span>                                  </span><span class="hs-comment">-- filtering a set of completion items. When</span><span>
+</span><span id="line-234"></span><span>                                  </span><span class="hs-comment">-- `falsy` the label is used.</span><span>
+</span><span id="line-235"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_insertText%3ACompletionItem"><span class="annot"><span class="annottext">CompletionItem -&gt; Maybe Text
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_insertText%3ACompletionItem"><span class="hs-identifier hs-var hs-var">_insertText</span></a></span></span><span>          </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-comment">-- ^ A string that should be inserted a</span><span>
+</span><span id="line-236"></span><span>                                  </span><span class="hs-comment">-- document when selecting this completion.</span><span>
+</span><span id="line-237"></span><span>                                  </span><span class="hs-comment">-- When `falsy` the label is used.</span><span>
+</span><span id="line-238"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_insertTextFormat%3ACompletionItem"><span class="annot"><span class="annottext">CompletionItem -&gt; Maybe InsertTextFormat
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_insertTextFormat%3ACompletionItem"><span class="hs-identifier hs-var hs-var">_insertTextFormat</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#InsertTextFormat"><span class="hs-identifier hs-type">InsertTextFormat</span></a></span><span>
+</span><span id="line-239"></span><span>         </span><span class="hs-comment">-- ^ The format of the insert text. The format applies to both the</span><span>
+</span><span id="line-240"></span><span>         </span><span class="hs-comment">-- `insertText` property and the `newText` property of a provided</span><span>
+</span><span id="line-241"></span><span>         </span><span class="hs-comment">-- `textEdit`.</span><span>
+</span><span id="line-242"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_textEdit%3ACompletionItem"><span class="annot"><span class="annottext">CompletionItem -&gt; Maybe TextEdit
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_textEdit%3ACompletionItem"><span class="hs-identifier hs-var hs-var">_textEdit</span></a></span></span><span>            </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.WorkspaceEdit.html#TextEdit"><span class="hs-identifier hs-type">TextEdit</span></a></span><span>
+</span><span id="line-243"></span><span>         </span><span class="hs-comment">-- ^ An edit which is applied to a document when selecting this</span><span>
+</span><span id="line-244"></span><span>         </span><span class="hs-comment">-- completion. When an edit is provided the value of `insertText` is</span><span>
+</span><span id="line-245"></span><span>         </span><span class="hs-comment">-- ignored.</span><span>
+</span><span id="line-246"></span><span>         </span><span class="hs-comment">--</span><span>
+</span><span id="line-247"></span><span>         </span><span class="hs-comment">-- *Note:* The range of the edit must be a single line range and it</span><span>
+</span><span id="line-248"></span><span>         </span><span class="hs-comment">-- must contain the position at which completion has been requested.</span><span>
+</span><span id="line-249"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_additionalTextEdits%3ACompletionItem"><span class="annot"><span class="annottext">CompletionItem -&gt; Maybe (List TextEdit)
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_additionalTextEdits%3ACompletionItem"><span class="hs-identifier hs-var hs-var">_additionalTextEdits</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.WorkspaceEdit.html#TextEdit"><span class="hs-identifier hs-type">TextEdit</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-250"></span><span>         </span><span class="hs-comment">-- ^ An optional array of additional text edits that are applied when</span><span>
+</span><span id="line-251"></span><span>         </span><span class="hs-comment">-- selecting this completion. Edits must not overlap with the main edit</span><span>
+</span><span id="line-252"></span><span>         </span><span class="hs-comment">-- nor with themselves.</span><span>
+</span><span id="line-253"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_commitCharacters%3ACompletionItem"><span class="annot"><span class="annottext">CompletionItem -&gt; Maybe (List Text)
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_commitCharacters%3ACompletionItem"><span class="hs-identifier hs-var hs-var">_commitCharacters</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-254"></span><span>         </span><span class="hs-comment">-- ^ An optional set of characters that when pressed while this completion</span><span>
+</span><span id="line-255"></span><span>         </span><span class="hs-comment">-- is active will accept it first and then type that character. *Note*</span><span>
+</span><span id="line-256"></span><span>         </span><span class="hs-comment">-- that all commit characters should have `length=1` and that superfluous</span><span>
+</span><span id="line-257"></span><span>         </span><span class="hs-comment">-- characters will be ignored.</span><span>
+</span><span id="line-258"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_command%3ACompletionItem"><span class="annot"><span class="annottext">CompletionItem -&gt; Maybe Command
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_command%3ACompletionItem"><span class="hs-identifier hs-var hs-var">_command</span></a></span></span><span>             </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Command.html#Command"><span class="hs-identifier hs-type">Command</span></a></span><span>
+</span><span id="line-259"></span><span>        </span><span class="hs-comment">-- ^ An optional command that is executed *after* inserting this</span><span>
+</span><span id="line-260"></span><span>        </span><span class="hs-comment">-- completion. *Note* that additional modifications to the current</span><span>
+</span><span id="line-261"></span><span>        </span><span class="hs-comment">-- document should be described with the additionalTextEdits-property.</span><span>
+</span><span id="line-262"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_xdata%3ACompletionItem"><span class="annot"><span class="annottext">CompletionItem -&gt; Maybe Value
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_xdata%3ACompletionItem"><span class="hs-identifier hs-var hs-var">_xdata</span></a></span></span><span>               </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">A.Value</span></span><span> </span><span class="hs-comment">-- ^ An data entry field that is preserved on a</span><span>
+</span><span id="line-263"></span><span>                              </span><span class="hs-comment">-- completion item between a completion and a</span><span>
+</span><span id="line-264"></span><span>                              </span><span class="hs-comment">-- completion resolve request.</span><span>
+</span><span id="line-265"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680443863"><span id="local-6989586621680443865"><span id="local-6989586621680443867"><span id="local-6989586621680443869"><span class="annot"><span class="annottext">ReadPrec [CompletionItem]
+ReadPrec CompletionItem
+Int -&gt; ReadS CompletionItem
+ReadS [CompletionItem]
+(Int -&gt; ReadS CompletionItem)
+-&gt; ReadS [CompletionItem]
+-&gt; ReadPrec CompletionItem
+-&gt; ReadPrec [CompletionItem]
+-&gt; Read CompletionItem
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CompletionItem]
+$creadListPrec :: ReadPrec [CompletionItem]
+readPrec :: ReadPrec CompletionItem
+$creadPrec :: ReadPrec CompletionItem
+readList :: ReadS [CompletionItem]
+$creadList :: ReadS [CompletionItem]
+readsPrec :: Int -&gt; ReadS CompletionItem
+$creadsPrec :: Int -&gt; ReadS CompletionItem
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680443857"><span id="local-6989586621680443859"><span id="local-6989586621680443861"><span class="annot"><span class="annottext">Int -&gt; CompletionItem -&gt; ShowS
+[CompletionItem] -&gt; ShowS
+CompletionItem -&gt; String
+(Int -&gt; CompletionItem -&gt; ShowS)
+-&gt; (CompletionItem -&gt; String)
+-&gt; ([CompletionItem] -&gt; ShowS)
+-&gt; Show CompletionItem
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CompletionItem] -&gt; ShowS
+$cshowList :: [CompletionItem] -&gt; ShowS
+show :: CompletionItem -&gt; String
+$cshow :: CompletionItem -&gt; String
+showsPrec :: Int -&gt; CompletionItem -&gt; ShowS
+$cshowsPrec :: Int -&gt; CompletionItem -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680443853"><span id="local-6989586621680443855"><span class="annot"><span class="annottext">CompletionItem -&gt; CompletionItem -&gt; Bool
+(CompletionItem -&gt; CompletionItem -&gt; Bool)
+-&gt; (CompletionItem -&gt; CompletionItem -&gt; Bool) -&gt; Eq CompletionItem
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CompletionItem -&gt; CompletionItem -&gt; Bool
+$c/= :: CompletionItem -&gt; CompletionItem -&gt; Bool
+== :: CompletionItem -&gt; CompletionItem -&gt; Bool
+$c== :: CompletionItem -&gt; CompletionItem -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-266"></span><span>
+</span><span id="line-267"></span><span id="local-6989586621680443841"><span id="local-6989586621680443843"><span id="local-6989586621680443845"><span id="local-6989586621680443847"><span id="local-6989586621680443849"><span id="local-6989586621680443851"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CompletionItem</span></span></span></span></span></span></span><span>
+</span><span id="line-268"></span><span>
+</span><span id="line-269"></span><span class="hs-comment">-- | Represents a collection of 'CompletionItem's to be presented in the editor.</span><span>
+</span><span id="line-270"></span><span class="hs-keyword">data</span><span> </span><span id="CompletionList"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionList"><span class="hs-identifier hs-var">CompletionList</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-271"></span><span>  </span><span id="CompletionList"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionList"><span class="hs-identifier hs-var">CompletionList</span></a></span></span><span>
+</span><span id="line-272"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_isIncomplete%3ACompletionList"><span class="annot"><span class="annottext">CompletionList -&gt; Bool
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_isIncomplete%3ACompletionList"><span class="hs-identifier hs-var hs-var">_isIncomplete</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-comment">-- ^ This list it not complete. Further typing</span><span>
+</span><span id="line-273"></span><span>                            </span><span class="hs-comment">-- should result in recomputing this list.</span><span>
+</span><span id="line-274"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_items%3ACompletionList"><span class="annot"><span class="annottext">CompletionList -&gt; List CompletionItem
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_items%3ACompletionList"><span class="hs-identifier hs-var hs-var">_items</span></a></span></span><span>        </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionItem"><span class="hs-identifier hs-type">CompletionItem</span></a></span><span> </span><span class="hs-comment">-- ^ The completion items.</span><span>
+</span><span id="line-275"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680443830"><span id="local-6989586621680443832"><span id="local-6989586621680443834"><span id="local-6989586621680443836"><span class="annot"><span class="annottext">ReadPrec [CompletionList]
+ReadPrec CompletionList
+Int -&gt; ReadS CompletionList
+ReadS [CompletionList]
+(Int -&gt; ReadS CompletionList)
+-&gt; ReadS [CompletionList]
+-&gt; ReadPrec CompletionList
+-&gt; ReadPrec [CompletionList]
+-&gt; Read CompletionList
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CompletionList]
+$creadListPrec :: ReadPrec [CompletionList]
+readPrec :: ReadPrec CompletionList
+$creadPrec :: ReadPrec CompletionList
+readList :: ReadS [CompletionList]
+$creadList :: ReadS [CompletionList]
+readsPrec :: Int -&gt; ReadS CompletionList
+$creadsPrec :: Int -&gt; ReadS CompletionList
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680443824"><span id="local-6989586621680443826"><span id="local-6989586621680443828"><span class="annot"><span class="annottext">Int -&gt; CompletionList -&gt; ShowS
+[CompletionList] -&gt; ShowS
+CompletionList -&gt; String
+(Int -&gt; CompletionList -&gt; ShowS)
+-&gt; (CompletionList -&gt; String)
+-&gt; ([CompletionList] -&gt; ShowS)
+-&gt; Show CompletionList
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CompletionList] -&gt; ShowS
+$cshowList :: [CompletionList] -&gt; ShowS
+show :: CompletionList -&gt; String
+$cshow :: CompletionList -&gt; String
+showsPrec :: Int -&gt; CompletionList -&gt; ShowS
+$cshowsPrec :: Int -&gt; CompletionList -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680443820"><span id="local-6989586621680443822"><span class="annot"><span class="annottext">CompletionList -&gt; CompletionList -&gt; Bool
+(CompletionList -&gt; CompletionList -&gt; Bool)
+-&gt; (CompletionList -&gt; CompletionList -&gt; Bool) -&gt; Eq CompletionList
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CompletionList -&gt; CompletionList -&gt; Bool
+$c/= :: CompletionList -&gt; CompletionList -&gt; Bool
+== :: CompletionList -&gt; CompletionList -&gt; Bool
+$c== :: CompletionList -&gt; CompletionList -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-276"></span><span>
+</span><span id="line-277"></span><span id="local-6989586621680443808"><span id="local-6989586621680443810"><span id="local-6989586621680443812"><span id="local-6989586621680443814"><span id="local-6989586621680443816"><span id="local-6989586621680443818"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CompletionList</span></span></span></span></span></span></span><span>
+</span><span id="line-278"></span><span>
+</span><span id="line-279"></span><span class="hs-comment">-- | How a completion was triggered</span><span>
+</span><span id="line-280"></span><span class="hs-keyword">data</span><span> </span><span id="CompletionTriggerKind"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionTriggerKind"><span class="hs-identifier hs-var">CompletionTriggerKind</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-comment">-- | Completion was triggered by typing an identifier (24x7 code</span><span>
+</span><span id="line-281"></span><span>                             </span><span class="hs-comment">-- complete), manual invocation (e.g Ctrl+Space) or via API.</span><span>
+</span><span id="line-282"></span><span>                             </span><span id="CtInvoked"><span class="annot"><a href="Language.LSP.Types.Completion.html#CtInvoked"><span class="hs-identifier hs-var">CtInvoked</span></a></span></span><span>
+</span><span id="line-283"></span><span>                             </span><span class="hs-comment">-- | Completion was triggered by a trigger character specified by</span><span>
+</span><span id="line-284"></span><span>                             </span><span class="hs-comment">-- the `triggerCharacters` properties of the `CompletionRegistrationOptions`.</span><span>
+</span><span id="line-285"></span><span>                           </span><span class="hs-glyph">|</span><span> </span><span id="CtTriggerCharacter"><span class="annot"><a href="Language.LSP.Types.Completion.html#CtTriggerCharacter"><span class="hs-identifier hs-var">CtTriggerCharacter</span></a></span></span><span>
+</span><span id="line-286"></span><span>                             </span><span class="hs-comment">-- | Completion was re-triggered as the current completion list is incomplete.</span><span>
+</span><span id="line-287"></span><span>                           </span><span class="hs-glyph">|</span><span> </span><span id="CtTriggerForIncompleteCompletions"><span class="annot"><a href="Language.LSP.Types.Completion.html#CtTriggerForIncompleteCompletions"><span class="hs-identifier hs-var">CtTriggerForIncompleteCompletions</span></a></span></span><span>
+</span><span id="line-288"></span><span>                             </span><span class="hs-comment">-- | An unknown 'CompletionTriggerKind' not yet supported in haskell-lsp.</span><span>
+</span><span id="line-289"></span><span>                           </span><span class="hs-glyph">|</span><span> </span><span id="CtUnknown"><span class="annot"><a href="Language.LSP.Types.Completion.html#CtUnknown"><span class="hs-identifier hs-var">CtUnknown</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Scientific</span></span><span>
+</span><span id="line-290"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680443796"><span id="local-6989586621680443798"><span id="local-6989586621680443800"><span id="local-6989586621680443802"><span class="annot"><span class="annottext">ReadPrec [CompletionTriggerKind]
+ReadPrec CompletionTriggerKind
+Int -&gt; ReadS CompletionTriggerKind
+ReadS [CompletionTriggerKind]
+(Int -&gt; ReadS CompletionTriggerKind)
+-&gt; ReadS [CompletionTriggerKind]
+-&gt; ReadPrec CompletionTriggerKind
+-&gt; ReadPrec [CompletionTriggerKind]
+-&gt; Read CompletionTriggerKind
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CompletionTriggerKind]
+$creadListPrec :: ReadPrec [CompletionTriggerKind]
+readPrec :: ReadPrec CompletionTriggerKind
+$creadPrec :: ReadPrec CompletionTriggerKind
+readList :: ReadS [CompletionTriggerKind]
+$creadList :: ReadS [CompletionTriggerKind]
+readsPrec :: Int -&gt; ReadS CompletionTriggerKind
+$creadsPrec :: Int -&gt; ReadS CompletionTriggerKind
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680443790"><span id="local-6989586621680443792"><span id="local-6989586621680443794"><span class="annot"><span class="annottext">Int -&gt; CompletionTriggerKind -&gt; ShowS
+[CompletionTriggerKind] -&gt; ShowS
+CompletionTriggerKind -&gt; String
+(Int -&gt; CompletionTriggerKind -&gt; ShowS)
+-&gt; (CompletionTriggerKind -&gt; String)
+-&gt; ([CompletionTriggerKind] -&gt; ShowS)
+-&gt; Show CompletionTriggerKind
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CompletionTriggerKind] -&gt; ShowS
+$cshowList :: [CompletionTriggerKind] -&gt; ShowS
+show :: CompletionTriggerKind -&gt; String
+$cshow :: CompletionTriggerKind -&gt; String
+showsPrec :: Int -&gt; CompletionTriggerKind -&gt; ShowS
+$cshowsPrec :: Int -&gt; CompletionTriggerKind -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680443786"><span id="local-6989586621680443788"><span class="annot"><span class="annottext">CompletionTriggerKind -&gt; CompletionTriggerKind -&gt; Bool
+(CompletionTriggerKind -&gt; CompletionTriggerKind -&gt; Bool)
+-&gt; (CompletionTriggerKind -&gt; CompletionTriggerKind -&gt; Bool)
+-&gt; Eq CompletionTriggerKind
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CompletionTriggerKind -&gt; CompletionTriggerKind -&gt; Bool
+$c/= :: CompletionTriggerKind -&gt; CompletionTriggerKind -&gt; Bool
+== :: CompletionTriggerKind -&gt; CompletionTriggerKind -&gt; Bool
+$c== :: CompletionTriggerKind -&gt; CompletionTriggerKind -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-291"></span><span>
+</span><span id="line-292"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680443779"><span id="local-6989586621680443781"><span id="local-6989586621680443783"><span class="annot"><span class="hs-identifier hs-type">A.ToJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionTriggerKind"><span class="hs-identifier hs-type">CompletionTriggerKind</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-293"></span><span>  </span><span id="local-6989586621680443778"><span class="annot"><span class="annottext">toJSON :: CompletionTriggerKind -&gt; Value
+</span><a href="#local-6989586621680443778"><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></a></span></span><span> </span><span class="annot"><span class="annottext">CompletionTriggerKind
+</span><a href="Language.LSP.Types.Completion.html#CtInvoked"><span class="hs-identifier hs-var">CtInvoked</span></a></span><span>                         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-294"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionTriggerKind
+</span><a href="Language.LSP.Types.Completion.html#CtTriggerCharacter"><span class="hs-identifier hs-var">CtTriggerCharacter</span></a></span><span>                </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">2</span></span><span>
+</span><span id="line-295"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">CompletionTriggerKind
+</span><a href="Language.LSP.Types.Completion.html#CtTriggerForIncompleteCompletions"><span class="hs-identifier hs-var">CtTriggerForIncompleteCompletions</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">3</span></span><span>
+</span><span id="line-296"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.Completion.html#CtUnknown"><span class="hs-identifier hs-type">CtUnknown</span></a></span><span> </span><span id="local-6989586621680443777"><span class="annot"><span class="annottext">Scientific
+</span><a href="#local-6989586621680443777"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span>                     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><a href="#local-6989586621680443777"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-297"></span><span>
+</span><span id="line-298"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680443774"><span class="annot"><span class="hs-identifier hs-type">A.FromJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionTriggerKind"><span class="hs-identifier hs-type">CompletionTriggerKind</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-299"></span><span>  </span><span id="local-6989586621680443773"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser CompletionTriggerKind
+</span><a href="#local-6989586621680443773"><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionTriggerKind -&gt; Parser CompletionTriggerKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionTriggerKind
+</span><a href="Language.LSP.Types.Completion.html#CtInvoked"><span class="hs-identifier hs-var">CtInvoked</span></a></span><span>
+</span><span id="line-300"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">2</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionTriggerKind -&gt; Parser CompletionTriggerKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionTriggerKind
+</span><a href="Language.LSP.Types.Completion.html#CtTriggerCharacter"><span class="hs-identifier hs-var">CtTriggerCharacter</span></a></span><span>
+</span><span id="line-301"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">3</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionTriggerKind -&gt; Parser CompletionTriggerKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">CompletionTriggerKind
+</span><a href="Language.LSP.Types.Completion.html#CtTriggerForIncompleteCompletions"><span class="hs-identifier hs-var">CtTriggerForIncompleteCompletions</span></a></span><span>
+</span><span id="line-302"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span id="local-6989586621680443772"><span class="annot"><span class="annottext">Scientific
+</span><a href="#local-6989586621680443772"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CompletionTriggerKind -&gt; Parser CompletionTriggerKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Scientific -&gt; CompletionTriggerKind
+</span><a href="Language.LSP.Types.Completion.html#CtUnknown"><span class="hs-identifier hs-var">CtUnknown</span></a></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><a href="#local-6989586621680443772"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-303"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><span class="hs-identifier">_</span></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser CompletionTriggerKind
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-304"></span><span>
+</span><span id="line-305"></span><span id="%24sel%3A_resolveProvider%3ACompletionOptions"><span id="%24sel%3A_allCommitCharacters%3ACompletionOptions"><span id="%24sel%3A_triggerCharacters%3ACompletionOptions"><span id="%24sel%3A_workDoneProgress%3ACompletionOptions"><span id="CompletionOptions"><span id="local-6989586621680443754"><span id="local-6989586621680443756"><span id="local-6989586621680443758"><span id="local-6989586621680443760"><span id="local-6989586621680443762"><span id="local-6989586621680443764"><span id="local-6989586621680443766"><span id="local-6989586621680443768"><span id="local-6989586621680443770"><span id="CompletionOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;CompletionOptions&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressOptions</span><span class="hs-special">]</span><span>
+</span><span id="line-306"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;_triggerCharacters&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">Maybe</span><span> </span><span class="hs-special">[</span><span class="hs-identifier">Text</span><span class="hs-special">]</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><span id="line-307"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;_allCommitCharacters&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">Maybe</span><span> </span><span class="hs-special">[</span><span class="hs-identifier">Text</span><span class="hs-special">]</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><span id="line-308"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;_resolveProvider&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">Maybe</span><span> </span><span class="hs-identifier">Bool</span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><span id="line-309"></span><span>  </span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-310"></span><span id="local-6989586621680443737"><span id="local-6989586621680443739"><span id="local-6989586621680443741"><span id="local-6989586621680443743"><span id="local-6989586621680443745"><span id="local-6989586621680443747"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CompletionOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-311"></span><span>
+</span><span id="line-312"></span><span id="%24sel%3A_resolveProvider%3ACompletionRegistrationOptions"><span id="%24sel%3A_allCommitCharacters%3ACompletionRegistrationOptions"><span id="%24sel%3A_triggerCharacters%3ACompletionRegistrationOptions"><span id="%24sel%3A_workDoneProgress%3ACompletionRegistrationOptions"><span id="%24sel%3A_documentSelector%3ACompletionRegistrationOptions"><span id="CompletionRegistrationOptions"><span id="local-6989586621680443719"><span id="local-6989586621680443721"><span id="local-6989586621680443723"><span id="local-6989586621680443725"><span id="local-6989586621680443727"><span id="local-6989586621680443729"><span id="local-6989586621680443731"><span id="local-6989586621680443733"><span id="local-6989586621680443735"><span id="CompletionRegistrationOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;CompletionRegistrationOptions&quot;</span><span>
+</span><span id="line-313"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentRegistrationOptions</span><span>
+</span><span id="line-314"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CompletionOptions</span><span>
+</span><span id="line-315"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-316"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-317"></span><span id="local-6989586621680443701"><span id="local-6989586621680443703"><span id="local-6989586621680443705"><span id="local-6989586621680443707"><span id="local-6989586621680443709"><span id="local-6989586621680443711"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CompletionRegistrationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-318"></span><span>
+</span><span id="line-319"></span><span class="hs-keyword">data</span><span> </span><span id="CompletionContext"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionContext"><span class="hs-identifier hs-var">CompletionContext</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-320"></span><span>  </span><span id="CompletionContext"><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionContext"><span class="hs-identifier hs-var">CompletionContext</span></a></span></span><span>
+</span><span id="line-321"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_triggerKind%3ACompletionContext"><span class="annot"><span class="annottext">CompletionContext -&gt; CompletionTriggerKind
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_triggerKind%3ACompletionContext"><span class="hs-identifier hs-var hs-var">_triggerKind</span></a></span></span><span>      </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionTriggerKind"><span class="hs-identifier hs-type">CompletionTriggerKind</span></a></span><span> </span><span class="hs-comment">-- ^ How the completion was triggered.</span><span>
+</span><span id="line-322"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_triggerCharacter%3ACompletionContext"><span class="annot"><span class="annottext">CompletionContext -&gt; Maybe Text
+</span><a href="Language.LSP.Types.Completion.html#%24sel%3A_triggerCharacter%3ACompletionContext"><span class="hs-identifier hs-var hs-var">_triggerCharacter</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-323"></span><span>      </span><span class="hs-comment">-- ^ The trigger character (a single character) that has trigger code complete.</span><span>
+</span><span id="line-324"></span><span>      </span><span class="hs-comment">-- Is undefined if `triggerKind !== CompletionTriggerKind.TriggerCharacter`</span><span>
+</span><span id="line-325"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-326"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680443690"><span id="local-6989586621680443692"><span id="local-6989586621680443694"><span id="local-6989586621680443696"><span class="annot"><span class="annottext">ReadPrec [CompletionContext]
+ReadPrec CompletionContext
+Int -&gt; ReadS CompletionContext
+ReadS [CompletionContext]
+(Int -&gt; ReadS CompletionContext)
+-&gt; ReadS [CompletionContext]
+-&gt; ReadPrec CompletionContext
+-&gt; ReadPrec [CompletionContext]
+-&gt; Read CompletionContext
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CompletionContext]
+$creadListPrec :: ReadPrec [CompletionContext]
+readPrec :: ReadPrec CompletionContext
+$creadPrec :: ReadPrec CompletionContext
+readList :: ReadS [CompletionContext]
+$creadList :: ReadS [CompletionContext]
+readsPrec :: Int -&gt; ReadS CompletionContext
+$creadsPrec :: Int -&gt; ReadS CompletionContext
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680443684"><span id="local-6989586621680443686"><span id="local-6989586621680443688"><span class="annot"><span class="annottext">Int -&gt; CompletionContext -&gt; ShowS
+[CompletionContext] -&gt; ShowS
+CompletionContext -&gt; String
+(Int -&gt; CompletionContext -&gt; ShowS)
+-&gt; (CompletionContext -&gt; String)
+-&gt; ([CompletionContext] -&gt; ShowS)
+-&gt; Show CompletionContext
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CompletionContext] -&gt; ShowS
+$cshowList :: [CompletionContext] -&gt; ShowS
+show :: CompletionContext -&gt; String
+$cshow :: CompletionContext -&gt; String
+showsPrec :: Int -&gt; CompletionContext -&gt; ShowS
+$cshowsPrec :: Int -&gt; CompletionContext -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680443680"><span id="local-6989586621680443682"><span class="annot"><span class="annottext">CompletionContext -&gt; CompletionContext -&gt; Bool
+(CompletionContext -&gt; CompletionContext -&gt; Bool)
+-&gt; (CompletionContext -&gt; CompletionContext -&gt; Bool)
+-&gt; Eq CompletionContext
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CompletionContext -&gt; CompletionContext -&gt; Bool
+$c/= :: CompletionContext -&gt; CompletionContext -&gt; Bool
+== :: CompletionContext -&gt; CompletionContext -&gt; Bool
+$c== :: CompletionContext -&gt; CompletionContext -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-327"></span><span>
+</span><span id="line-328"></span><span id="local-6989586621680443668"><span id="local-6989586621680443670"><span id="local-6989586621680443672"><span id="local-6989586621680443674"><span id="local-6989586621680443676"><span id="local-6989586621680443678"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CompletionContext</span></span></span></span></span></span></span><span>
+</span><span id="line-329"></span><span>
+</span><span id="line-330"></span><span id="%24sel%3A_context%3ACompletionParams"><span id="%24sel%3A_partialResultToken%3ACompletionParams"><span id="%24sel%3A_workDoneToken%3ACompletionParams"><span id="%24sel%3A_position%3ACompletionParams"><span id="%24sel%3A_textDocument%3ACompletionParams"><span id="CompletionParams"><span id="local-6989586621680443650"><span id="local-6989586621680443652"><span id="local-6989586621680443654"><span id="local-6989586621680443656"><span id="local-6989586621680443658"><span id="local-6989586621680443660"><span id="local-6989586621680443662"><span id="local-6989586621680443664"><span id="local-6989586621680443666"><span id="CompletionParams"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;CompletionParams&quot;</span><span>
+</span><span id="line-331"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentPositionParams</span><span>
+</span><span id="line-332"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressParams</span><span>
+</span><span id="line-333"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">PartialResultParams</span><span>
+</span><span id="line-334"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-335"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;_context&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">Maybe</span><span> </span><span class="hs-identifier">CompletionContext</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span> </span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-336"></span><span id="local-6989586621680443632"><span id="local-6989586621680443634"><span id="local-6989586621680443636"><span id="local-6989586621680443638"><span id="local-6989586621680443640"><span id="local-6989586621680443642"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CompletionParams</span></span></span></span></span></span></span><span>
+</span><span id="line-337"></span><span>
+</span><span id="line-338"></span></pre></body></html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.Configuration</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson</span></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html"><span class="hs-identifier">Language.LSP.Types.Common</span></a></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">data</span><span> </span><span id="DidChangeConfigurationClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Configuration.html#DidChangeConfigurationClientCapabilities"><span class="hs-identifier hs-var">DidChangeConfigurationClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-13"></span><span>  </span><span id="DidChangeConfigurationClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Configuration.html#DidChangeConfigurationClientCapabilities"><span class="hs-identifier hs-var">DidChangeConfigurationClientCapabilities</span></a></span></span><span>
+</span><span id="line-14"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="_dynamicRegistration"><span class="annot"><span class="annottext">DidChangeConfigurationClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Configuration.html#_dynamicRegistration"><span class="hs-identifier hs-var hs-var">_dynamicRegistration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-comment">-- ^Did change configuration</span><span>
+</span><span id="line-15"></span><span>                                         </span><span class="hs-comment">-- notification supports dynamic</span><span>
+</span><span id="line-16"></span><span>                                         </span><span class="hs-comment">-- registration.</span><span>
+</span><span id="line-17"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680441693"><span id="local-6989586621680441695"><span id="local-6989586621680441697"><span class="annot"><span class="annottext">Int -&gt; DidChangeConfigurationClientCapabilities -&gt; ShowS
+[DidChangeConfigurationClientCapabilities] -&gt; ShowS
+DidChangeConfigurationClientCapabilities -&gt; String
+(Int -&gt; DidChangeConfigurationClientCapabilities -&gt; ShowS)
+-&gt; (DidChangeConfigurationClientCapabilities -&gt; String)
+-&gt; ([DidChangeConfigurationClientCapabilities] -&gt; ShowS)
+-&gt; Show DidChangeConfigurationClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [DidChangeConfigurationClientCapabilities] -&gt; ShowS
+$cshowList :: [DidChangeConfigurationClientCapabilities] -&gt; ShowS
+show :: DidChangeConfigurationClientCapabilities -&gt; String
+$cshow :: DidChangeConfigurationClientCapabilities -&gt; String
+showsPrec :: Int -&gt; DidChangeConfigurationClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; DidChangeConfigurationClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680441684"><span id="local-6989586621680441686"><span id="local-6989586621680441688"><span id="local-6989586621680441690"><span class="annot"><span class="annottext">ReadPrec [DidChangeConfigurationClientCapabilities]
+ReadPrec DidChangeConfigurationClientCapabilities
+Int -&gt; ReadS DidChangeConfigurationClientCapabilities
+ReadS [DidChangeConfigurationClientCapabilities]
+(Int -&gt; ReadS DidChangeConfigurationClientCapabilities)
+-&gt; ReadS [DidChangeConfigurationClientCapabilities]
+-&gt; ReadPrec DidChangeConfigurationClientCapabilities
+-&gt; ReadPrec [DidChangeConfigurationClientCapabilities]
+-&gt; Read DidChangeConfigurationClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [DidChangeConfigurationClientCapabilities]
+$creadListPrec :: ReadPrec [DidChangeConfigurationClientCapabilities]
+readPrec :: ReadPrec DidChangeConfigurationClientCapabilities
+$creadPrec :: ReadPrec DidChangeConfigurationClientCapabilities
+readList :: ReadS [DidChangeConfigurationClientCapabilities]
+$creadList :: ReadS [DidChangeConfigurationClientCapabilities]
+readsPrec :: Int -&gt; ReadS DidChangeConfigurationClientCapabilities
+$creadsPrec :: Int -&gt; ReadS DidChangeConfigurationClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680441679"><span id="local-6989586621680441681"><span class="annot"><span class="annottext">DidChangeConfigurationClientCapabilities
+-&gt; DidChangeConfigurationClientCapabilities -&gt; Bool
+(DidChangeConfigurationClientCapabilities
+ -&gt; DidChangeConfigurationClientCapabilities -&gt; Bool)
+-&gt; (DidChangeConfigurationClientCapabilities
+    -&gt; DidChangeConfigurationClientCapabilities -&gt; Bool)
+-&gt; Eq DidChangeConfigurationClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: DidChangeConfigurationClientCapabilities
+-&gt; DidChangeConfigurationClientCapabilities -&gt; Bool
+$c/= :: DidChangeConfigurationClientCapabilities
+-&gt; DidChangeConfigurationClientCapabilities -&gt; Bool
+== :: DidChangeConfigurationClientCapabilities
+-&gt; DidChangeConfigurationClientCapabilities -&gt; Bool
+$c== :: DidChangeConfigurationClientCapabilities
+-&gt; DidChangeConfigurationClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span id="local-6989586621680441666"><span id="local-6989586621680441668"><span id="local-6989586621680441670"><span id="local-6989586621680441672"><span id="local-6989586621680441674"><span id="local-6989586621680441676"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DidChangeConfigurationClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">data</span><span> </span><span id="DidChangeConfigurationParams"><span class="annot"><a href="Language.LSP.Types.Configuration.html#DidChangeConfigurationParams"><span class="hs-identifier hs-var">DidChangeConfigurationParams</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-22"></span><span>  </span><span id="DidChangeConfigurationParams"><span class="annot"><a href="Language.LSP.Types.Configuration.html#DidChangeConfigurationParams"><span class="hs-identifier hs-var">DidChangeConfigurationParams</span></a></span></span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="_settings"><span class="annot"><span class="annottext">DidChangeConfigurationParams -&gt; Value
+</span><a href="Language.LSP.Types.Configuration.html#_settings"><span class="hs-identifier hs-var hs-var">_settings</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Value</span></span><span> </span><span class="hs-comment">-- ^ The actual changed settings</span><span>
+</span><span id="line-24"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680441653"><span id="local-6989586621680441655"><span id="local-6989586621680441657"><span class="annot"><span class="annottext">Int -&gt; DidChangeConfigurationParams -&gt; ShowS
+[DidChangeConfigurationParams] -&gt; ShowS
+DidChangeConfigurationParams -&gt; String
+(Int -&gt; DidChangeConfigurationParams -&gt; ShowS)
+-&gt; (DidChangeConfigurationParams -&gt; String)
+-&gt; ([DidChangeConfigurationParams] -&gt; ShowS)
+-&gt; Show DidChangeConfigurationParams
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [DidChangeConfigurationParams] -&gt; ShowS
+$cshowList :: [DidChangeConfigurationParams] -&gt; ShowS
+show :: DidChangeConfigurationParams -&gt; String
+$cshow :: DidChangeConfigurationParams -&gt; String
+showsPrec :: Int -&gt; DidChangeConfigurationParams -&gt; ShowS
+$cshowsPrec :: Int -&gt; DidChangeConfigurationParams -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680441645"><span id="local-6989586621680441647"><span id="local-6989586621680441649"><span id="local-6989586621680441651"><span class="annot"><span class="annottext">ReadPrec [DidChangeConfigurationParams]
+ReadPrec DidChangeConfigurationParams
+Int -&gt; ReadS DidChangeConfigurationParams
+ReadS [DidChangeConfigurationParams]
+(Int -&gt; ReadS DidChangeConfigurationParams)
+-&gt; ReadS [DidChangeConfigurationParams]
+-&gt; ReadPrec DidChangeConfigurationParams
+-&gt; ReadPrec [DidChangeConfigurationParams]
+-&gt; Read DidChangeConfigurationParams
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [DidChangeConfigurationParams]
+$creadListPrec :: ReadPrec [DidChangeConfigurationParams]
+readPrec :: ReadPrec DidChangeConfigurationParams
+$creadPrec :: ReadPrec DidChangeConfigurationParams
+readList :: ReadS [DidChangeConfigurationParams]
+$creadList :: ReadS [DidChangeConfigurationParams]
+readsPrec :: Int -&gt; ReadS DidChangeConfigurationParams
+$creadsPrec :: Int -&gt; ReadS DidChangeConfigurationParams
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680441641"><span id="local-6989586621680441643"><span class="annot"><span class="annottext">DidChangeConfigurationParams
+-&gt; DidChangeConfigurationParams -&gt; Bool
+(DidChangeConfigurationParams
+ -&gt; DidChangeConfigurationParams -&gt; Bool)
+-&gt; (DidChangeConfigurationParams
+    -&gt; DidChangeConfigurationParams -&gt; Bool)
+-&gt; Eq DidChangeConfigurationParams
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: DidChangeConfigurationParams
+-&gt; DidChangeConfigurationParams -&gt; Bool
+$c/= :: DidChangeConfigurationParams
+-&gt; DidChangeConfigurationParams -&gt; Bool
+== :: DidChangeConfigurationParams
+-&gt; DidChangeConfigurationParams -&gt; Bool
+$c== :: DidChangeConfigurationParams
+-&gt; DidChangeConfigurationParams -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span id="local-6989586621680441629"><span id="local-6989586621680441631"><span id="local-6989586621680441633"><span id="local-6989586621680441635"><span id="local-6989586621680441637"><span id="local-6989586621680441639"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DidChangeConfigurationParams</span></span></span></span></span></span></span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">data</span><span> </span><span id="ConfigurationItem"><span class="annot"><a href="Language.LSP.Types.Configuration.html#ConfigurationItem"><span class="hs-identifier hs-var">ConfigurationItem</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-31"></span><span>  </span><span id="ConfigurationItem"><span class="annot"><a href="Language.LSP.Types.Configuration.html#ConfigurationItem"><span class="hs-identifier hs-var">ConfigurationItem</span></a></span></span><span>
+</span><span id="line-32"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="_scopeUri"><span class="annot"><span class="annottext">ConfigurationItem -&gt; Maybe Text
+</span><a href="Language.LSP.Types.Configuration.html#_scopeUri"><span class="hs-identifier hs-var hs-var">_scopeUri</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-comment">-- ^ The scope to get the configuration section for.</span><span>
+</span><span id="line-33"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="_section"><span class="annot"><span class="annottext">ConfigurationItem -&gt; Maybe Text
+</span><a href="Language.LSP.Types.Configuration.html#_section"><span class="hs-identifier hs-var hs-var">_section</span></a></span></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-comment">-- ^ The configuration section asked for.</span><span>
+</span><span id="line-34"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680441620"><span id="local-6989586621680441622"><span id="local-6989586621680441624"><span class="annot"><span class="annottext">Int -&gt; ConfigurationItem -&gt; ShowS
+[ConfigurationItem] -&gt; ShowS
+ConfigurationItem -&gt; String
+(Int -&gt; ConfigurationItem -&gt; ShowS)
+-&gt; (ConfigurationItem -&gt; String)
+-&gt; ([ConfigurationItem] -&gt; ShowS)
+-&gt; Show ConfigurationItem
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [ConfigurationItem] -&gt; ShowS
+$cshowList :: [ConfigurationItem] -&gt; ShowS
+show :: ConfigurationItem -&gt; String
+$cshow :: ConfigurationItem -&gt; String
+showsPrec :: Int -&gt; ConfigurationItem -&gt; ShowS
+$cshowsPrec :: Int -&gt; ConfigurationItem -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680441612"><span id="local-6989586621680441614"><span id="local-6989586621680441616"><span id="local-6989586621680441618"><span class="annot"><span class="annottext">ReadPrec [ConfigurationItem]
+ReadPrec ConfigurationItem
+Int -&gt; ReadS ConfigurationItem
+ReadS [ConfigurationItem]
+(Int -&gt; ReadS ConfigurationItem)
+-&gt; ReadS [ConfigurationItem]
+-&gt; ReadPrec ConfigurationItem
+-&gt; ReadPrec [ConfigurationItem]
+-&gt; Read ConfigurationItem
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [ConfigurationItem]
+$creadListPrec :: ReadPrec [ConfigurationItem]
+readPrec :: ReadPrec ConfigurationItem
+$creadPrec :: ReadPrec ConfigurationItem
+readList :: ReadS [ConfigurationItem]
+$creadList :: ReadS [ConfigurationItem]
+readsPrec :: Int -&gt; ReadS ConfigurationItem
+$creadsPrec :: Int -&gt; ReadS ConfigurationItem
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680441608"><span id="local-6989586621680441610"><span class="annot"><span class="annottext">ConfigurationItem -&gt; ConfigurationItem -&gt; Bool
+(ConfigurationItem -&gt; ConfigurationItem -&gt; Bool)
+-&gt; (ConfigurationItem -&gt; ConfigurationItem -&gt; Bool)
+-&gt; Eq ConfigurationItem
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: ConfigurationItem -&gt; ConfigurationItem -&gt; Bool
+$c/= :: ConfigurationItem -&gt; ConfigurationItem -&gt; Bool
+== :: ConfigurationItem -&gt; ConfigurationItem -&gt; Bool
+$c== :: ConfigurationItem -&gt; ConfigurationItem -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span id="local-6989586621680441596"><span id="local-6989586621680441598"><span id="local-6989586621680441600"><span id="local-6989586621680441602"><span id="local-6989586621680441604"><span id="local-6989586621680441606"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ConfigurationItem</span></span></span></span></span></span></span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">data</span><span> </span><span id="ConfigurationParams"><span class="annot"><a href="Language.LSP.Types.Configuration.html#ConfigurationParams"><span class="hs-identifier hs-var">ConfigurationParams</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-39"></span><span>  </span><span id="ConfigurationParams"><span class="annot"><a href="Language.LSP.Types.Configuration.html#ConfigurationParams"><span class="hs-identifier hs-var">ConfigurationParams</span></a></span></span><span>
+</span><span id="line-40"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="_items"><span class="annot"><span class="annottext">ConfigurationParams -&gt; List ConfigurationItem
+</span><a href="Language.LSP.Types.Configuration.html#_items"><span class="hs-identifier hs-var hs-var">_items</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Common.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="Language.LSP.Types.Configuration.html#ConfigurationItem"><span class="hs-identifier hs-type">ConfigurationItem</span></a></span><span>
+</span><span id="line-41"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680441588"><span id="local-6989586621680441590"><span id="local-6989586621680441592"><span class="annot"><span class="annottext">Int -&gt; ConfigurationParams -&gt; ShowS
+[ConfigurationParams] -&gt; ShowS
+ConfigurationParams -&gt; String
+(Int -&gt; ConfigurationParams -&gt; ShowS)
+-&gt; (ConfigurationParams -&gt; String)
+-&gt; ([ConfigurationParams] -&gt; ShowS)
+-&gt; Show ConfigurationParams
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [ConfigurationParams] -&gt; ShowS
+$cshowList :: [ConfigurationParams] -&gt; ShowS
+show :: ConfigurationParams -&gt; String
+$cshow :: ConfigurationParams -&gt; String
+showsPrec :: Int -&gt; ConfigurationParams -&gt; ShowS
+$cshowsPrec :: Int -&gt; ConfigurationParams -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680441580"><span id="local-6989586621680441582"><span id="local-6989586621680441584"><span id="local-6989586621680441586"><span class="annot"><span class="annottext">ReadPrec [ConfigurationParams]
+ReadPrec ConfigurationParams
+Int -&gt; ReadS ConfigurationParams
+ReadS [ConfigurationParams]
+(Int -&gt; ReadS ConfigurationParams)
+-&gt; ReadS [ConfigurationParams]
+-&gt; ReadPrec ConfigurationParams
+-&gt; ReadPrec [ConfigurationParams]
+-&gt; Read ConfigurationParams
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [ConfigurationParams]
+$creadListPrec :: ReadPrec [ConfigurationParams]
+readPrec :: ReadPrec ConfigurationParams
+$creadPrec :: ReadPrec ConfigurationParams
+readList :: ReadS [ConfigurationParams]
+$creadList :: ReadS [ConfigurationParams]
+readsPrec :: Int -&gt; ReadS ConfigurationParams
+$creadsPrec :: Int -&gt; ReadS ConfigurationParams
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680441576"><span id="local-6989586621680441578"><span class="annot"><span class="annottext">ConfigurationParams -&gt; ConfigurationParams -&gt; Bool
+(ConfigurationParams -&gt; ConfigurationParams -&gt; Bool)
+-&gt; (ConfigurationParams -&gt; ConfigurationParams -&gt; Bool)
+-&gt; Eq ConfigurationParams
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: ConfigurationParams -&gt; ConfigurationParams -&gt; Bool
+$c/= :: ConfigurationParams -&gt; ConfigurationParams -&gt; Bool
+== :: ConfigurationParams -&gt; ConfigurationParams -&gt; Bool
+$c== :: ConfigurationParams -&gt; ConfigurationParams -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-42"></span><span id="local-6989586621680441564"><span id="local-6989586621680441566"><span id="local-6989586621680441568"><span id="local-6989586621680441570"><span id="local-6989586621680441572"><span id="local-6989586621680441574"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ConfigurationParams</span></span></span></span></span></span></span><span>
+</span><span id="line-43"></span></pre></body></html>

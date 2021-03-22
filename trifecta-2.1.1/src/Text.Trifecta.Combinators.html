@@ -1,0 +1,925 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# language CPP                    #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# language FlexibleContexts       #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# language FlexibleInstances      #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# language FunctionalDependencies #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# language MultiParamTypeClasses  #-}</span><span>
+</span><span id="line-6"></span><span class="hs-pragma">{-# language UndecidableInstances   #-}</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- Module      :  Text.Trifecta.Combinators</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Copyright   :  (c) Edward Kmett 2011-2019</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- License     :  BSD3</span><span>
+</span><span id="line-12"></span><span class="hs-comment">--</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- Maintainer  :  ekmett@gmail.com</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- Stability   :  experimental</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- Portability :  non-portable</span><span>
+</span><span id="line-16"></span><span class="hs-comment">--</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-18"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.Trifecta.Combinators</span><span>
+</span><span id="line-19"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier">DeltaParsing</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#sliced"><span class="hs-identifier">sliced</span></a></span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#careting"><span class="hs-identifier">careting</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#careted"><span class="hs-identifier">careted</span></a></span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#spanning"><span class="hs-identifier">spanning</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#spanned"><span class="hs-identifier">spanned</span></a></span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#fixiting"><span class="hs-identifier">fixiting</span></a></span><span>
+</span><span id="line-24"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#MarkParsing"><span class="hs-identifier">MarkParsing</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Applicative</span></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span>                     </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadPlus</span></span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Class</span></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Identity</span></span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Reader</span></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.RWS.Lazy</span></span><span>      </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Lazy</span></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.RWS.Strict</span></span><span>    </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Strict</span></span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.State.Lazy</span></span><span>    </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Lazy</span></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.State.Strict</span></span><span>  </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Strict</span></span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Writer.Lazy</span></span><span>   </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Lazy</span></span><span>
+</span><span id="line-37"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Writer.Strict</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Strict</span></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString</span></span><span>                   </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Strict</span></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">span</span></span><span class="hs-special">)</span><span class="hs-cpp">
+#if !(MIN_VERSION_base(4,11,0))
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Semigroup</span><span class="hs-cpp">
+#endif
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Prelude</span></span><span>                           </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">span</span></span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Parser.Token</span></span><span>
+</span><span id="line-45"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html"><span class="hs-identifier">Text.Trifecta.Delta</span></a></span><span>
+</span><span id="line-46"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Trifecta.Rendering.html"><span class="hs-identifier">Text.Trifecta.Rendering</span></a></span><span>
+</span><span id="line-47"></span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- | This class provides parsers with easy access to:</span><span>
+</span><span id="line-49"></span><span class="hs-comment">--</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- 1) the current line contents.</span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- 2) the current position as a 'Delta'.</span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- 3) the ability to use 'sliced' on any parser.</span><span>
+</span><span id="line-53"></span><span class="hs-keyword">class</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679239857"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TokenParsing</span></span><span> </span><span class="annot"><a href="#local-6989586621679239857"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span id="DeltaParsing"><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-var">DeltaParsing</span></a></span></span><span> </span><span id="local-6989586621679239857"><span class="annot"><a href="#local-6989586621679239857"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-54"></span><span>  </span><span class="hs-comment">-- | Retrieve the contents of the current line (from the beginning of the line)</span><span>
+</span><span id="line-55"></span><span>  </span><span id="line"><span class="annot"><a href="Text.Trifecta.Combinators.html#line"><span class="hs-identifier hs-type">line</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679239857"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span>  </span><span class="hs-comment">-- | Retrieve the current position as a 'Delta'.</span><span>
+</span><span id="line-58"></span><span>  </span><span id="position"><span class="annot"><a href="Text.Trifecta.Combinators.html#position"><span class="hs-identifier hs-type">position</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679239857"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span>
+</span><span id="line-59"></span><span>
+</span><span id="line-60"></span><span>  </span><span class="hs-comment">-- | Run a parser, grabbing all of the text between its start and end points</span><span>
+</span><span id="line-61"></span><span>  </span><span id="local-6989586621679239833"><span id="local-6989586621679239834"><span id="slicedWith"><span class="annot"><a href="Text.Trifecta.Combinators.html#slicedWith"><span class="hs-identifier hs-type">slicedWith</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679239834"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Strict.ByteString</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679239833"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679239857"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239834"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679239857"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239833"><span class="hs-identifier hs-type">r</span></a></span></span></span><span>
+</span><span id="line-62"></span><span>
+</span><span id="line-63"></span><span>  </span><span class="hs-comment">-- | Retrieve a 'Rendering' of the current line noting this position, but not</span><span>
+</span><span id="line-64"></span><span>  </span><span class="hs-comment">-- placing a 'Caret' there.</span><span>
+</span><span id="line-65"></span><span>  </span><span id="rend"><span class="annot"><a href="Text.Trifecta.Combinators.html#rend"><span class="hs-identifier hs-type">rend</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679239857"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Rendering.html#Rendering"><span class="hs-identifier hs-type">Rendering</span></a></span><span>
+</span><span id="line-66"></span><span>  </span><span id="local-6989586621679239693"><span class="annot"><a href="Text.Trifecta.Combinators.html#rend"><span class="hs-identifier hs-var hs-var">rend</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; ByteString -&gt; Rendering
+forall s. Source s =&gt; Delta -&gt; s -&gt; Rendering
+</span><a href="Text.Trifecta.Rendering.html#rendered"><span class="hs-identifier hs-var">rendered</span></a></span><span> </span><span class="annot"><span class="annottext">(Delta -&gt; ByteString -&gt; Rendering)
+-&gt; m Delta -&gt; m (ByteString -&gt; Rendering)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">m Delta
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Delta
+</span><a href="Text.Trifecta.Combinators.html#position"><span class="hs-identifier hs-var">position</span></a></span><span> </span><span class="annot"><span class="annottext">m (ByteString -&gt; Rendering) -&gt; m ByteString -&gt; m Rendering
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#line"><span class="hs-identifier hs-var">line</span></a></span></span><span>
+</span><span id="line-67"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#rend"><span class="hs-pragma hs-type">rend</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-68"></span><span>
+</span><span id="line-69"></span><span>  </span><span class="hs-comment">-- | Grab the remainder of the current line</span><span>
+</span><span id="line-70"></span><span>  </span><span id="restOfLine"><span class="annot"><a href="Text.Trifecta.Combinators.html#restOfLine"><span class="hs-identifier hs-type">restOfLine</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679239857"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span>
+</span><span id="line-71"></span><span>  </span><span id="local-6989586621679239689"><span class="annot"><a href="Text.Trifecta.Combinators.html#restOfLine"><span class="hs-identifier hs-var hs-var">restOfLine</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; ByteString -&gt; ByteString
+</span><span class="hs-identifier hs-var">Strict.drop</span></span><span> </span><span class="annot"><span class="annottext">(Int -&gt; ByteString -&gt; ByteString)
+-&gt; (Delta -&gt; Int) -&gt; Delta -&gt; ByteString -&gt; ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="annot"><span class="annottext">(Int64 -&gt; Int) -&gt; (Delta -&gt; Int64) -&gt; Delta -&gt; Int
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Int64
+</span><a href="Text.Trifecta.Delta.html#columnByte"><span class="hs-identifier hs-var">columnByte</span></a></span><span> </span><span class="annot"><span class="annottext">(Delta -&gt; ByteString -&gt; ByteString)
+-&gt; m Delta -&gt; m (ByteString -&gt; ByteString)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">m Delta
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Delta
+</span><a href="Text.Trifecta.Combinators.html#position"><span class="hs-identifier hs-var">position</span></a></span><span> </span><span class="annot"><span class="annottext">m (ByteString -&gt; ByteString) -&gt; m ByteString -&gt; m ByteString
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#line"><span class="hs-identifier hs-var">line</span></a></span></span><span>
+</span><span id="line-72"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#restOfLine"><span class="hs-pragma hs-type">restOfLine</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-73"></span><span>
+</span><span id="line-74"></span><span id="local-6989586621679239684"><span id="local-6989586621679239685"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679239685"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239685"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Lazy.StateT</span></span><span> </span><span class="annot"><a href="#local-6989586621679239684"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239685"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-75"></span><span>  </span><span id="local-6989586621679239675"><span class="annot"><span class="annottext">line :: StateT s m ByteString
+</span><a href="#local-6989586621679239675"><span class="hs-identifier hs-var hs-var hs-var hs-var">line</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m ByteString -&gt; StateT s m ByteString
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#line"><span class="hs-identifier hs-var">line</span></a></span><span>
+</span><span id="line-76"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#line"><span class="hs-pragma hs-type">line</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-77"></span><span>  </span><span id="local-6989586621679239673"><span class="annot"><span class="annottext">position :: StateT s m Delta
+</span><a href="#local-6989586621679239673"><span class="hs-identifier hs-var hs-var hs-var hs-var">position</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Delta -&gt; StateT s m Delta
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m Delta
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Delta
+</span><a href="Text.Trifecta.Combinators.html#position"><span class="hs-identifier hs-var">position</span></a></span><span>
+</span><span id="line-78"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#position"><span class="hs-pragma hs-type">position</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-79"></span><span>  </span><span id="local-6989586621679239672"><span class="annot"><span class="annottext">slicedWith :: (a -&gt; ByteString -&gt; r) -&gt; StateT s m a -&gt; StateT s m r
+</span><a href="#local-6989586621679239672"><span class="hs-identifier hs-var hs-var hs-var hs-var">slicedWith</span></a></span></span><span> </span><span id="local-6989586621679239671"><span class="annot"><span class="annottext">a -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679239671"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Lazy.StateT</span></span><span> </span><span id="local-6989586621679239669"><span class="annot"><span class="annottext">s -&gt; m (a, s)
+</span><a href="#local-6989586621679239669"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(s -&gt; m (r, s)) -&gt; StateT s m r
+forall s (m :: * -&gt; *) a. (s -&gt; m (a, s)) -&gt; StateT s m a
+</span><span class="hs-identifier hs-var">Lazy.StateT</span></span><span> </span><span class="annot"><span class="annottext">((s -&gt; m (r, s)) -&gt; StateT s m r)
+-&gt; (s -&gt; m (r, s)) -&gt; StateT s m r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679239668"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679239668"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">((a, s) -&gt; ByteString -&gt; (r, s)) -&gt; m (a, s) -&gt; m (r, s)
+forall (m :: * -&gt; *) a r.
+DeltaParsing m =&gt;
+(a -&gt; ByteString -&gt; r) -&gt; m a -&gt; m r
+</span><a href="Text.Trifecta.Combinators.html#slicedWith"><span class="hs-identifier hs-var">slicedWith</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679239667"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679239667"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679239666"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679239666"><span class="hs-identifier hs-var">s'</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679239665"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239665"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679239671"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679239667"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239665"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679239666"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(m (a, s) -&gt; m (r, s)) -&gt; m (a, s) -&gt; m (r, s)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">s -&gt; m (a, s)
+</span><a href="#local-6989586621679239669"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679239668"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-80"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#slicedWith"><span class="hs-pragma hs-type">slicedWith</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-81"></span><span>  </span><span id="local-6989586621679239664"><span class="annot"><span class="annottext">rend :: StateT s m Rendering
+</span><a href="#local-6989586621679239664"><span class="hs-identifier hs-var hs-var hs-var hs-var">rend</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Rendering -&gt; StateT s m Rendering
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m Rendering
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Rendering
+</span><a href="Text.Trifecta.Combinators.html#rend"><span class="hs-identifier hs-var">rend</span></a></span><span>
+</span><span id="line-82"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#rend"><span class="hs-pragma hs-type">rend</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-83"></span><span>  </span><span id="local-6989586621679239663"><span class="annot"><span class="annottext">restOfLine :: StateT s m ByteString
+</span><a href="#local-6989586621679239663"><span class="hs-identifier hs-var hs-var hs-var hs-var">restOfLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m ByteString -&gt; StateT s m ByteString
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#restOfLine"><span class="hs-identifier hs-var">restOfLine</span></a></span><span>
+</span><span id="line-84"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#restOfLine"><span class="hs-pragma hs-type">restOfLine</span></a></span><span> </span><span class="hs-pragma">#-}</span></span></span><span>
+</span><span id="line-85"></span><span>
+</span><span id="line-86"></span><span id="local-6989586621679239661"><span id="local-6989586621679239662"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679239662"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239662"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Strict.StateT</span></span><span> </span><span class="annot"><a href="#local-6989586621679239661"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239662"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-87"></span><span>  </span><span id="local-6989586621679239653"><span class="annot"><span class="annottext">line :: StateT s m ByteString
+</span><a href="#local-6989586621679239653"><span class="hs-identifier hs-var hs-var hs-var hs-var">line</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m ByteString -&gt; StateT s m ByteString
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#line"><span class="hs-identifier hs-var">line</span></a></span><span>
+</span><span id="line-88"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#line"><span class="hs-pragma hs-type">line</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-89"></span><span>  </span><span id="local-6989586621679239652"><span class="annot"><span class="annottext">position :: StateT s m Delta
+</span><a href="#local-6989586621679239652"><span class="hs-identifier hs-var hs-var hs-var hs-var">position</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Delta -&gt; StateT s m Delta
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m Delta
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Delta
+</span><a href="Text.Trifecta.Combinators.html#position"><span class="hs-identifier hs-var">position</span></a></span><span>
+</span><span id="line-90"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#position"><span class="hs-pragma hs-type">position</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-91"></span><span>  </span><span id="local-6989586621679239651"><span class="annot"><span class="annottext">slicedWith :: (a -&gt; ByteString -&gt; r) -&gt; StateT s m a -&gt; StateT s m r
+</span><a href="#local-6989586621679239651"><span class="hs-identifier hs-var hs-var hs-var hs-var">slicedWith</span></a></span></span><span> </span><span id="local-6989586621679239650"><span class="annot"><span class="annottext">a -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679239650"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Strict.StateT</span></span><span> </span><span id="local-6989586621679239648"><span class="annot"><span class="annottext">s -&gt; m (a, s)
+</span><a href="#local-6989586621679239648"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(s -&gt; m (r, s)) -&gt; StateT s m r
+forall s (m :: * -&gt; *) a. (s -&gt; m (a, s)) -&gt; StateT s m a
+</span><span class="hs-identifier hs-var">Strict.StateT</span></span><span> </span><span class="annot"><span class="annottext">((s -&gt; m (r, s)) -&gt; StateT s m r)
+-&gt; (s -&gt; m (r, s)) -&gt; StateT s m r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679239647"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679239647"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">((a, s) -&gt; ByteString -&gt; (r, s)) -&gt; m (a, s) -&gt; m (r, s)
+forall (m :: * -&gt; *) a r.
+DeltaParsing m =&gt;
+(a -&gt; ByteString -&gt; r) -&gt; m a -&gt; m r
+</span><a href="Text.Trifecta.Combinators.html#slicedWith"><span class="hs-identifier hs-var">slicedWith</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679239646"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679239646"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679239645"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679239645"><span class="hs-identifier hs-var">s'</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679239644"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239644"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679239650"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679239646"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239644"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679239645"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(m (a, s) -&gt; m (r, s)) -&gt; m (a, s) -&gt; m (r, s)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">s -&gt; m (a, s)
+</span><a href="#local-6989586621679239648"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679239647"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-92"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#slicedWith"><span class="hs-pragma hs-type">slicedWith</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-93"></span><span>  </span><span id="local-6989586621679239643"><span class="annot"><span class="annottext">rend :: StateT s m Rendering
+</span><a href="#local-6989586621679239643"><span class="hs-identifier hs-var hs-var hs-var hs-var">rend</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Rendering -&gt; StateT s m Rendering
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m Rendering
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Rendering
+</span><a href="Text.Trifecta.Combinators.html#rend"><span class="hs-identifier hs-var">rend</span></a></span><span>
+</span><span id="line-94"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#rend"><span class="hs-pragma hs-type">rend</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-95"></span><span>  </span><span id="local-6989586621679239642"><span class="annot"><span class="annottext">restOfLine :: StateT s m ByteString
+</span><a href="#local-6989586621679239642"><span class="hs-identifier hs-var hs-var hs-var hs-var">restOfLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m ByteString -&gt; StateT s m ByteString
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#restOfLine"><span class="hs-identifier hs-var">restOfLine</span></a></span><span>
+</span><span id="line-96"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#restOfLine"><span class="hs-pragma hs-type">restOfLine</span></a></span><span> </span><span class="hs-pragma">#-}</span></span></span><span>
+</span><span id="line-97"></span><span>
+</span><span id="line-98"></span><span id="local-6989586621679239640"><span id="local-6989586621679239641"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679239641"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239641"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ReaderT</span></span><span> </span><span class="annot"><a href="#local-6989586621679239640"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239641"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-99"></span><span>  </span><span id="local-6989586621679239632"><span class="annot"><span class="annottext">line :: ReaderT e m ByteString
+</span><a href="#local-6989586621679239632"><span class="hs-identifier hs-var hs-var hs-var hs-var">line</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m ByteString -&gt; ReaderT e m ByteString
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#line"><span class="hs-identifier hs-var">line</span></a></span><span>
+</span><span id="line-100"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#line"><span class="hs-pragma hs-type">line</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-101"></span><span>  </span><span id="local-6989586621679239631"><span class="annot"><span class="annottext">position :: ReaderT e m Delta
+</span><a href="#local-6989586621679239631"><span class="hs-identifier hs-var hs-var hs-var hs-var">position</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Delta -&gt; ReaderT e m Delta
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m Delta
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Delta
+</span><a href="Text.Trifecta.Combinators.html#position"><span class="hs-identifier hs-var">position</span></a></span><span>
+</span><span id="line-102"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#position"><span class="hs-pragma hs-type">position</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-103"></span><span>  </span><span id="local-6989586621679239630"><span class="annot"><span class="annottext">slicedWith :: (a -&gt; ByteString -&gt; r) -&gt; ReaderT e m a -&gt; ReaderT e m r
+</span><a href="#local-6989586621679239630"><span class="hs-identifier hs-var hs-var hs-var hs-var">slicedWith</span></a></span></span><span> </span><span id="local-6989586621679239629"><span class="annot"><span class="annottext">a -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679239629"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ReaderT</span></span><span> </span><span id="local-6989586621679239627"><span class="annot"><span class="annottext">e -&gt; m a
+</span><a href="#local-6989586621679239627"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(e -&gt; m r) -&gt; ReaderT e m r
+forall r (m :: * -&gt; *) a. (r -&gt; m a) -&gt; ReaderT r m a
+</span><span class="hs-identifier hs-var">ReaderT</span></span><span> </span><span class="annot"><span class="annottext">((e -&gt; m r) -&gt; ReaderT e m r) -&gt; (e -&gt; m r) -&gt; ReaderT e m r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; ByteString -&gt; r) -&gt; m a -&gt; m r
+forall (m :: * -&gt; *) a r.
+DeltaParsing m =&gt;
+(a -&gt; ByteString -&gt; r) -&gt; m a -&gt; m r
+</span><a href="Text.Trifecta.Combinators.html#slicedWith"><span class="hs-identifier hs-var">slicedWith</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679239629"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">(m a -&gt; m r) -&gt; (e -&gt; m a) -&gt; e -&gt; m r
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">e -&gt; m a
+</span><a href="#local-6989586621679239627"><span class="hs-identifier hs-var">m</span></a></span><span>
+</span><span id="line-104"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#slicedWith"><span class="hs-pragma hs-type">slicedWith</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-105"></span><span>  </span><span id="local-6989586621679239626"><span class="annot"><span class="annottext">rend :: ReaderT e m Rendering
+</span><a href="#local-6989586621679239626"><span class="hs-identifier hs-var hs-var hs-var hs-var">rend</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Rendering -&gt; ReaderT e m Rendering
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m Rendering
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Rendering
+</span><a href="Text.Trifecta.Combinators.html#rend"><span class="hs-identifier hs-var">rend</span></a></span><span>
+</span><span id="line-106"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#rend"><span class="hs-pragma hs-type">rend</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-107"></span><span>  </span><span id="local-6989586621679239625"><span class="annot"><span class="annottext">restOfLine :: ReaderT e m ByteString
+</span><a href="#local-6989586621679239625"><span class="hs-identifier hs-var hs-var hs-var hs-var">restOfLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m ByteString -&gt; ReaderT e m ByteString
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#restOfLine"><span class="hs-identifier hs-var">restOfLine</span></a></span><span>
+</span><span id="line-108"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#restOfLine"><span class="hs-pragma hs-type">restOfLine</span></a></span><span> </span><span class="hs-pragma">#-}</span></span></span><span>
+</span><span id="line-109"></span><span>
+</span><span id="line-110"></span><span id="local-6989586621679239623"><span id="local-6989586621679239624"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679239624"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239624"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="#local-6989586621679239623"><span class="hs-identifier hs-type">w</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Strict.WriterT</span></span><span> </span><span class="annot"><a href="#local-6989586621679239623"><span class="hs-identifier hs-type">w</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239624"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-111"></span><span>  </span><span id="local-6989586621679239615"><span class="annot"><span class="annottext">line :: WriterT w m ByteString
+</span><a href="#local-6989586621679239615"><span class="hs-identifier hs-var hs-var hs-var hs-var">line</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m ByteString -&gt; WriterT w m ByteString
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#line"><span class="hs-identifier hs-var">line</span></a></span><span>
+</span><span id="line-112"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#line"><span class="hs-pragma hs-type">line</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-113"></span><span>  </span><span id="local-6989586621679239614"><span class="annot"><span class="annottext">position :: WriterT w m Delta
+</span><a href="#local-6989586621679239614"><span class="hs-identifier hs-var hs-var hs-var hs-var">position</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Delta -&gt; WriterT w m Delta
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m Delta
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Delta
+</span><a href="Text.Trifecta.Combinators.html#position"><span class="hs-identifier hs-var">position</span></a></span><span>
+</span><span id="line-114"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#position"><span class="hs-pragma hs-type">position</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-115"></span><span>  </span><span id="local-6989586621679239613"><span class="annot"><span class="annottext">slicedWith :: (a -&gt; ByteString -&gt; r) -&gt; WriterT w m a -&gt; WriterT w m r
+</span><a href="#local-6989586621679239613"><span class="hs-identifier hs-var hs-var hs-var hs-var">slicedWith</span></a></span></span><span> </span><span id="local-6989586621679239612"><span class="annot"><span class="annottext">a -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679239612"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Strict.WriterT</span></span><span> </span><span id="local-6989586621679239610"><span class="annot"><span class="annottext">m (a, w)
+</span><a href="#local-6989586621679239610"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (r, w) -&gt; WriterT w m r
+forall w (m :: * -&gt; *) a. m (a, w) -&gt; WriterT w m a
+</span><span class="hs-identifier hs-var">Strict.WriterT</span></span><span> </span><span class="annot"><span class="annottext">(m (r, w) -&gt; WriterT w m r) -&gt; m (r, w) -&gt; WriterT w m r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">((a, w) -&gt; ByteString -&gt; (r, w)) -&gt; m (a, w) -&gt; m (r, w)
+forall (m :: * -&gt; *) a r.
+DeltaParsing m =&gt;
+(a -&gt; ByteString -&gt; r) -&gt; m a -&gt; m r
+</span><a href="Text.Trifecta.Combinators.html#slicedWith"><span class="hs-identifier hs-var">slicedWith</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679239609"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679239609"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679239608"><span class="annot"><span class="annottext">w
+</span><a href="#local-6989586621679239608"><span class="hs-identifier hs-var">s'</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679239607"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239607"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679239612"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679239609"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239607"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">w
+</span><a href="#local-6989586621679239608"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">m (a, w)
+</span><a href="#local-6989586621679239610"><span class="hs-identifier hs-var">m</span></a></span><span>
+</span><span id="line-116"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#slicedWith"><span class="hs-pragma hs-type">slicedWith</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-117"></span><span>  </span><span id="local-6989586621679239606"><span class="annot"><span class="annottext">rend :: WriterT w m Rendering
+</span><a href="#local-6989586621679239606"><span class="hs-identifier hs-var hs-var hs-var hs-var">rend</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Rendering -&gt; WriterT w m Rendering
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m Rendering
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Rendering
+</span><a href="Text.Trifecta.Combinators.html#rend"><span class="hs-identifier hs-var">rend</span></a></span><span>
+</span><span id="line-118"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#rend"><span class="hs-pragma hs-type">rend</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-119"></span><span>  </span><span id="local-6989586621679239605"><span class="annot"><span class="annottext">restOfLine :: WriterT w m ByteString
+</span><a href="#local-6989586621679239605"><span class="hs-identifier hs-var hs-var hs-var hs-var">restOfLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m ByteString -&gt; WriterT w m ByteString
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#restOfLine"><span class="hs-identifier hs-var">restOfLine</span></a></span><span>
+</span><span id="line-120"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#restOfLine"><span class="hs-pragma hs-type">restOfLine</span></a></span><span> </span><span class="hs-pragma">#-}</span></span></span><span>
+</span><span id="line-121"></span><span>
+</span><span id="line-122"></span><span id="local-6989586621679239603"><span id="local-6989586621679239604"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679239604"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239604"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="#local-6989586621679239603"><span class="hs-identifier hs-type">w</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Lazy.WriterT</span></span><span> </span><span class="annot"><a href="#local-6989586621679239603"><span class="hs-identifier hs-type">w</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239604"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-123"></span><span>  </span><span id="local-6989586621679239595"><span class="annot"><span class="annottext">line :: WriterT w m ByteString
+</span><a href="#local-6989586621679239595"><span class="hs-identifier hs-var hs-var hs-var hs-var">line</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m ByteString -&gt; WriterT w m ByteString
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#line"><span class="hs-identifier hs-var">line</span></a></span><span>
+</span><span id="line-124"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#line"><span class="hs-pragma hs-type">line</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-125"></span><span>  </span><span id="local-6989586621679239594"><span class="annot"><span class="annottext">position :: WriterT w m Delta
+</span><a href="#local-6989586621679239594"><span class="hs-identifier hs-var hs-var hs-var hs-var">position</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Delta -&gt; WriterT w m Delta
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m Delta
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Delta
+</span><a href="Text.Trifecta.Combinators.html#position"><span class="hs-identifier hs-var">position</span></a></span><span>
+</span><span id="line-126"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#position"><span class="hs-pragma hs-type">position</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-127"></span><span>  </span><span id="local-6989586621679239593"><span class="annot"><span class="annottext">slicedWith :: (a -&gt; ByteString -&gt; r) -&gt; WriterT w m a -&gt; WriterT w m r
+</span><a href="#local-6989586621679239593"><span class="hs-identifier hs-var hs-var hs-var hs-var">slicedWith</span></a></span></span><span> </span><span id="local-6989586621679239592"><span class="annot"><span class="annottext">a -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679239592"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Lazy.WriterT</span></span><span> </span><span id="local-6989586621679239590"><span class="annot"><span class="annottext">m (a, w)
+</span><a href="#local-6989586621679239590"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (r, w) -&gt; WriterT w m r
+forall w (m :: * -&gt; *) a. m (a, w) -&gt; WriterT w m a
+</span><span class="hs-identifier hs-var">Lazy.WriterT</span></span><span> </span><span class="annot"><span class="annottext">(m (r, w) -&gt; WriterT w m r) -&gt; m (r, w) -&gt; WriterT w m r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">((a, w) -&gt; ByteString -&gt; (r, w)) -&gt; m (a, w) -&gt; m (r, w)
+forall (m :: * -&gt; *) a r.
+DeltaParsing m =&gt;
+(a -&gt; ByteString -&gt; r) -&gt; m a -&gt; m r
+</span><a href="Text.Trifecta.Combinators.html#slicedWith"><span class="hs-identifier hs-var">slicedWith</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679239589"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679239589"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679239588"><span class="annot"><span class="annottext">w
+</span><a href="#local-6989586621679239588"><span class="hs-identifier hs-var">s'</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679239587"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239587"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679239592"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679239589"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239587"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">w
+</span><a href="#local-6989586621679239588"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">m (a, w)
+</span><a href="#local-6989586621679239590"><span class="hs-identifier hs-var">m</span></a></span><span>
+</span><span id="line-128"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#slicedWith"><span class="hs-pragma hs-type">slicedWith</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-129"></span><span>  </span><span id="local-6989586621679239586"><span class="annot"><span class="annottext">rend :: WriterT w m Rendering
+</span><a href="#local-6989586621679239586"><span class="hs-identifier hs-var hs-var hs-var hs-var">rend</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Rendering -&gt; WriterT w m Rendering
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m Rendering
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Rendering
+</span><a href="Text.Trifecta.Combinators.html#rend"><span class="hs-identifier hs-var">rend</span></a></span><span>
+</span><span id="line-130"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#rend"><span class="hs-pragma hs-type">rend</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-131"></span><span>  </span><span id="local-6989586621679239585"><span class="annot"><span class="annottext">restOfLine :: WriterT w m ByteString
+</span><a href="#local-6989586621679239585"><span class="hs-identifier hs-var hs-var hs-var hs-var">restOfLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m ByteString -&gt; WriterT w m ByteString
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#restOfLine"><span class="hs-identifier hs-var">restOfLine</span></a></span><span>
+</span><span id="line-132"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#restOfLine"><span class="hs-pragma hs-type">restOfLine</span></a></span><span> </span><span class="hs-pragma">#-}</span></span></span><span>
+</span><span id="line-133"></span><span>
+</span><span id="line-134"></span><span id="local-6989586621679239581"><span id="local-6989586621679239582"><span id="local-6989586621679239583"><span id="local-6989586621679239584"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679239584"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239584"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="#local-6989586621679239583"><span class="hs-identifier hs-type">w</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Lazy.RWST</span></span><span> </span><span class="annot"><a href="#local-6989586621679239582"><span class="hs-identifier hs-type">r</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239583"><span class="hs-identifier hs-type">w</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239581"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239584"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-135"></span><span>  </span><span id="local-6989586621679239573"><span class="annot"><span class="annottext">line :: RWST r w s m ByteString
+</span><a href="#local-6989586621679239573"><span class="hs-identifier hs-var hs-var hs-var hs-var">line</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m ByteString -&gt; RWST r w s m ByteString
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#line"><span class="hs-identifier hs-var">line</span></a></span><span>
+</span><span id="line-136"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#line"><span class="hs-pragma hs-type">line</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-137"></span><span>  </span><span id="local-6989586621679239572"><span class="annot"><span class="annottext">position :: RWST r w s m Delta
+</span><a href="#local-6989586621679239572"><span class="hs-identifier hs-var hs-var hs-var hs-var">position</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Delta -&gt; RWST r w s m Delta
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m Delta
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Delta
+</span><a href="Text.Trifecta.Combinators.html#position"><span class="hs-identifier hs-var">position</span></a></span><span>
+</span><span id="line-138"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#position"><span class="hs-pragma hs-type">position</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-139"></span><span>  </span><span id="local-6989586621679239571"><span class="annot"><span class="annottext">slicedWith :: (a -&gt; ByteString -&gt; r) -&gt; RWST r w s m a -&gt; RWST r w s m r
+</span><a href="#local-6989586621679239571"><span class="hs-identifier hs-var hs-var hs-var hs-var">slicedWith</span></a></span></span><span> </span><span id="local-6989586621679239570"><span class="annot"><span class="annottext">a -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679239570"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Lazy.RWST</span></span><span> </span><span id="local-6989586621679239568"><span class="annot"><span class="annottext">r -&gt; s -&gt; m (a, s, w)
+</span><a href="#local-6989586621679239568"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(r -&gt; s -&gt; m (r, s, w)) -&gt; RWST r w s m r
+forall r w s (m :: * -&gt; *) a.
+(r -&gt; s -&gt; m (a, s, w)) -&gt; RWST r w s m a
+</span><span class="hs-identifier hs-var">Lazy.RWST</span></span><span> </span><span class="annot"><span class="annottext">((r -&gt; s -&gt; m (r, s, w)) -&gt; RWST r w s m r)
+-&gt; (r -&gt; s -&gt; m (r, s, w)) -&gt; RWST r w s m r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679239567"><span class="annot"><span class="annottext">r
+</span><a href="#local-6989586621679239567"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span id="local-6989586621679239566"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679239566"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">((a, s, w) -&gt; ByteString -&gt; (r, s, w))
+-&gt; m (a, s, w) -&gt; m (r, s, w)
+forall (m :: * -&gt; *) a r.
+DeltaParsing m =&gt;
+(a -&gt; ByteString -&gt; r) -&gt; m a -&gt; m r
+</span><a href="Text.Trifecta.Combinators.html#slicedWith"><span class="hs-identifier hs-var">slicedWith</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679239565"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679239565"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679239564"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679239564"><span class="hs-identifier hs-var">s'</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679239563"><span class="annot"><span class="annottext">w
+</span><a href="#local-6989586621679239563"><span class="hs-identifier hs-var">w</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679239562"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239562"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679239570"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679239565"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239562"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679239564"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">w
+</span><a href="#local-6989586621679239563"><span class="hs-identifier hs-var">w</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(m (a, s, w) -&gt; m (r, s, w)) -&gt; m (a, s, w) -&gt; m (r, s, w)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">r -&gt; s -&gt; m (a, s, w)
+</span><a href="#local-6989586621679239568"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">r
+</span><a href="#local-6989586621679239567"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679239566"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-140"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#slicedWith"><span class="hs-pragma hs-type">slicedWith</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-141"></span><span>  </span><span id="local-6989586621679239561"><span class="annot"><span class="annottext">rend :: RWST r w s m Rendering
+</span><a href="#local-6989586621679239561"><span class="hs-identifier hs-var hs-var hs-var hs-var">rend</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Rendering -&gt; RWST r w s m Rendering
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m Rendering
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Rendering
+</span><a href="Text.Trifecta.Combinators.html#rend"><span class="hs-identifier hs-var">rend</span></a></span><span>
+</span><span id="line-142"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#rend"><span class="hs-pragma hs-type">rend</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-143"></span><span>  </span><span id="local-6989586621679239560"><span class="annot"><span class="annottext">restOfLine :: RWST r w s m ByteString
+</span><a href="#local-6989586621679239560"><span class="hs-identifier hs-var hs-var hs-var hs-var">restOfLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m ByteString -&gt; RWST r w s m ByteString
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#restOfLine"><span class="hs-identifier hs-var">restOfLine</span></a></span><span>
+</span><span id="line-144"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#restOfLine"><span class="hs-pragma hs-type">restOfLine</span></a></span><span> </span><span class="hs-pragma">#-}</span></span></span></span></span><span>
+</span><span id="line-145"></span><span>
+</span><span id="line-146"></span><span id="local-6989586621679239556"><span id="local-6989586621679239557"><span id="local-6989586621679239558"><span id="local-6989586621679239559"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679239559"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239559"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="#local-6989586621679239558"><span class="hs-identifier hs-type">w</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Strict.RWST</span></span><span> </span><span class="annot"><a href="#local-6989586621679239557"><span class="hs-identifier hs-type">r</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239558"><span class="hs-identifier hs-type">w</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239556"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239559"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-147"></span><span>  </span><span id="local-6989586621679239548"><span class="annot"><span class="annottext">line :: RWST r w s m ByteString
+</span><a href="#local-6989586621679239548"><span class="hs-identifier hs-var hs-var hs-var hs-var">line</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m ByteString -&gt; RWST r w s m ByteString
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#line"><span class="hs-identifier hs-var">line</span></a></span><span>
+</span><span id="line-148"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#line"><span class="hs-pragma hs-type">line</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-149"></span><span>  </span><span id="local-6989586621679239547"><span class="annot"><span class="annottext">position :: RWST r w s m Delta
+</span><a href="#local-6989586621679239547"><span class="hs-identifier hs-var hs-var hs-var hs-var">position</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Delta -&gt; RWST r w s m Delta
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m Delta
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Delta
+</span><a href="Text.Trifecta.Combinators.html#position"><span class="hs-identifier hs-var">position</span></a></span><span>
+</span><span id="line-150"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#position"><span class="hs-pragma hs-type">position</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-151"></span><span>  </span><span id="local-6989586621679239546"><span class="annot"><span class="annottext">slicedWith :: (a -&gt; ByteString -&gt; r) -&gt; RWST r w s m a -&gt; RWST r w s m r
+</span><a href="#local-6989586621679239546"><span class="hs-identifier hs-var hs-var hs-var hs-var">slicedWith</span></a></span></span><span> </span><span id="local-6989586621679239545"><span class="annot"><span class="annottext">a -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679239545"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Strict.RWST</span></span><span> </span><span id="local-6989586621679239543"><span class="annot"><span class="annottext">r -&gt; s -&gt; m (a, s, w)
+</span><a href="#local-6989586621679239543"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(r -&gt; s -&gt; m (r, s, w)) -&gt; RWST r w s m r
+forall r w s (m :: * -&gt; *) a.
+(r -&gt; s -&gt; m (a, s, w)) -&gt; RWST r w s m a
+</span><span class="hs-identifier hs-var">Strict.RWST</span></span><span> </span><span class="annot"><span class="annottext">((r -&gt; s -&gt; m (r, s, w)) -&gt; RWST r w s m r)
+-&gt; (r -&gt; s -&gt; m (r, s, w)) -&gt; RWST r w s m r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679239542"><span class="annot"><span class="annottext">r
+</span><a href="#local-6989586621679239542"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span id="local-6989586621679239541"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679239541"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">((a, s, w) -&gt; ByteString -&gt; (r, s, w))
+-&gt; m (a, s, w) -&gt; m (r, s, w)
+forall (m :: * -&gt; *) a r.
+DeltaParsing m =&gt;
+(a -&gt; ByteString -&gt; r) -&gt; m a -&gt; m r
+</span><a href="Text.Trifecta.Combinators.html#slicedWith"><span class="hs-identifier hs-var">slicedWith</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679239540"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679239540"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679239539"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679239539"><span class="hs-identifier hs-var">s'</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679239538"><span class="annot"><span class="annottext">w
+</span><a href="#local-6989586621679239538"><span class="hs-identifier hs-var">w</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679239537"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239537"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679239545"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679239540"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239537"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679239539"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">w
+</span><a href="#local-6989586621679239538"><span class="hs-identifier hs-var">w</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(m (a, s, w) -&gt; m (r, s, w)) -&gt; m (a, s, w) -&gt; m (r, s, w)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">r -&gt; s -&gt; m (a, s, w)
+</span><a href="#local-6989586621679239543"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">r
+</span><a href="#local-6989586621679239542"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679239541"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-152"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#slicedWith"><span class="hs-pragma hs-type">slicedWith</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-153"></span><span>  </span><span id="local-6989586621679239536"><span class="annot"><span class="annottext">rend :: RWST r w s m Rendering
+</span><a href="#local-6989586621679239536"><span class="hs-identifier hs-var hs-var hs-var hs-var">rend</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Rendering -&gt; RWST r w s m Rendering
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m Rendering
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Rendering
+</span><a href="Text.Trifecta.Combinators.html#rend"><span class="hs-identifier hs-var">rend</span></a></span><span>
+</span><span id="line-154"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#rend"><span class="hs-pragma hs-type">rend</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-155"></span><span>  </span><span id="local-6989586621679239535"><span class="annot"><span class="annottext">restOfLine :: RWST r w s m ByteString
+</span><a href="#local-6989586621679239535"><span class="hs-identifier hs-var hs-var hs-var hs-var">restOfLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m ByteString -&gt; RWST r w s m ByteString
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#restOfLine"><span class="hs-identifier hs-var">restOfLine</span></a></span><span>
+</span><span id="line-156"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#restOfLine"><span class="hs-pragma hs-type">restOfLine</span></a></span><span> </span><span class="hs-pragma">#-}</span></span></span></span></span><span>
+</span><span id="line-157"></span><span>
+</span><span id="line-158"></span><span id="local-6989586621679239534"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679239534"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239534"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">IdentityT</span></span><span> </span><span class="annot"><a href="#local-6989586621679239534"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-159"></span><span>  </span><span id="local-6989586621679239526"><span class="annot"><span class="annottext">line :: IdentityT m ByteString
+</span><a href="#local-6989586621679239526"><span class="hs-identifier hs-var hs-var hs-var hs-var">line</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m ByteString -&gt; IdentityT m ByteString
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#line"><span class="hs-identifier hs-var">line</span></a></span><span>
+</span><span id="line-160"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#line"><span class="hs-pragma hs-type">line</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-161"></span><span>  </span><span id="local-6989586621679239525"><span class="annot"><span class="annottext">position :: IdentityT m Delta
+</span><a href="#local-6989586621679239525"><span class="hs-identifier hs-var hs-var hs-var hs-var">position</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Delta -&gt; IdentityT m Delta
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m Delta
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Delta
+</span><a href="Text.Trifecta.Combinators.html#position"><span class="hs-identifier hs-var">position</span></a></span><span>
+</span><span id="line-162"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#position"><span class="hs-pragma hs-type">position</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-163"></span><span>  </span><span id="local-6989586621679239524"><span class="annot"><span class="annottext">slicedWith :: (a -&gt; ByteString -&gt; r) -&gt; IdentityT m a -&gt; IdentityT m r
+</span><a href="#local-6989586621679239524"><span class="hs-identifier hs-var hs-var hs-var hs-var">slicedWith</span></a></span></span><span> </span><span id="local-6989586621679239523"><span class="annot"><span class="annottext">a -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679239523"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">IdentityT</span></span><span> </span><span id="local-6989586621679239521"><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679239521"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m r -&gt; IdentityT m r
+forall k (f :: k -&gt; *) (a :: k). f a -&gt; IdentityT f a
+</span><span class="hs-identifier hs-var">IdentityT</span></span><span> </span><span class="annot"><span class="annottext">(m r -&gt; IdentityT m r) -&gt; m r -&gt; IdentityT m r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; ByteString -&gt; r) -&gt; m a -&gt; m r
+forall (m :: * -&gt; *) a r.
+DeltaParsing m =&gt;
+(a -&gt; ByteString -&gt; r) -&gt; m a -&gt; m r
+</span><a href="Text.Trifecta.Combinators.html#slicedWith"><span class="hs-identifier hs-var">slicedWith</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; ByteString -&gt; r
+</span><a href="#local-6989586621679239523"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679239521"><span class="hs-identifier hs-var">m</span></a></span><span>
+</span><span id="line-164"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#slicedWith"><span class="hs-pragma hs-type">slicedWith</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-165"></span><span>  </span><span id="local-6989586621679239520"><span class="annot"><span class="annottext">rend :: IdentityT m Rendering
+</span><a href="#local-6989586621679239520"><span class="hs-identifier hs-var hs-var hs-var hs-var">rend</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Rendering -&gt; IdentityT m Rendering
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m Rendering
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Rendering
+</span><a href="Text.Trifecta.Combinators.html#rend"><span class="hs-identifier hs-var">rend</span></a></span><span>
+</span><span id="line-166"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#rend"><span class="hs-pragma hs-type">rend</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-167"></span><span>  </span><span id="local-6989586621679239519"><span class="annot"><span class="annottext">restOfLine :: IdentityT m ByteString
+</span><a href="#local-6989586621679239519"><span class="hs-identifier hs-var hs-var hs-var hs-var">restOfLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m ByteString -&gt; IdentityT m ByteString
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#restOfLine"><span class="hs-identifier hs-var">restOfLine</span></a></span><span>
+</span><span id="line-168"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#restOfLine"><span class="hs-pragma hs-type">restOfLine</span></a></span><span> </span><span class="hs-pragma">#-}</span></span><span>
+</span><span id="line-169"></span><span>
+</span><span id="line-170"></span><span class="hs-comment">-- | Run a parser, grabbing all of the text between its start and end points and</span><span>
+</span><span id="line-171"></span><span class="hs-comment">-- discarding the original result</span><span>
+</span><span id="line-172"></span><span id="local-6989586621679239517"><span id="local-6989586621679239518"><span class="annot"><a href="Text.Trifecta.Combinators.html#sliced"><span class="hs-identifier hs-type">sliced</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239518"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679239518"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239517"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679239518"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span></span></span><span>
+</span><span id="line-173"></span><span id="sliced"><span class="annot"><span class="annottext">sliced :: m a -&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#sliced"><span class="hs-identifier hs-var hs-var">sliced</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a -&gt; ByteString -&gt; ByteString) -&gt; m a -&gt; m ByteString
+forall (m :: * -&gt; *) a r.
+DeltaParsing m =&gt;
+(a -&gt; ByteString -&gt; r) -&gt; m a -&gt; m r
+</span><a href="Text.Trifecta.Combinators.html#slicedWith"><span class="hs-identifier hs-var">slicedWith</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679239516"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239516"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239516"><span class="hs-identifier hs-var">bs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-174"></span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#sliced"><span class="hs-pragma hs-type">sliced</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-175"></span><span>
+</span><span id="line-176"></span><span class="hs-comment">-- | Grab a 'Caret' pointing to the current location.</span><span>
+</span><span id="line-177"></span><span id="local-6989586621679239515"><span class="annot"><a href="Text.Trifecta.Combinators.html#careting"><span class="hs-identifier hs-type">careting</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239515"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679239515"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Rendering.html#Caret"><span class="hs-identifier hs-type">Caret</span></a></span></span><span>
+</span><span id="line-178"></span><span id="careting"><span class="annot"><span class="annottext">careting :: m Caret
+</span><a href="Text.Trifecta.Combinators.html#careting"><span class="hs-identifier hs-var hs-var">careting</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; ByteString -&gt; Caret
+</span><a href="Text.Trifecta.Rendering.html#Caret"><span class="hs-identifier hs-var">Caret</span></a></span><span> </span><span class="annot"><span class="annottext">(Delta -&gt; ByteString -&gt; Caret)
+-&gt; m Delta -&gt; m (ByteString -&gt; Caret)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">m Delta
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Delta
+</span><a href="Text.Trifecta.Combinators.html#position"><span class="hs-identifier hs-var">position</span></a></span><span> </span><span class="annot"><span class="annottext">m (ByteString -&gt; Caret) -&gt; m ByteString -&gt; m Caret
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#line"><span class="hs-identifier hs-var">line</span></a></span><span>
+</span><span id="line-179"></span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#careting"><span class="hs-pragma hs-type">careting</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-180"></span><span>
+</span><span id="line-181"></span><span class="hs-comment">-- | Parse a 'Careted' result. Pointing the 'Caret' to where you start.</span><span>
+</span><span id="line-182"></span><span id="local-6989586621679239512"><span id="local-6989586621679239513"><span class="annot"><a href="Text.Trifecta.Combinators.html#careted"><span class="hs-identifier hs-type">careted</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239513"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679239513"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239512"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679239513"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Rendering.html#Careted"><span class="hs-identifier hs-type">Careted</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239512"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-183"></span><span id="careted"><span class="annot"><span class="annottext">careted :: m a -&gt; m (Careted a)
+</span><a href="Text.Trifecta.Combinators.html#careted"><span class="hs-identifier hs-var hs-var">careted</span></a></span></span><span> </span><span id="local-6989586621679239511"><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679239511"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679239510"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679239510"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span id="local-6989586621679239509"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239509"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679239508"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679239508"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679239508"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; Caret -&gt; Careted a
+forall a. a -&gt; Caret -&gt; Careted a
+</span><a href="Text.Trifecta.Rendering.html#%3A%5E"><span class="hs-operator hs-var">:^</span></a></span><span> </span><span class="annot"><span class="annottext">Delta -&gt; ByteString -&gt; Caret
+</span><a href="Text.Trifecta.Rendering.html#Caret"><span class="hs-identifier hs-var">Caret</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679239510"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239509"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Delta -&gt; ByteString -&gt; a -&gt; Careted a)
+-&gt; m Delta -&gt; m (ByteString -&gt; a -&gt; Careted a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">m Delta
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Delta
+</span><a href="Text.Trifecta.Combinators.html#position"><span class="hs-identifier hs-var">position</span></a></span><span> </span><span class="annot"><span class="annottext">m (ByteString -&gt; a -&gt; Careted a)
+-&gt; m ByteString -&gt; m (a -&gt; Careted a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#line"><span class="hs-identifier hs-var">line</span></a></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; Careted a) -&gt; m a -&gt; m (Careted a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679239511"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-184"></span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#careted"><span class="hs-pragma hs-type">careted</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-185"></span><span>
+</span><span id="line-186"></span><span class="hs-comment">-- | Discard the result of a parse, returning a 'Span' from where we start to</span><span>
+</span><span id="line-187"></span><span class="hs-comment">-- where it ended parsing.</span><span>
+</span><span id="line-188"></span><span id="local-6989586621679239505"><span id="local-6989586621679239506"><span class="annot"><a href="Text.Trifecta.Combinators.html#spanning"><span class="hs-identifier hs-type">spanning</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239506"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679239506"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239505"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679239506"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Rendering.html#Span"><span class="hs-identifier hs-type">Span</span></a></span></span></span><span>
+</span><span id="line-189"></span><span id="spanning"><span class="annot"><span class="annottext">spanning :: m a -&gt; m Span
+</span><a href="Text.Trifecta.Combinators.html#spanning"><span class="hs-identifier hs-var hs-var">spanning</span></a></span></span><span> </span><span id="local-6989586621679239504"><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679239504"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679239503"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679239503"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679239502"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239502"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679239501"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679239501"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Delta -&gt; ByteString -&gt; Span
+</span><a href="Text.Trifecta.Rendering.html#Span"><span class="hs-identifier hs-var">Span</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679239503"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679239501"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239502"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Delta -&gt; ByteString -&gt; Delta -&gt; Span)
+-&gt; m Delta -&gt; m (ByteString -&gt; Delta -&gt; Span)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">m Delta
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Delta
+</span><a href="Text.Trifecta.Combinators.html#position"><span class="hs-identifier hs-var">position</span></a></span><span> </span><span class="annot"><span class="annottext">m (ByteString -&gt; Delta -&gt; Span)
+-&gt; m ByteString -&gt; m (Delta -&gt; Span)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#line"><span class="hs-identifier hs-var">line</span></a></span><span> </span><span class="annot"><span class="annottext">m (Delta -&gt; Span) -&gt; m Delta -&gt; m Span
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679239504"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">m a -&gt; m Delta -&gt; m Delta
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m Delta
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Delta
+</span><a href="Text.Trifecta.Combinators.html#position"><span class="hs-identifier hs-var">position</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-190"></span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#spanning"><span class="hs-pragma hs-type">spanning</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-191"></span><span>
+</span><span id="line-192"></span><span class="hs-comment">-- | Parse a 'Spanned' result. The 'Span' starts here and runs to the last</span><span>
+</span><span id="line-193"></span><span class="hs-comment">-- position parsed.</span><span>
+</span><span id="line-194"></span><span id="local-6989586621679239737"><span id="local-6989586621679239738"><span class="annot"><a href="Text.Trifecta.Combinators.html#spanned"><span class="hs-identifier hs-type">spanned</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239738"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679239738"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239737"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679239738"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Rendering.html#Spanned"><span class="hs-identifier hs-type">Spanned</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239737"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-195"></span><span id="spanned"><span class="annot"><span class="annottext">spanned :: m a -&gt; m (Spanned a)
+</span><a href="Text.Trifecta.Combinators.html#spanned"><span class="hs-identifier hs-var hs-var">spanned</span></a></span></span><span> </span><span id="local-6989586621679239499"><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679239499"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679239498"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679239498"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679239497"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239497"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679239496"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679239496"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679239495"><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679239495"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679239496"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; Span -&gt; Spanned a
+forall a. a -&gt; Span -&gt; Spanned a
+</span><a href="Text.Trifecta.Rendering.html#%3A~"><span class="hs-operator hs-var">:~</span></a></span><span> </span><span class="annot"><span class="annottext">Delta -&gt; Delta -&gt; ByteString -&gt; Span
+</span><a href="Text.Trifecta.Rendering.html#Span"><span class="hs-identifier hs-var">Span</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679239498"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Delta
+</span><a href="#local-6989586621679239495"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239497"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Delta -&gt; ByteString -&gt; a -&gt; Delta -&gt; Spanned a)
+-&gt; m Delta -&gt; m (ByteString -&gt; a -&gt; Delta -&gt; Spanned a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">m Delta
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Delta
+</span><a href="Text.Trifecta.Combinators.html#position"><span class="hs-identifier hs-var">position</span></a></span><span> </span><span class="annot"><span class="annottext">m (ByteString -&gt; a -&gt; Delta -&gt; Spanned a)
+-&gt; m ByteString -&gt; m (a -&gt; Delta -&gt; Spanned a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ByteString
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m ByteString
+</span><a href="Text.Trifecta.Combinators.html#line"><span class="hs-identifier hs-var">line</span></a></span><span> </span><span class="annot"><span class="annottext">m (a -&gt; Delta -&gt; Spanned a) -&gt; m a -&gt; m (Delta -&gt; Spanned a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679239499"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">m (Delta -&gt; Spanned a) -&gt; m Delta -&gt; m (Spanned a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m Delta
+forall (m :: * -&gt; *). DeltaParsing m =&gt; m Delta
+</span><a href="Text.Trifecta.Combinators.html#position"><span class="hs-identifier hs-var">position</span></a></span><span>
+</span><span id="line-196"></span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#spanned"><span class="hs-pragma hs-type">spanned</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-197"></span><span>
+</span><span id="line-198"></span><span class="hs-comment">-- | Grab a fixit.</span><span>
+</span><span id="line-199"></span><span id="local-6989586621679239493"><span class="annot"><a href="Text.Trifecta.Combinators.html#fixiting"><span class="hs-identifier hs-type">fixiting</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239493"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679239493"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Strict.ByteString</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679239493"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Rendering.html#Fixit"><span class="hs-identifier hs-type">Fixit</span></a></span></span><span>
+</span><span id="line-200"></span><span id="fixiting"><span class="annot"><span class="annottext">fixiting :: m ByteString -&gt; m Fixit
+</span><a href="Text.Trifecta.Combinators.html#fixiting"><span class="hs-identifier hs-var hs-var">fixiting</span></a></span></span><span> </span><span id="local-6989586621679239492"><span class="annot"><span class="annottext">m ByteString
+</span><a href="#local-6989586621679239492"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679239491"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239491"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="annot"><a href="Text.Trifecta.Rendering.html#%3A~"><span class="hs-operator hs-type">:~</span></a></span><span> </span><span id="local-6989586621679239490"><span class="annot"><span class="annottext">Span
+</span><a href="#local-6989586621679239490"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Span -&gt; ByteString -&gt; Fixit
+</span><a href="Text.Trifecta.Rendering.html#Fixit"><span class="hs-identifier hs-var">Fixit</span></a></span><span> </span><span class="annot"><span class="annottext">Span
+</span><a href="#local-6989586621679239490"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679239491"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Spanned ByteString -&gt; Fixit) -&gt; m (Spanned ByteString) -&gt; m Fixit
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ByteString -&gt; m (Spanned ByteString)
+forall (m :: * -&gt; *) a. DeltaParsing m =&gt; m a -&gt; m (Spanned a)
+</span><a href="Text.Trifecta.Combinators.html#spanned"><span class="hs-identifier hs-var">spanned</span></a></span><span> </span><span class="annot"><span class="annottext">m ByteString
+</span><a href="#local-6989586621679239492"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-201"></span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#fixiting"><span class="hs-pragma hs-type">fixiting</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-202"></span><span>
+</span><span id="line-203"></span><span class="hs-comment">-- | This class is a refinement of 'DeltaParsing' that adds the ability to mark</span><span>
+</span><span id="line-204"></span><span class="hs-comment">-- your position in the input and return there for further parsing later.</span><span>
+</span><span id="line-205"></span><span class="hs-keyword">class</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Combinators.html#DeltaParsing"><span class="hs-identifier hs-type">DeltaParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239731"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html#HasDelta"><span class="hs-identifier hs-type">HasDelta</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239730"><span class="hs-identifier hs-type">d</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span id="MarkParsing"><span class="annot"><a href="Text.Trifecta.Combinators.html#MarkParsing"><span class="hs-identifier hs-var">MarkParsing</span></a></span></span><span> </span><span id="local-6989586621679239730"><span class="annot"><a href="#local-6989586621679239730"><span class="hs-identifier hs-type">d</span></a></span></span><span> </span><span id="local-6989586621679239731"><span class="annot"><a href="#local-6989586621679239731"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><a href="#local-6989586621679239731"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679239730"><span class="hs-identifier hs-type">d</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-206"></span><span>  </span><span class="hs-comment">-- | mark the current location so it can be used in constructing a span, or</span><span>
+</span><span id="line-207"></span><span>  </span><span class="hs-comment">-- for later seeking</span><span>
+</span><span id="line-208"></span><span>  </span><span id="mark"><span class="annot"><a href="Text.Trifecta.Combinators.html#mark"><span class="hs-identifier hs-type">mark</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679239731"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239730"><span class="hs-identifier hs-type">d</span></a></span><span>
+</span><span id="line-209"></span><span>  </span><span class="hs-comment">-- | Seek a previously marked location</span><span>
+</span><span id="line-210"></span><span>  </span><span id="release"><span class="annot"><a href="Text.Trifecta.Combinators.html#release"><span class="hs-identifier hs-type">release</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679239730"><span class="hs-identifier hs-type">d</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679239731"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-211"></span><span>
+</span><span id="line-212"></span><span id="local-6989586621679239484"><span id="local-6989586621679239485"><span id="local-6989586621679239486"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679239486"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#MarkParsing"><span class="hs-identifier hs-type">MarkParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239485"><span class="hs-identifier hs-type">d</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239486"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#MarkParsing"><span class="hs-identifier hs-type">MarkParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239485"><span class="hs-identifier hs-type">d</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Lazy.StateT</span></span><span> </span><span class="annot"><a href="#local-6989586621679239484"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239486"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-213"></span><span>  </span><span id="local-6989586621679239478"><span class="annot"><span class="annottext">mark :: StateT s m d
+</span><a href="#local-6989586621679239478"><span class="hs-identifier hs-var hs-var hs-var hs-var">mark</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m d -&gt; StateT s m d
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m d
+forall d (m :: * -&gt; *). MarkParsing d m =&gt; m d
+</span><a href="Text.Trifecta.Combinators.html#mark"><span class="hs-identifier hs-var">mark</span></a></span><span>
+</span><span id="line-214"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#mark"><span class="hs-pragma hs-type">mark</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-215"></span><span>  </span><span id="local-6989586621679239477"><span class="annot"><span class="annottext">release :: d -&gt; StateT s m ()
+</span><a href="#local-6989586621679239477"><span class="hs-identifier hs-var hs-var hs-var hs-var">release</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; StateT s m ()
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; StateT s m ()) -&gt; (d -&gt; m ()) -&gt; d -&gt; StateT s m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">d -&gt; m ()
+forall d (m :: * -&gt; *). MarkParsing d m =&gt; d -&gt; m ()
+</span><a href="Text.Trifecta.Combinators.html#release"><span class="hs-identifier hs-var">release</span></a></span><span>
+</span><span id="line-216"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#release"><span class="hs-pragma hs-type">release</span></a></span><span> </span><span class="hs-pragma">#-}</span></span></span></span><span>
+</span><span id="line-217"></span><span>
+</span><span id="line-218"></span><span id="local-6989586621679239474"><span id="local-6989586621679239475"><span id="local-6989586621679239476"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679239476"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#MarkParsing"><span class="hs-identifier hs-type">MarkParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239475"><span class="hs-identifier hs-type">d</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239476"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#MarkParsing"><span class="hs-identifier hs-type">MarkParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239475"><span class="hs-identifier hs-type">d</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Strict.StateT</span></span><span> </span><span class="annot"><a href="#local-6989586621679239474"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239476"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-219"></span><span>  </span><span id="local-6989586621679239469"><span class="annot"><span class="annottext">mark :: StateT s m d
+</span><a href="#local-6989586621679239469"><span class="hs-identifier hs-var hs-var hs-var hs-var">mark</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m d -&gt; StateT s m d
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m d
+forall d (m :: * -&gt; *). MarkParsing d m =&gt; m d
+</span><a href="Text.Trifecta.Combinators.html#mark"><span class="hs-identifier hs-var">mark</span></a></span><span>
+</span><span id="line-220"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#mark"><span class="hs-pragma hs-type">mark</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-221"></span><span>  </span><span id="local-6989586621679239468"><span class="annot"><span class="annottext">release :: d -&gt; StateT s m ()
+</span><a href="#local-6989586621679239468"><span class="hs-identifier hs-var hs-var hs-var hs-var">release</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; StateT s m ()
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; StateT s m ()) -&gt; (d -&gt; m ()) -&gt; d -&gt; StateT s m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">d -&gt; m ()
+forall d (m :: * -&gt; *). MarkParsing d m =&gt; d -&gt; m ()
+</span><a href="Text.Trifecta.Combinators.html#release"><span class="hs-identifier hs-var">release</span></a></span><span>
+</span><span id="line-222"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#release"><span class="hs-pragma hs-type">release</span></a></span><span> </span><span class="hs-pragma">#-}</span></span></span></span><span>
+</span><span id="line-223"></span><span>
+</span><span id="line-224"></span><span id="local-6989586621679239465"><span id="local-6989586621679239466"><span id="local-6989586621679239467"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679239467"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#MarkParsing"><span class="hs-identifier hs-type">MarkParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239466"><span class="hs-identifier hs-type">d</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239467"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#MarkParsing"><span class="hs-identifier hs-type">MarkParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239466"><span class="hs-identifier hs-type">d</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ReaderT</span></span><span> </span><span class="annot"><a href="#local-6989586621679239465"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239467"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-225"></span><span>  </span><span id="local-6989586621679239460"><span class="annot"><span class="annottext">mark :: ReaderT e m d
+</span><a href="#local-6989586621679239460"><span class="hs-identifier hs-var hs-var hs-var hs-var">mark</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m d -&gt; ReaderT e m d
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m d
+forall d (m :: * -&gt; *). MarkParsing d m =&gt; m d
+</span><a href="Text.Trifecta.Combinators.html#mark"><span class="hs-identifier hs-var">mark</span></a></span><span>
+</span><span id="line-226"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#mark"><span class="hs-pragma hs-type">mark</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-227"></span><span>  </span><span id="local-6989586621679239459"><span class="annot"><span class="annottext">release :: d -&gt; ReaderT e m ()
+</span><a href="#local-6989586621679239459"><span class="hs-identifier hs-var hs-var hs-var hs-var">release</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ()) -&gt; (d -&gt; m ()) -&gt; d -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">d -&gt; m ()
+forall d (m :: * -&gt; *). MarkParsing d m =&gt; d -&gt; m ()
+</span><a href="Text.Trifecta.Combinators.html#release"><span class="hs-identifier hs-var">release</span></a></span><span>
+</span><span id="line-228"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#release"><span class="hs-pragma hs-type">release</span></a></span><span> </span><span class="hs-pragma">#-}</span></span></span></span><span>
+</span><span id="line-229"></span><span>
+</span><span id="line-230"></span><span id="local-6989586621679239456"><span id="local-6989586621679239457"><span id="local-6989586621679239458"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679239458"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#MarkParsing"><span class="hs-identifier hs-type">MarkParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239457"><span class="hs-identifier hs-type">d</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239458"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="#local-6989586621679239456"><span class="hs-identifier hs-type">w</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#MarkParsing"><span class="hs-identifier hs-type">MarkParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239457"><span class="hs-identifier hs-type">d</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Strict.WriterT</span></span><span> </span><span class="annot"><a href="#local-6989586621679239456"><span class="hs-identifier hs-type">w</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239458"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-231"></span><span>  </span><span id="local-6989586621679239451"><span class="annot"><span class="annottext">mark :: WriterT w m d
+</span><a href="#local-6989586621679239451"><span class="hs-identifier hs-var hs-var hs-var hs-var">mark</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m d -&gt; WriterT w m d
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m d
+forall d (m :: * -&gt; *). MarkParsing d m =&gt; m d
+</span><a href="Text.Trifecta.Combinators.html#mark"><span class="hs-identifier hs-var">mark</span></a></span><span>
+</span><span id="line-232"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#mark"><span class="hs-pragma hs-type">mark</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-233"></span><span>  </span><span id="local-6989586621679239450"><span class="annot"><span class="annottext">release :: d -&gt; WriterT w m ()
+</span><a href="#local-6989586621679239450"><span class="hs-identifier hs-var hs-var hs-var hs-var">release</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; WriterT w m ()
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; WriterT w m ()) -&gt; (d -&gt; m ()) -&gt; d -&gt; WriterT w m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">d -&gt; m ()
+forall d (m :: * -&gt; *). MarkParsing d m =&gt; d -&gt; m ()
+</span><a href="Text.Trifecta.Combinators.html#release"><span class="hs-identifier hs-var">release</span></a></span><span>
+</span><span id="line-234"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#release"><span class="hs-pragma hs-type">release</span></a></span><span> </span><span class="hs-pragma">#-}</span></span></span></span><span>
+</span><span id="line-235"></span><span>
+</span><span id="line-236"></span><span id="local-6989586621679239447"><span id="local-6989586621679239448"><span id="local-6989586621679239449"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679239449"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#MarkParsing"><span class="hs-identifier hs-type">MarkParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239448"><span class="hs-identifier hs-type">d</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239449"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="#local-6989586621679239447"><span class="hs-identifier hs-type">w</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#MarkParsing"><span class="hs-identifier hs-type">MarkParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239448"><span class="hs-identifier hs-type">d</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Lazy.WriterT</span></span><span> </span><span class="annot"><a href="#local-6989586621679239447"><span class="hs-identifier hs-type">w</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239449"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-237"></span><span>  </span><span id="local-6989586621679239442"><span class="annot"><span class="annottext">mark :: WriterT w m d
+</span><a href="#local-6989586621679239442"><span class="hs-identifier hs-var hs-var hs-var hs-var">mark</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m d -&gt; WriterT w m d
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m d
+forall d (m :: * -&gt; *). MarkParsing d m =&gt; m d
+</span><a href="Text.Trifecta.Combinators.html#mark"><span class="hs-identifier hs-var">mark</span></a></span><span>
+</span><span id="line-238"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#mark"><span class="hs-pragma hs-type">mark</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-239"></span><span>  </span><span id="local-6989586621679239441"><span class="annot"><span class="annottext">release :: d -&gt; WriterT w m ()
+</span><a href="#local-6989586621679239441"><span class="hs-identifier hs-var hs-var hs-var hs-var">release</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; WriterT w m ()
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; WriterT w m ()) -&gt; (d -&gt; m ()) -&gt; d -&gt; WriterT w m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">d -&gt; m ()
+forall d (m :: * -&gt; *). MarkParsing d m =&gt; d -&gt; m ()
+</span><a href="Text.Trifecta.Combinators.html#release"><span class="hs-identifier hs-var">release</span></a></span><span>
+</span><span id="line-240"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#release"><span class="hs-pragma hs-type">release</span></a></span><span> </span><span class="hs-pragma">#-}</span></span></span></span><span>
+</span><span id="line-241"></span><span>
+</span><span id="line-242"></span><span id="local-6989586621679239436"><span id="local-6989586621679239437"><span id="local-6989586621679239438"><span id="local-6989586621679239439"><span id="local-6989586621679239440"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679239440"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#MarkParsing"><span class="hs-identifier hs-type">MarkParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239439"><span class="hs-identifier hs-type">d</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239440"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="#local-6989586621679239438"><span class="hs-identifier hs-type">w</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#MarkParsing"><span class="hs-identifier hs-type">MarkParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239439"><span class="hs-identifier hs-type">d</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Lazy.RWST</span></span><span> </span><span class="annot"><a href="#local-6989586621679239437"><span class="hs-identifier hs-type">r</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239438"><span class="hs-identifier hs-type">w</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239436"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239440"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-243"></span><span>  </span><span id="local-6989586621679239431"><span class="annot"><span class="annottext">mark :: RWST r w s m d
+</span><a href="#local-6989586621679239431"><span class="hs-identifier hs-var hs-var hs-var hs-var">mark</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m d -&gt; RWST r w s m d
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m d
+forall d (m :: * -&gt; *). MarkParsing d m =&gt; m d
+</span><a href="Text.Trifecta.Combinators.html#mark"><span class="hs-identifier hs-var">mark</span></a></span><span>
+</span><span id="line-244"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#mark"><span class="hs-pragma hs-type">mark</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-245"></span><span>  </span><span id="local-6989586621679239430"><span class="annot"><span class="annottext">release :: d -&gt; RWST r w s m ()
+</span><a href="#local-6989586621679239430"><span class="hs-identifier hs-var hs-var hs-var hs-var">release</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; RWST r w s m ()
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; RWST r w s m ()) -&gt; (d -&gt; m ()) -&gt; d -&gt; RWST r w s m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">d -&gt; m ()
+forall d (m :: * -&gt; *). MarkParsing d m =&gt; d -&gt; m ()
+</span><a href="Text.Trifecta.Combinators.html#release"><span class="hs-identifier hs-var">release</span></a></span><span>
+</span><span id="line-246"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#release"><span class="hs-pragma hs-type">release</span></a></span><span> </span><span class="hs-pragma">#-}</span></span></span></span></span></span><span>
+</span><span id="line-247"></span><span>
+</span><span id="line-248"></span><span id="local-6989586621679239425"><span id="local-6989586621679239426"><span id="local-6989586621679239427"><span id="local-6989586621679239428"><span id="local-6989586621679239429"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679239429"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#MarkParsing"><span class="hs-identifier hs-type">MarkParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239428"><span class="hs-identifier hs-type">d</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239429"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="#local-6989586621679239427"><span class="hs-identifier hs-type">w</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#MarkParsing"><span class="hs-identifier hs-type">MarkParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239428"><span class="hs-identifier hs-type">d</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Strict.RWST</span></span><span> </span><span class="annot"><a href="#local-6989586621679239426"><span class="hs-identifier hs-type">r</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239427"><span class="hs-identifier hs-type">w</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239425"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239429"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-249"></span><span>  </span><span id="local-6989586621679239420"><span class="annot"><span class="annottext">mark :: RWST r w s m d
+</span><a href="#local-6989586621679239420"><span class="hs-identifier hs-var hs-var hs-var hs-var">mark</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m d -&gt; RWST r w s m d
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m d
+forall d (m :: * -&gt; *). MarkParsing d m =&gt; m d
+</span><a href="Text.Trifecta.Combinators.html#mark"><span class="hs-identifier hs-var">mark</span></a></span><span>
+</span><span id="line-250"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#mark"><span class="hs-pragma hs-type">mark</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-251"></span><span>  </span><span id="local-6989586621679239419"><span class="annot"><span class="annottext">release :: d -&gt; RWST r w s m ()
+</span><a href="#local-6989586621679239419"><span class="hs-identifier hs-var hs-var hs-var hs-var">release</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; RWST r w s m ()
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; RWST r w s m ()) -&gt; (d -&gt; m ()) -&gt; d -&gt; RWST r w s m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">d -&gt; m ()
+forall d (m :: * -&gt; *). MarkParsing d m =&gt; d -&gt; m ()
+</span><a href="Text.Trifecta.Combinators.html#release"><span class="hs-identifier hs-var">release</span></a></span><span>
+</span><span id="line-252"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#release"><span class="hs-pragma hs-type">release</span></a></span><span> </span><span class="hs-pragma">#-}</span></span></span></span></span></span><span>
+</span><span id="line-253"></span><span>
+</span><span id="line-254"></span><span id="local-6989586621679239417"><span id="local-6989586621679239418"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="#local-6989586621679239418"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#MarkParsing"><span class="hs-identifier hs-type">MarkParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239417"><span class="hs-identifier hs-type">d</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239418"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#MarkParsing"><span class="hs-identifier hs-type">MarkParsing</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679239417"><span class="hs-identifier hs-type">d</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">IdentityT</span></span><span> </span><span class="annot"><a href="#local-6989586621679239418"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-255"></span><span>  </span><span id="local-6989586621679239412"><span class="annot"><span class="annottext">mark :: IdentityT m d
+</span><a href="#local-6989586621679239412"><span class="hs-identifier hs-var hs-var hs-var hs-var">mark</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m d -&gt; IdentityT m d
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m d
+forall d (m :: * -&gt; *). MarkParsing d m =&gt; m d
+</span><a href="Text.Trifecta.Combinators.html#mark"><span class="hs-identifier hs-var">mark</span></a></span><span>
+</span><span id="line-256"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#mark"><span class="hs-pragma hs-type">mark</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-257"></span><span>  </span><span id="local-6989586621679239411"><span class="annot"><span class="annottext">release :: d -&gt; IdentityT m ()
+</span><a href="#local-6989586621679239411"><span class="hs-identifier hs-var hs-var hs-var hs-var">release</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; IdentityT m ()
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; IdentityT m ()) -&gt; (d -&gt; m ()) -&gt; d -&gt; IdentityT m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">d -&gt; m ()
+forall d (m :: * -&gt; *). MarkParsing d m =&gt; d -&gt; m ()
+</span><a href="Text.Trifecta.Combinators.html#release"><span class="hs-identifier hs-var">release</span></a></span><span>
+</span><span id="line-258"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Combinators.html#release"><span class="hs-pragma hs-type">release</span></a></span><span> </span><span class="hs-pragma">#-}</span></span></span><span>
+</span><span id="line-259"></span></pre></body></html>

@@ -1,0 +1,539 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields  #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell        #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.ClientCapabilities</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">A</span></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Default</span></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.CodeAction.html"><span class="hs-identifier">Language.LSP.Types.CodeAction</span></a></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.CodeLens.html"><span class="hs-identifier">Language.LSP.Types.CodeLens</span></a></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Command.html"><span class="hs-identifier">Language.LSP.Types.Command</span></a></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html"><span class="hs-identifier">Language.LSP.Types.Completion</span></a></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Configuration.html"><span class="hs-identifier">Language.LSP.Types.Configuration</span></a></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html"><span class="hs-identifier">Language.LSP.Types.Diagnostic</span></a></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Declaration.html"><span class="hs-identifier">Language.LSP.Types.Declaration</span></a></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Definition.html"><span class="hs-identifier">Language.LSP.Types.Definition</span></a></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentColor.html"><span class="hs-identifier">Language.LSP.Types.DocumentColor</span></a></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentHighlight.html"><span class="hs-identifier">Language.LSP.Types.DocumentHighlight</span></a></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentLink.html"><span class="hs-identifier">Language.LSP.Types.DocumentLink</span></a></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html"><span class="hs-identifier">Language.LSP.Types.DocumentSymbol</span></a></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.FoldingRange.html"><span class="hs-identifier">Language.LSP.Types.FoldingRange</span></a></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Formatting.html"><span class="hs-identifier">Language.LSP.Types.Formatting</span></a></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Hover.html"><span class="hs-identifier">Language.LSP.Types.Hover</span></a></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Implementation.html"><span class="hs-identifier">Language.LSP.Types.Implementation</span></a></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.References.html"><span class="hs-identifier">Language.LSP.Types.References</span></a></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Rename.html"><span class="hs-identifier">Language.LSP.Types.Rename</span></a></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.SelectionRange.html"><span class="hs-identifier">Language.LSP.Types.SelectionRange</span></a></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html"><span class="hs-identifier">Language.LSP.Types.SignatureHelp</span></a></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.TextDocument.html"><span class="hs-identifier">Language.LSP.Types.TextDocument</span></a></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.TypeDefinition.html"><span class="hs-identifier">Language.LSP.Types.TypeDefinition</span></a></span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html"><span class="hs-identifier">Language.LSP.Types.WatchedFiles</span></a></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.WorkspaceEdit.html"><span class="hs-identifier">Language.LSP.Types.WorkspaceEdit</span></a></span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.WorkspaceSymbol.html"><span class="hs-identifier">Language.LSP.Types.WorkspaceSymbol</span></a></span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span class="hs-keyword">data</span><span> </span><span id="WorkspaceClientCapabilities"><span class="annot"><a href="Language.LSP.Types.ClientCapabilities.html#WorkspaceClientCapabilities"><span class="hs-identifier hs-var">WorkspaceClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-38"></span><span>  </span><span id="WorkspaceClientCapabilities"><span class="annot"><a href="Language.LSP.Types.ClientCapabilities.html#WorkspaceClientCapabilities"><span class="hs-identifier hs-var">WorkspaceClientCapabilities</span></a></span></span><span>
+</span><span id="line-39"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The client supports applying batch edits to the workspace by supporting</span><span>
+</span><span id="line-40"></span><span>      </span><span class="hs-comment">-- the request 'workspace/applyEdit'</span><span>
+</span><span id="line-41"></span><span>      </span><span id="%24sel%3A_applyEdit%3AWorkspaceClientCapabilities"><span class="annot"><span class="annottext">WorkspaceClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_applyEdit%3AWorkspaceClientCapabilities"><span class="hs-identifier hs-var hs-var">_applyEdit</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-42"></span><span>
+</span><span id="line-43"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to `WorkspaceEdit`s</span><span>
+</span><span id="line-44"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_workspaceEdit%3AWorkspaceClientCapabilities"><span class="annot"><span class="annottext">WorkspaceClientCapabilities
+-&gt; Maybe WorkspaceEditClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_workspaceEdit%3AWorkspaceClientCapabilities"><span class="hs-identifier hs-var hs-var">_workspaceEdit</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.WorkspaceEdit.html#WorkspaceEditClientCapabilities"><span class="hs-identifier hs-type">WorkspaceEditClientCapabilities</span></a></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `workspace/didChangeConfiguration` notification.</span><span>
+</span><span id="line-47"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_didChangeConfiguration%3AWorkspaceClientCapabilities"><span class="annot"><span class="annottext">WorkspaceClientCapabilities
+-&gt; Maybe DidChangeConfigurationClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_didChangeConfiguration%3AWorkspaceClientCapabilities"><span class="hs-identifier hs-var hs-var">_didChangeConfiguration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Configuration.html#DidChangeConfigurationClientCapabilities"><span class="hs-identifier hs-type">DidChangeConfigurationClientCapabilities</span></a></span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span>       </span><span class="hs-comment">-- | Capabilities specific to the `workspace/didChangeWatchedFiles` notification.</span><span>
+</span><span id="line-50"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_didChangeWatchedFiles%3AWorkspaceClientCapabilities"><span class="annot"><span class="annottext">WorkspaceClientCapabilities
+-&gt; Maybe DidChangeWatchedFilesClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_didChangeWatchedFiles%3AWorkspaceClientCapabilities"><span class="hs-identifier hs-var hs-var">_didChangeWatchedFiles</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.WatchedFiles.html#DidChangeWatchedFilesClientCapabilities"><span class="hs-identifier hs-type">DidChangeWatchedFilesClientCapabilities</span></a></span><span>
+</span><span id="line-51"></span><span>
+</span><span id="line-52"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `workspace/symbol` request.</span><span>
+</span><span id="line-53"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_symbol%3AWorkspaceClientCapabilities"><span class="annot"><span class="annottext">WorkspaceClientCapabilities
+-&gt; Maybe WorkspaceSymbolClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_symbol%3AWorkspaceClientCapabilities"><span class="hs-identifier hs-var hs-var">_symbol</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.WorkspaceSymbol.html#WorkspaceSymbolClientCapabilities"><span class="hs-identifier hs-type">WorkspaceSymbolClientCapabilities</span></a></span><span>
+</span><span id="line-54"></span><span>
+</span><span id="line-55"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `workspace/executeCommand` request.</span><span>
+</span><span id="line-56"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_executeCommand%3AWorkspaceClientCapabilities"><span class="annot"><span class="annottext">WorkspaceClientCapabilities
+-&gt; Maybe ExecuteCommandClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_executeCommand%3AWorkspaceClientCapabilities"><span class="hs-identifier hs-var hs-var">_executeCommand</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Command.html#ExecuteCommandClientCapabilities"><span class="hs-identifier hs-type">ExecuteCommandClientCapabilities</span></a></span><span>
+</span><span id="line-57"></span><span>
+</span><span id="line-58"></span><span>      </span><span class="hs-comment">-- | The client has support for workspace folders.</span><span>
+</span><span id="line-59"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_workspaceFolders%3AWorkspaceClientCapabilities"><span class="annot"><span class="annottext">WorkspaceClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_workspaceFolders%3AWorkspaceClientCapabilities"><span class="hs-identifier hs-var hs-var">_workspaceFolders</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span>      </span><span class="hs-comment">-- | The client supports `workspace/configuration` requests.</span><span>
+</span><span id="line-62"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_configuration%3AWorkspaceClientCapabilities"><span class="annot"><span class="annottext">WorkspaceClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_configuration%3AWorkspaceClientCapabilities"><span class="hs-identifier hs-var hs-var">_configuration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-63"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680445650"><span id="local-6989586621680445652"><span id="local-6989586621680445654"><span class="annot"><span class="annottext">Int -&gt; WorkspaceClientCapabilities -&gt; ShowS
+[WorkspaceClientCapabilities] -&gt; ShowS
+WorkspaceClientCapabilities -&gt; String
+(Int -&gt; WorkspaceClientCapabilities -&gt; ShowS)
+-&gt; (WorkspaceClientCapabilities -&gt; String)
+-&gt; ([WorkspaceClientCapabilities] -&gt; ShowS)
+-&gt; Show WorkspaceClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [WorkspaceClientCapabilities] -&gt; ShowS
+$cshowList :: [WorkspaceClientCapabilities] -&gt; ShowS
+show :: WorkspaceClientCapabilities -&gt; String
+$cshow :: WorkspaceClientCapabilities -&gt; String
+showsPrec :: Int -&gt; WorkspaceClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; WorkspaceClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680445641"><span id="local-6989586621680445643"><span id="local-6989586621680445645"><span id="local-6989586621680445647"><span class="annot"><span class="annottext">ReadPrec [WorkspaceClientCapabilities]
+ReadPrec WorkspaceClientCapabilities
+Int -&gt; ReadS WorkspaceClientCapabilities
+ReadS [WorkspaceClientCapabilities]
+(Int -&gt; ReadS WorkspaceClientCapabilities)
+-&gt; ReadS [WorkspaceClientCapabilities]
+-&gt; ReadPrec WorkspaceClientCapabilities
+-&gt; ReadPrec [WorkspaceClientCapabilities]
+-&gt; Read WorkspaceClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [WorkspaceClientCapabilities]
+$creadListPrec :: ReadPrec [WorkspaceClientCapabilities]
+readPrec :: ReadPrec WorkspaceClientCapabilities
+$creadPrec :: ReadPrec WorkspaceClientCapabilities
+readList :: ReadS [WorkspaceClientCapabilities]
+$creadList :: ReadS [WorkspaceClientCapabilities]
+readsPrec :: Int -&gt; ReadS WorkspaceClientCapabilities
+$creadsPrec :: Int -&gt; ReadS WorkspaceClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680445636"><span id="local-6989586621680445638"><span class="annot"><span class="annottext">WorkspaceClientCapabilities -&gt; WorkspaceClientCapabilities -&gt; Bool
+(WorkspaceClientCapabilities
+ -&gt; WorkspaceClientCapabilities -&gt; Bool)
+-&gt; (WorkspaceClientCapabilities
+    -&gt; WorkspaceClientCapabilities -&gt; Bool)
+-&gt; Eq WorkspaceClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: WorkspaceClientCapabilities -&gt; WorkspaceClientCapabilities -&gt; Bool
+$c/= :: WorkspaceClientCapabilities -&gt; WorkspaceClientCapabilities -&gt; Bool
+== :: WorkspaceClientCapabilities -&gt; WorkspaceClientCapabilities -&gt; Bool
+$c== :: WorkspaceClientCapabilities -&gt; WorkspaceClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span id="local-6989586621680445623"><span id="local-6989586621680445625"><span id="local-6989586621680445627"><span id="local-6989586621680445629"><span id="local-6989586621680445631"><span id="local-6989586621680445633"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkspaceClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Default</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.ClientCapabilities.html#WorkspaceClientCapabilities"><span class="hs-identifier hs-type">WorkspaceClientCapabilities</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-68"></span><span>  </span><span id="local-6989586621680445615"><span class="annot"><span class="annottext">def :: WorkspaceClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">def</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Bool
+-&gt; Maybe WorkspaceEditClientCapabilities
+-&gt; Maybe DidChangeConfigurationClientCapabilities
+-&gt; Maybe DidChangeWatchedFilesClientCapabilities
+-&gt; Maybe WorkspaceSymbolClientCapabilities
+-&gt; Maybe ExecuteCommandClientCapabilities
+-&gt; Maybe Bool
+-&gt; Maybe Bool
+-&gt; WorkspaceClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#WorkspaceClientCapabilities"><span class="hs-identifier hs-var">WorkspaceClientCapabilities</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Bool
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe WorkspaceEditClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe DidChangeConfigurationClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe DidChangeWatchedFilesClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe WorkspaceSymbolClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe ExecuteCommandClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe Bool
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe Bool
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span>
+</span><span id="line-69"></span><span>
+</span><span id="line-70"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-71"></span><span>
+</span><span id="line-72"></span><span class="hs-keyword">data</span><span> </span><span id="TextDocumentClientCapabilities"><span class="annot"><a href="Language.LSP.Types.ClientCapabilities.html#TextDocumentClientCapabilities"><span class="hs-identifier hs-var">TextDocumentClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-73"></span><span>  </span><span id="TextDocumentClientCapabilities"><span class="annot"><a href="Language.LSP.Types.ClientCapabilities.html#TextDocumentClientCapabilities"><span class="hs-identifier hs-var">TextDocumentClientCapabilities</span></a></span></span><span>
+</span><span id="line-74"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_synchronization%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; Maybe TextDocumentSyncClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_synchronization%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_synchronization</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.TextDocument.html#TextDocumentSyncClientCapabilities"><span class="hs-identifier hs-type">TextDocumentSyncClientCapabilities</span></a></span><span>
+</span><span id="line-75"></span><span>
+</span><span id="line-76"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/completion`</span><span>
+</span><span id="line-77"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_completion%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; Maybe CompletionClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_completion%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_completion</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Completion.html#CompletionClientCapabilities"><span class="hs-identifier hs-type">CompletionClientCapabilities</span></a></span><span>
+</span><span id="line-78"></span><span>
+</span><span id="line-79"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/hover`</span><span>
+</span><span id="line-80"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_hover%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities -&gt; Maybe HoverClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_hover%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_hover</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Hover.html#HoverClientCapabilities"><span class="hs-identifier hs-type">HoverClientCapabilities</span></a></span><span>
+</span><span id="line-81"></span><span>
+</span><span id="line-82"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/signatureHelp`</span><span>
+</span><span id="line-83"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_signatureHelp%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; Maybe SignatureHelpClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_signatureHelp%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_signatureHelp</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.SignatureHelp.html#SignatureHelpClientCapabilities"><span class="hs-identifier hs-type">SignatureHelpClientCapabilities</span></a></span><span>
+</span><span id="line-84"></span><span>
+</span><span id="line-85"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/references`</span><span>
+</span><span id="line-86"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_references%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; Maybe ReferencesClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_references%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_references</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.References.html#ReferencesClientCapabilities"><span class="hs-identifier hs-type">ReferencesClientCapabilities</span></a></span><span>
+</span><span id="line-87"></span><span>
+</span><span id="line-88"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/documentHighlight`</span><span>
+</span><span id="line-89"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_documentHighlight%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; Maybe DocumentHighlightClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_documentHighlight%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_documentHighlight</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentHighlight.html#DocumentHighlightClientCapabilities"><span class="hs-identifier hs-type">DocumentHighlightClientCapabilities</span></a></span><span>
+</span><span id="line-90"></span><span>
+</span><span id="line-91"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/documentSymbol`</span><span>
+</span><span id="line-92"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_documentSymbol%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; Maybe DocumentSymbolClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_documentSymbol%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_documentSymbol</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentSymbol.html#DocumentSymbolClientCapabilities"><span class="hs-identifier hs-type">DocumentSymbolClientCapabilities</span></a></span><span>
+</span><span id="line-93"></span><span>
+</span><span id="line-94"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/formatting`</span><span>
+</span><span id="line-95"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_formatting%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; Maybe DocumentFormattingClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_formatting%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_formatting</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Formatting.html#DocumentFormattingClientCapabilities"><span class="hs-identifier hs-type">DocumentFormattingClientCapabilities</span></a></span><span>
+</span><span id="line-96"></span><span>
+</span><span id="line-97"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/rangeFormatting`</span><span>
+</span><span id="line-98"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_rangeFormatting%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; Maybe DocumentRangeFormattingClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_rangeFormatting%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_rangeFormatting</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Formatting.html#DocumentRangeFormattingClientCapabilities"><span class="hs-identifier hs-type">DocumentRangeFormattingClientCapabilities</span></a></span><span>
+</span><span id="line-99"></span><span>
+</span><span id="line-100"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/onTypeFormatting`</span><span>
+</span><span id="line-101"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_onTypeFormatting%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; Maybe DocumentOnTypeFormattingClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_onTypeFormatting%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_onTypeFormatting</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Formatting.html#DocumentOnTypeFormattingClientCapabilities"><span class="hs-identifier hs-type">DocumentOnTypeFormattingClientCapabilities</span></a></span><span>
+</span><span id="line-102"></span><span>
+</span><span id="line-103"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/declaration` request.</span><span>
+</span><span id="line-104"></span><span>      </span><span class="hs-comment">-- </span><span>
+</span><span id="line-105"></span><span>      </span><span class="hs-comment">-- Since LSP 3.14.0</span><span>
+</span><span id="line-106"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_declaration%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; Maybe DeclarationClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_declaration%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_declaration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Declaration.html#DeclarationClientCapabilities"><span class="hs-identifier hs-type">DeclarationClientCapabilities</span></a></span><span>
+</span><span id="line-107"></span><span>
+</span><span id="line-108"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/definition`</span><span>
+</span><span id="line-109"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_definition%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; Maybe DefinitionClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_definition%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_definition</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Definition.html#DefinitionClientCapabilities"><span class="hs-identifier hs-type">DefinitionClientCapabilities</span></a></span><span>
+</span><span id="line-110"></span><span>
+</span><span id="line-111"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/typeDefinition`</span><span>
+</span><span id="line-112"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_typeDefinition%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; Maybe TypeDefinitionClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_typeDefinition%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_typeDefinition</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.TypeDefinition.html#TypeDefinitionClientCapabilities"><span class="hs-identifier hs-type">TypeDefinitionClientCapabilities</span></a></span><span>
+</span><span id="line-113"></span><span>
+</span><span id="line-114"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/implementation`</span><span>
+</span><span id="line-115"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_implementation%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; Maybe ImplementationClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_implementation%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_implementation</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Implementation.html#ImplementationClientCapabilities"><span class="hs-identifier hs-type">ImplementationClientCapabilities</span></a></span><span>
+</span><span id="line-116"></span><span>
+</span><span id="line-117"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/codeAction`</span><span>
+</span><span id="line-118"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_codeAction%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; Maybe CodeActionClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_codeAction%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_codeAction</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.CodeAction.html#CodeActionClientCapabilities"><span class="hs-identifier hs-type">CodeActionClientCapabilities</span></a></span><span>
+</span><span id="line-119"></span><span>
+</span><span id="line-120"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/codeLens`</span><span>
+</span><span id="line-121"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_codeLens%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities -&gt; Maybe CodeLensClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_codeLens%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_codeLens</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.CodeLens.html#CodeLensClientCapabilities"><span class="hs-identifier hs-type">CodeLensClientCapabilities</span></a></span><span>
+</span><span id="line-122"></span><span>
+</span><span id="line-123"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/documentLink`</span><span>
+</span><span id="line-124"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_documentLink%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; Maybe DocumentLinkClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_documentLink%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_documentLink</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentLink.html#DocumentLinkClientCapabilities"><span class="hs-identifier hs-type">DocumentLinkClientCapabilities</span></a></span><span>
+</span><span id="line-125"></span><span>
+</span><span id="line-126"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/documentColor` and the</span><span>
+</span><span id="line-127"></span><span>      </span><span class="hs-comment">-- `textDocument/colorPresentation` request</span><span>
+</span><span id="line-128"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_colorProvider%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; Maybe DocumentColorClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_colorProvider%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_colorProvider</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.DocumentColor.html#DocumentColorClientCapabilities"><span class="hs-identifier hs-type">DocumentColorClientCapabilities</span></a></span><span>
+</span><span id="line-129"></span><span>
+</span><span id="line-130"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/rename`</span><span>
+</span><span id="line-131"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_rename%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities -&gt; Maybe RenameClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_rename%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_rename</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Rename.html#RenameClientCapabilities"><span class="hs-identifier hs-type">RenameClientCapabilities</span></a></span><span>
+</span><span id="line-132"></span><span>
+</span><span id="line-133"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to `textDocument/publishDiagnostics`</span><span>
+</span><span id="line-134"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_publishDiagnostics%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; Maybe PublishDiagnosticsClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_publishDiagnostics%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_publishDiagnostics</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Diagnostic.html#PublishDiagnosticsClientCapabilities"><span class="hs-identifier hs-type">PublishDiagnosticsClientCapabilities</span></a></span><span>
+</span><span id="line-135"></span><span>
+</span><span id="line-136"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/foldingRange` request.</span><span>
+</span><span id="line-137"></span><span>      </span><span class="hs-comment">-- Since LSP 3.10.</span><span>
+</span><span id="line-138"></span><span>      </span><span class="hs-comment">--</span><span>
+</span><span id="line-139"></span><span>      </span><span class="hs-comment">-- @since 0.7.0.0</span><span>
+</span><span id="line-140"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_foldingRange%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; Maybe FoldingRangeClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_foldingRange%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_foldingRange</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeClientCapabilities"><span class="hs-identifier hs-type">FoldingRangeClientCapabilities</span></a></span><span>
+</span><span id="line-141"></span><span>
+</span><span id="line-142"></span><span>      </span><span class="hs-comment">-- | Capabilities specific to the `textDocument/selectionRange` request.</span><span>
+</span><span id="line-143"></span><span>      </span><span class="hs-comment">-- Since LSP 3.15.0</span><span>
+</span><span id="line-144"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_selectionRange%3ATextDocumentClientCapabilities"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; Maybe SelectionRangeClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_selectionRange%3ATextDocumentClientCapabilities"><span class="hs-identifier hs-var hs-var">_selectionRange</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.SelectionRange.html#SelectionRangeClientCapabilities"><span class="hs-identifier hs-type">SelectionRangeClientCapabilities</span></a></span><span>
+</span><span id="line-145"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680445585"><span id="local-6989586621680445587"><span id="local-6989586621680445589"><span class="annot"><span class="annottext">Int -&gt; TextDocumentClientCapabilities -&gt; ShowS
+[TextDocumentClientCapabilities] -&gt; ShowS
+TextDocumentClientCapabilities -&gt; String
+(Int -&gt; TextDocumentClientCapabilities -&gt; ShowS)
+-&gt; (TextDocumentClientCapabilities -&gt; String)
+-&gt; ([TextDocumentClientCapabilities] -&gt; ShowS)
+-&gt; Show TextDocumentClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [TextDocumentClientCapabilities] -&gt; ShowS
+$cshowList :: [TextDocumentClientCapabilities] -&gt; ShowS
+show :: TextDocumentClientCapabilities -&gt; String
+$cshow :: TextDocumentClientCapabilities -&gt; String
+showsPrec :: Int -&gt; TextDocumentClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; TextDocumentClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680445577"><span id="local-6989586621680445579"><span id="local-6989586621680445581"><span id="local-6989586621680445583"><span class="annot"><span class="annottext">ReadPrec [TextDocumentClientCapabilities]
+ReadPrec TextDocumentClientCapabilities
+Int -&gt; ReadS TextDocumentClientCapabilities
+ReadS [TextDocumentClientCapabilities]
+(Int -&gt; ReadS TextDocumentClientCapabilities)
+-&gt; ReadS [TextDocumentClientCapabilities]
+-&gt; ReadPrec TextDocumentClientCapabilities
+-&gt; ReadPrec [TextDocumentClientCapabilities]
+-&gt; Read TextDocumentClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [TextDocumentClientCapabilities]
+$creadListPrec :: ReadPrec [TextDocumentClientCapabilities]
+readPrec :: ReadPrec TextDocumentClientCapabilities
+$creadPrec :: ReadPrec TextDocumentClientCapabilities
+readList :: ReadS [TextDocumentClientCapabilities]
+$creadList :: ReadS [TextDocumentClientCapabilities]
+readsPrec :: Int -&gt; ReadS TextDocumentClientCapabilities
+$creadsPrec :: Int -&gt; ReadS TextDocumentClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680445573"><span id="local-6989586621680445575"><span class="annot"><span class="annottext">TextDocumentClientCapabilities
+-&gt; TextDocumentClientCapabilities -&gt; Bool
+(TextDocumentClientCapabilities
+ -&gt; TextDocumentClientCapabilities -&gt; Bool)
+-&gt; (TextDocumentClientCapabilities
+    -&gt; TextDocumentClientCapabilities -&gt; Bool)
+-&gt; Eq TextDocumentClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: TextDocumentClientCapabilities
+-&gt; TextDocumentClientCapabilities -&gt; Bool
+$c/= :: TextDocumentClientCapabilities
+-&gt; TextDocumentClientCapabilities -&gt; Bool
+== :: TextDocumentClientCapabilities
+-&gt; TextDocumentClientCapabilities -&gt; Bool
+$c== :: TextDocumentClientCapabilities
+-&gt; TextDocumentClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-146"></span><span>
+</span><span id="line-147"></span><span id="local-6989586621680445561"><span id="local-6989586621680445563"><span id="local-6989586621680445565"><span id="local-6989586621680445567"><span id="local-6989586621680445569"><span id="local-6989586621680445571"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-148"></span><span>
+</span><span id="line-149"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Default</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.ClientCapabilities.html#TextDocumentClientCapabilities"><span class="hs-identifier hs-type">TextDocumentClientCapabilities</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-150"></span><span>  </span><span id="local-6989586621680445559"><span class="annot"><span class="annottext">def :: TextDocumentClientCapabilities
+</span><a href="#local-6989586621680445559"><span class="hs-identifier hs-var hs-var hs-var hs-var">def</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe TextDocumentSyncClientCapabilities
+-&gt; Maybe CompletionClientCapabilities
+-&gt; Maybe HoverClientCapabilities
+-&gt; Maybe SignatureHelpClientCapabilities
+-&gt; Maybe ReferencesClientCapabilities
+-&gt; Maybe DocumentHighlightClientCapabilities
+-&gt; Maybe DocumentSymbolClientCapabilities
+-&gt; Maybe DocumentFormattingClientCapabilities
+-&gt; Maybe DocumentRangeFormattingClientCapabilities
+-&gt; Maybe DocumentOnTypeFormattingClientCapabilities
+-&gt; Maybe DeclarationClientCapabilities
+-&gt; Maybe DefinitionClientCapabilities
+-&gt; Maybe TypeDefinitionClientCapabilities
+-&gt; Maybe ImplementationClientCapabilities
+-&gt; Maybe CodeActionClientCapabilities
+-&gt; Maybe CodeLensClientCapabilities
+-&gt; Maybe DocumentLinkClientCapabilities
+-&gt; Maybe DocumentColorClientCapabilities
+-&gt; Maybe RenameClientCapabilities
+-&gt; Maybe PublishDiagnosticsClientCapabilities
+-&gt; Maybe FoldingRangeClientCapabilities
+-&gt; Maybe SelectionRangeClientCapabilities
+-&gt; TextDocumentClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#TextDocumentClientCapabilities"><span class="hs-identifier hs-var">TextDocumentClientCapabilities</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe TextDocumentSyncClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe CompletionClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe HoverClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe SignatureHelpClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe ReferencesClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe DocumentHighlightClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe DocumentSymbolClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe DocumentFormattingClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span>
+</span><span id="line-151"></span><span>                                       </span><span class="annot"><span class="annottext">Maybe DocumentRangeFormattingClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe DocumentOnTypeFormattingClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe DeclarationClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe DefinitionClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe TypeDefinitionClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe ImplementationClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe CodeActionClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe CodeLensClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span>
+</span><span id="line-152"></span><span>                                       </span><span class="annot"><span class="annottext">Maybe DocumentLinkClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe DocumentColorClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe RenameClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe PublishDiagnosticsClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe FoldingRangeClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe SelectionRangeClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span>
+</span><span id="line-153"></span><span>
+</span><span id="line-154"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-155"></span><span>
+</span><span id="line-156"></span><span class="hs-comment">-- | Window specific client capabilities.</span><span>
+</span><span id="line-157"></span><span class="hs-keyword">data</span><span> </span><span id="WindowClientCapabilities"><span class="annot"><a href="Language.LSP.Types.ClientCapabilities.html#WindowClientCapabilities"><span class="hs-identifier hs-var">WindowClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-158"></span><span>  </span><span id="WindowClientCapabilities"><span class="annot"><a href="Language.LSP.Types.ClientCapabilities.html#WindowClientCapabilities"><span class="hs-identifier hs-var">WindowClientCapabilities</span></a></span></span><span>
+</span><span id="line-159"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Whether client supports handling progress notifications.</span><span>
+</span><span id="line-160"></span><span>      </span><span id="%24sel%3A_workDoneProgress%3AWindowClientCapabilities"><span class="annot"><span class="annottext">WindowClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_workDoneProgress%3AWindowClientCapabilities"><span class="hs-identifier hs-var hs-var">_workDoneProgress</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-161"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680445551"><span id="local-6989586621680445553"><span id="local-6989586621680445555"><span class="annot"><span class="annottext">Int -&gt; WindowClientCapabilities -&gt; ShowS
+[WindowClientCapabilities] -&gt; ShowS
+WindowClientCapabilities -&gt; String
+(Int -&gt; WindowClientCapabilities -&gt; ShowS)
+-&gt; (WindowClientCapabilities -&gt; String)
+-&gt; ([WindowClientCapabilities] -&gt; ShowS)
+-&gt; Show WindowClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [WindowClientCapabilities] -&gt; ShowS
+$cshowList :: [WindowClientCapabilities] -&gt; ShowS
+show :: WindowClientCapabilities -&gt; String
+$cshow :: WindowClientCapabilities -&gt; String
+showsPrec :: Int -&gt; WindowClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; WindowClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680445543"><span id="local-6989586621680445545"><span id="local-6989586621680445547"><span id="local-6989586621680445549"><span class="annot"><span class="annottext">ReadPrec [WindowClientCapabilities]
+ReadPrec WindowClientCapabilities
+Int -&gt; ReadS WindowClientCapabilities
+ReadS [WindowClientCapabilities]
+(Int -&gt; ReadS WindowClientCapabilities)
+-&gt; ReadS [WindowClientCapabilities]
+-&gt; ReadPrec WindowClientCapabilities
+-&gt; ReadPrec [WindowClientCapabilities]
+-&gt; Read WindowClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [WindowClientCapabilities]
+$creadListPrec :: ReadPrec [WindowClientCapabilities]
+readPrec :: ReadPrec WindowClientCapabilities
+$creadPrec :: ReadPrec WindowClientCapabilities
+readList :: ReadS [WindowClientCapabilities]
+$creadList :: ReadS [WindowClientCapabilities]
+readsPrec :: Int -&gt; ReadS WindowClientCapabilities
+$creadsPrec :: Int -&gt; ReadS WindowClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680445539"><span id="local-6989586621680445541"><span class="annot"><span class="annottext">WindowClientCapabilities -&gt; WindowClientCapabilities -&gt; Bool
+(WindowClientCapabilities -&gt; WindowClientCapabilities -&gt; Bool)
+-&gt; (WindowClientCapabilities -&gt; WindowClientCapabilities -&gt; Bool)
+-&gt; Eq WindowClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: WindowClientCapabilities -&gt; WindowClientCapabilities -&gt; Bool
+$c/= :: WindowClientCapabilities -&gt; WindowClientCapabilities -&gt; Bool
+== :: WindowClientCapabilities -&gt; WindowClientCapabilities -&gt; Bool
+$c== :: WindowClientCapabilities -&gt; WindowClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-162"></span><span>
+</span><span id="line-163"></span><span id="local-6989586621680445527"><span id="local-6989586621680445529"><span id="local-6989586621680445531"><span id="local-6989586621680445533"><span id="local-6989586621680445535"><span id="local-6989586621680445537"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WindowClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-164"></span><span>
+</span><span id="line-165"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Default</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.ClientCapabilities.html#WindowClientCapabilities"><span class="hs-identifier hs-type">WindowClientCapabilities</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-166"></span><span>  </span><span id="local-6989586621680445525"><span class="annot"><span class="annottext">def :: WindowClientCapabilities
+</span><a href="#local-6989586621680445525"><span class="hs-identifier hs-var hs-var hs-var hs-var">def</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Bool -&gt; WindowClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#WindowClientCapabilities"><span class="hs-identifier hs-var">WindowClientCapabilities</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Bool
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span>
+</span><span id="line-167"></span><span>
+</span><span id="line-168"></span><span class="hs-keyword">data</span><span> </span><span id="ClientCapabilities"><span class="annot"><a href="Language.LSP.Types.ClientCapabilities.html#ClientCapabilities"><span class="hs-identifier hs-var">ClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-169"></span><span>  </span><span id="ClientCapabilities"><span class="annot"><a href="Language.LSP.Types.ClientCapabilities.html#ClientCapabilities"><span class="hs-identifier hs-var">ClientCapabilities</span></a></span></span><span>
+</span><span id="line-170"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_workspace%3AClientCapabilities"><span class="annot"><span class="annottext">ClientCapabilities -&gt; Maybe WorkspaceClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_workspace%3AClientCapabilities"><span class="hs-identifier hs-var hs-var">_workspace</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.ClientCapabilities.html#WorkspaceClientCapabilities"><span class="hs-identifier hs-type">WorkspaceClientCapabilities</span></a></span><span>
+</span><span id="line-171"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_textDocument%3AClientCapabilities"><span class="annot"><span class="annottext">ClientCapabilities -&gt; Maybe TextDocumentClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_textDocument%3AClientCapabilities"><span class="hs-identifier hs-var hs-var">_textDocument</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.ClientCapabilities.html#TextDocumentClientCapabilities"><span class="hs-identifier hs-type">TextDocumentClientCapabilities</span></a></span><span>
+</span><span id="line-172"></span><span>    </span><span class="hs-comment">-- | Capabilities specific to `window/progress` requests. Experimental.</span><span>
+</span><span id="line-173"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-174"></span><span>    </span><span class="hs-comment">-- @since 0.10.0.0</span><span>
+</span><span id="line-175"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_window%3AClientCapabilities"><span class="annot"><span class="annottext">ClientCapabilities -&gt; Maybe WindowClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_window%3AClientCapabilities"><span class="hs-identifier hs-var hs-var">_window</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.ClientCapabilities.html#WindowClientCapabilities"><span class="hs-identifier hs-type">WindowClientCapabilities</span></a></span><span>
+</span><span id="line-176"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_experimental%3AClientCapabilities"><span class="annot"><span class="annottext">ClientCapabilities -&gt; Maybe Object
+</span><a href="Language.LSP.Types.ClientCapabilities.html#%24sel%3A_experimental%3AClientCapabilities"><span class="hs-identifier hs-var hs-var">_experimental</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">A.Object</span></span><span>
+</span><span id="line-177"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680445514"><span id="local-6989586621680445516"><span id="local-6989586621680445518"><span class="annot"><span class="annottext">Int -&gt; ClientCapabilities -&gt; ShowS
+[ClientCapabilities] -&gt; ShowS
+ClientCapabilities -&gt; String
+(Int -&gt; ClientCapabilities -&gt; ShowS)
+-&gt; (ClientCapabilities -&gt; String)
+-&gt; ([ClientCapabilities] -&gt; ShowS)
+-&gt; Show ClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [ClientCapabilities] -&gt; ShowS
+$cshowList :: [ClientCapabilities] -&gt; ShowS
+show :: ClientCapabilities -&gt; String
+$cshow :: ClientCapabilities -&gt; String
+showsPrec :: Int -&gt; ClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; ClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680445506"><span id="local-6989586621680445508"><span id="local-6989586621680445510"><span id="local-6989586621680445512"><span class="annot"><span class="annottext">ReadPrec [ClientCapabilities]
+ReadPrec ClientCapabilities
+Int -&gt; ReadS ClientCapabilities
+ReadS [ClientCapabilities]
+(Int -&gt; ReadS ClientCapabilities)
+-&gt; ReadS [ClientCapabilities]
+-&gt; ReadPrec ClientCapabilities
+-&gt; ReadPrec [ClientCapabilities]
+-&gt; Read ClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [ClientCapabilities]
+$creadListPrec :: ReadPrec [ClientCapabilities]
+readPrec :: ReadPrec ClientCapabilities
+$creadPrec :: ReadPrec ClientCapabilities
+readList :: ReadS [ClientCapabilities]
+$creadList :: ReadS [ClientCapabilities]
+readsPrec :: Int -&gt; ReadS ClientCapabilities
+$creadsPrec :: Int -&gt; ReadS ClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680445502"><span id="local-6989586621680445504"><span class="annot"><span class="annottext">ClientCapabilities -&gt; ClientCapabilities -&gt; Bool
+(ClientCapabilities -&gt; ClientCapabilities -&gt; Bool)
+-&gt; (ClientCapabilities -&gt; ClientCapabilities -&gt; Bool)
+-&gt; Eq ClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: ClientCapabilities -&gt; ClientCapabilities -&gt; Bool
+$c/= :: ClientCapabilities -&gt; ClientCapabilities -&gt; Bool
+== :: ClientCapabilities -&gt; ClientCapabilities -&gt; Bool
+$c== :: ClientCapabilities -&gt; ClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-178"></span><span>
+</span><span id="line-179"></span><span id="local-6989586621680445490"><span id="local-6989586621680445492"><span id="local-6989586621680445494"><span id="local-6989586621680445496"><span id="local-6989586621680445498"><span id="local-6989586621680445500"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-180"></span><span>
+</span><span id="line-181"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Default</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.ClientCapabilities.html#ClientCapabilities"><span class="hs-identifier hs-type">ClientCapabilities</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-182"></span><span>  </span><span id="local-6989586621680445488"><span class="annot"><span class="annottext">def :: ClientCapabilities
+</span><a href="#local-6989586621680445488"><span class="hs-identifier hs-var hs-var hs-var hs-var">def</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe WorkspaceClientCapabilities
+-&gt; Maybe TextDocumentClientCapabilities
+-&gt; Maybe WindowClientCapabilities
+-&gt; Maybe Object
+-&gt; ClientCapabilities
+</span><a href="Language.LSP.Types.ClientCapabilities.html#ClientCapabilities"><span class="hs-identifier hs-var">ClientCapabilities</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe WorkspaceClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe TextDocumentClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe WindowClientCapabilities
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span> </span><span class="annot"><span class="annottext">Maybe Object
+forall a. Default a =&gt; a
+</span><span class="hs-identifier hs-var">def</span></span><span>
+</span><span id="line-183"></span></pre></body></html>

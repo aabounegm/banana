@@ -1,0 +1,237 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE UndecidableInstances, FlexibleContexts, MultiParamTypeClasses, FlexibleInstances #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span class="hs-cpp">
+#if __GLASGOW_HASKELL__ &gt;= 702 &amp;&amp; __GLASGOW_HASKELL__ &lt; 710
+</span><span class="hs-pragma">{-# LANGUAGE Trustworthy #-}</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- Module      :  Data.Semigroup.Reducer.With</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Copyright   :  (c) Edward Kmett 2009-2011</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- License     :  BSD-style</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- Maintainer  :  ekmett@gmail.com</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- Stability   :  experimental</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- Portability :  non-portable (MPTCs)</span><span>
+</span><span id="line-15"></span><span class="hs-comment">--</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.Semigroup.Reducer.With</span><span>
+</span><span id="line-19"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.With.html#WithReducer"><span class="hs-identifier">WithReducer</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span class="hs-cpp">
+
+#if __GLASGOW_HASKELL__ &lt; 710
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control.Applicative</span><span class="hs-cpp">
+#endif
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.FingerTree</span></span><span class="hs-cpp">
+#if __GLASGOW_HASKELL__ &lt; 710
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Foldable</span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Traversable</span><span class="hs-cpp">
+#endif
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Hashable</span></span><span class="hs-cpp">
+#if __GLASGOW_HASKELL__ &lt; 710
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Monoid</span><span class="hs-cpp">
+#endif
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html"><span class="hs-identifier">Data.Semigroup.Reducer</span></a></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Semigroup.Foldable</span></span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Semigroup.Traversable</span></span><span>
+</span><span id="line-37"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Data.Semigroup.Instances.html"><span class="hs-identifier">Data.Semigroup.Instances</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="hs-comment">-- | If @m@ is a @c@-&quot;Reducer&quot;, then m is @(c `WithReducer` m)@-&quot;Reducer&quot;</span><span>
+</span><span id="line-40"></span><span class="hs-comment">--   This can be used to quickly select a &quot;Reducer&quot; for use as a 'FingerTree'</span><span>
+</span><span id="line-41"></span><span class="hs-comment">--   'measure'.</span><span>
+</span><span id="line-42"></span><span>
+</span><span id="line-43"></span><span class="hs-keyword">newtype</span><span> </span><span id="WithReducer"><span class="annot"><a href="Data.Semigroup.Reducer.With.html#WithReducer"><span class="hs-identifier hs-var">WithReducer</span></a></span></span><span> </span><span id="local-6989586621679079589"><span class="annot"><a href="#local-6989586621679079589"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span id="local-6989586621679079588"><span class="annot"><a href="#local-6989586621679079588"><span class="hs-identifier hs-type">c</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="WithReducer"><span class="annot"><a href="Data.Semigroup.Reducer.With.html#WithReducer"><span class="hs-identifier hs-var">WithReducer</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="withoutReducer"><span class="annot"><span class="annottext">WithReducer m c -&gt; c
+</span><a href="Data.Semigroup.Reducer.With.html#withoutReducer"><span class="hs-identifier hs-var hs-var">withoutReducer</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679079588"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679079472"><span id="local-6989586621679079474"><span class="annot"><span class="annottext">WithReducer m c -&gt; WithReducer m c -&gt; Bool
+(WithReducer m c -&gt; WithReducer m c -&gt; Bool)
+-&gt; (WithReducer m c -&gt; WithReducer m c -&gt; Bool)
+-&gt; Eq (WithReducer m c)
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+forall m c. Eq c =&gt; WithReducer m c -&gt; WithReducer m c -&gt; Bool
+/= :: WithReducer m c -&gt; WithReducer m c -&gt; Bool
+$c/= :: forall m c. Eq c =&gt; WithReducer m c -&gt; WithReducer m c -&gt; Bool
+== :: WithReducer m c -&gt; WithReducer m c -&gt; Bool
+$c== :: forall m c. Eq c =&gt; WithReducer m c -&gt; WithReducer m c -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679079456"><span id="local-6989586621679079458"><span id="local-6989586621679079460"><span id="local-6989586621679079462"><span id="local-6989586621679079464"><span id="local-6989586621679079466"><span id="local-6989586621679079468"><span class="annot"><span class="annottext">Eq (WithReducer m c)
+Eq (WithReducer m c)
+-&gt; (WithReducer m c -&gt; WithReducer m c -&gt; Ordering)
+-&gt; (WithReducer m c -&gt; WithReducer m c -&gt; Bool)
+-&gt; (WithReducer m c -&gt; WithReducer m c -&gt; Bool)
+-&gt; (WithReducer m c -&gt; WithReducer m c -&gt; Bool)
+-&gt; (WithReducer m c -&gt; WithReducer m c -&gt; Bool)
+-&gt; (WithReducer m c -&gt; WithReducer m c -&gt; WithReducer m c)
+-&gt; (WithReducer m c -&gt; WithReducer m c -&gt; WithReducer m c)
+-&gt; Ord (WithReducer m c)
+WithReducer m c -&gt; WithReducer m c -&gt; Bool
+WithReducer m c -&gt; WithReducer m c -&gt; Ordering
+WithReducer m c -&gt; WithReducer m c -&gt; WithReducer m c
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall m c. Ord c =&gt; Eq (WithReducer m c)
+forall m c. Ord c =&gt; WithReducer m c -&gt; WithReducer m c -&gt; Bool
+forall m c. Ord c =&gt; WithReducer m c -&gt; WithReducer m c -&gt; Ordering
+forall m c.
+Ord c =&gt;
+WithReducer m c -&gt; WithReducer m c -&gt; WithReducer m c
+min :: WithReducer m c -&gt; WithReducer m c -&gt; WithReducer m c
+$cmin :: forall m c.
+Ord c =&gt;
+WithReducer m c -&gt; WithReducer m c -&gt; WithReducer m c
+max :: WithReducer m c -&gt; WithReducer m c -&gt; WithReducer m c
+$cmax :: forall m c.
+Ord c =&gt;
+WithReducer m c -&gt; WithReducer m c -&gt; WithReducer m c
+&gt;= :: WithReducer m c -&gt; WithReducer m c -&gt; Bool
+$c&gt;= :: forall m c. Ord c =&gt; WithReducer m c -&gt; WithReducer m c -&gt; Bool
+&gt; :: WithReducer m c -&gt; WithReducer m c -&gt; Bool
+$c&gt; :: forall m c. Ord c =&gt; WithReducer m c -&gt; WithReducer m c -&gt; Bool
+&lt;= :: WithReducer m c -&gt; WithReducer m c -&gt; Bool
+$c&lt;= :: forall m c. Ord c =&gt; WithReducer m c -&gt; WithReducer m c -&gt; Bool
+&lt; :: WithReducer m c -&gt; WithReducer m c -&gt; Bool
+$c&lt; :: forall m c. Ord c =&gt; WithReducer m c -&gt; WithReducer m c -&gt; Bool
+compare :: WithReducer m c -&gt; WithReducer m c -&gt; Ordering
+$ccompare :: forall m c. Ord c =&gt; WithReducer m c -&gt; WithReducer m c -&gt; Ordering
+$cp1Ord :: forall m c. Ord c =&gt; Eq (WithReducer m c)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679079449"><span id="local-6989586621679079451"><span id="local-6989586621679079453"><span class="annot"><span class="annottext">Int -&gt; WithReducer m c -&gt; ShowS
+[WithReducer m c] -&gt; ShowS
+WithReducer m c -&gt; String
+(Int -&gt; WithReducer m c -&gt; ShowS)
+-&gt; (WithReducer m c -&gt; String)
+-&gt; ([WithReducer m c] -&gt; ShowS)
+-&gt; Show (WithReducer m c)
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+forall m c. Show c =&gt; Int -&gt; WithReducer m c -&gt; ShowS
+forall m c. Show c =&gt; [WithReducer m c] -&gt; ShowS
+forall m c. Show c =&gt; WithReducer m c -&gt; String
+showList :: [WithReducer m c] -&gt; ShowS
+$cshowList :: forall m c. Show c =&gt; [WithReducer m c] -&gt; ShowS
+show :: WithReducer m c -&gt; String
+$cshow :: forall m c. Show c =&gt; WithReducer m c -&gt; String
+showsPrec :: Int -&gt; WithReducer m c -&gt; ShowS
+$cshowsPrec :: forall m c. Show c =&gt; Int -&gt; WithReducer m c -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679079440"><span id="local-6989586621679079442"><span id="local-6989586621679079444"><span id="local-6989586621679079446"><span class="annot"><span class="annottext">ReadPrec [WithReducer m c]
+ReadPrec (WithReducer m c)
+Int -&gt; ReadS (WithReducer m c)
+ReadS [WithReducer m c]
+(Int -&gt; ReadS (WithReducer m c))
+-&gt; ReadS [WithReducer m c]
+-&gt; ReadPrec (WithReducer m c)
+-&gt; ReadPrec [WithReducer m c]
+-&gt; Read (WithReducer m c)
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+forall m c. Read c =&gt; ReadPrec [WithReducer m c]
+forall m c. Read c =&gt; ReadPrec (WithReducer m c)
+forall m c. Read c =&gt; Int -&gt; ReadS (WithReducer m c)
+forall m c. Read c =&gt; ReadS [WithReducer m c]
+readListPrec :: ReadPrec [WithReducer m c]
+$creadListPrec :: forall m c. Read c =&gt; ReadPrec [WithReducer m c]
+readPrec :: ReadPrec (WithReducer m c)
+$creadPrec :: forall m c. Read c =&gt; ReadPrec (WithReducer m c)
+readList :: ReadS [WithReducer m c]
+$creadList :: forall m c. Read c =&gt; ReadS [WithReducer m c]
+readsPrec :: Int -&gt; ReadS (WithReducer m c)
+$creadsPrec :: forall m c. Read c =&gt; Int -&gt; ReadS (WithReducer m c)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span id="local-6989586621679079437"><span id="local-6989586621679079438"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679079434"><span class="annot"><span class="hs-identifier hs-type">Hashable</span></span><span> </span><span class="annot"><a href="#local-6989586621679079438"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Hashable</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Reducer.With.html#WithReducer"><span class="hs-identifier hs-type">WithReducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679079437"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679079438"><span class="hs-identifier hs-type">c</span></a></span><span class="hs-special">)</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-47"></span><span>  </span><span id="local-6989586621679079432"><span class="annot"><span class="annottext">hashWithSalt :: Int -&gt; WithReducer m c -&gt; Int
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">hashWithSalt</span></span></span><span> </span><span id="local-6989586621679079430"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679079430"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; c -&gt; Int
+forall a. Hashable a =&gt; Int -&gt; a -&gt; Int
+</span><span class="hs-identifier hs-var">hashWithSalt</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679079430"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">(c -&gt; Int) -&gt; (WithReducer m c -&gt; c) -&gt; WithReducer m c -&gt; Int
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">WithReducer m c -&gt; c
+forall m c. WithReducer m c -&gt; c
+</span><a href="Data.Semigroup.Reducer.With.html#withoutReducer"><span class="hs-identifier hs-var hs-var">withoutReducer</span></a></span></span></span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span id="local-6989586621679079428"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679079425"><span class="annot"><span class="hs-identifier hs-type">Functor</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Reducer.With.html#WithReducer"><span class="hs-identifier hs-type">WithReducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679079428"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-50"></span><span>  </span><span id="local-6989586621679079423"><span class="annot"><span class="annottext">fmap :: (a -&gt; b) -&gt; WithReducer m a -&gt; WithReducer m b
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">fmap</span></span></span><span> </span><span id="local-6989586621679079422"><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679079422"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">b -&gt; WithReducer m b
+forall m c. c -&gt; WithReducer m c
+</span><a href="Data.Semigroup.Reducer.With.html#WithReducer"><span class="hs-identifier hs-var">WithReducer</span></a></span><span> </span><span class="annot"><span class="annottext">(b -&gt; WithReducer m b)
+-&gt; (WithReducer m a -&gt; b) -&gt; WithReducer m a -&gt; WithReducer m b
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679079422"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">(a -&gt; b) -&gt; (WithReducer m a -&gt; a) -&gt; WithReducer m a -&gt; b
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">WithReducer m a -&gt; a
+forall m c. WithReducer m c -&gt; c
+</span><a href="Data.Semigroup.Reducer.With.html#withoutReducer"><span class="hs-identifier hs-var hs-var">withoutReducer</span></a></span></span><span>
+</span><span id="line-51"></span><span>
+</span><span id="line-52"></span><span id="local-6989586621679079421"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679079388"><span id="local-6989586621679079390"><span id="local-6989586621679079392"><span id="local-6989586621679079394"><span id="local-6989586621679079396"><span id="local-6989586621679079398"><span id="local-6989586621679079400"><span id="local-6989586621679079402"><span id="local-6989586621679079404"><span id="local-6989586621679079406"><span id="local-6989586621679079408"><span id="local-6989586621679079410"><span id="local-6989586621679079412"><span id="local-6989586621679079414"><span id="local-6989586621679079416"><span id="local-6989586621679079419"><span class="annot"><span class="hs-identifier hs-type">Foldable</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Reducer.With.html#WithReducer"><span class="hs-identifier hs-type">WithReducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679079421"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-53"></span><span>  </span><span id="local-6989586621679079386"><span class="annot"><span class="annottext">foldMap :: (a -&gt; m) -&gt; WithReducer m a -&gt; m
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">foldMap</span></span></span><span> </span><span id="local-6989586621679079384"><span class="annot"><span class="annottext">a -&gt; m
+</span><a href="#local-6989586621679079384"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; m
+</span><a href="#local-6989586621679079384"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">(a -&gt; m) -&gt; (WithReducer m a -&gt; a) -&gt; WithReducer m a -&gt; m
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">WithReducer m a -&gt; a
+forall m c. WithReducer m c -&gt; c
+</span><a href="Data.Semigroup.Reducer.With.html#withoutReducer"><span class="hs-identifier hs-var hs-var">withoutReducer</span></a></span></span><span>
+</span><span id="line-54"></span><span>
+</span><span id="line-55"></span><span id="local-6989586621679079383"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679079374"><span id="local-6989586621679079376"><span id="local-6989586621679079378"><span class="annot"><span class="hs-identifier hs-type">Traversable</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Reducer.With.html#WithReducer"><span class="hs-identifier hs-type">WithReducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679079383"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-56"></span><span>  </span><span id="local-6989586621679079372"><span class="annot"><span class="annottext">traverse :: (a -&gt; f b) -&gt; WithReducer m a -&gt; f (WithReducer m b)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">traverse</span></span></span><span> </span><span id="local-6989586621679079370"><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679079370"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Reducer.With.html#WithReducer"><span class="hs-identifier hs-type">WithReducer</span></a></span><span> </span><span id="local-6989586621679079369"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679079369"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">b -&gt; WithReducer m b
+forall m c. c -&gt; WithReducer m c
+</span><a href="Data.Semigroup.Reducer.With.html#WithReducer"><span class="hs-identifier hs-var">WithReducer</span></a></span><span> </span><span class="annot"><span class="annottext">(b -&gt; WithReducer m b) -&gt; f b -&gt; f (WithReducer m b)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679079370"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679079369"><span class="hs-identifier hs-var">a</span></a></span></span><span>
+</span><span id="line-57"></span><span>
+</span><span id="line-58"></span><span id="local-6989586621679079367"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679079361"><span id="local-6989586621679079364"><span class="annot"><span class="hs-identifier hs-type">Foldable1</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Reducer.With.html#WithReducer"><span class="hs-identifier hs-type">WithReducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679079367"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-59"></span><span>  </span><span id="local-6989586621679079359"><span class="annot"><span class="annottext">foldMap1 :: (a -&gt; m) -&gt; WithReducer m a -&gt; m
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">foldMap1</span></span></span><span> </span><span id="local-6989586621679079357"><span class="annot"><span class="annottext">a -&gt; m
+</span><a href="#local-6989586621679079357"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; m
+</span><a href="#local-6989586621679079357"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">(a -&gt; m) -&gt; (WithReducer m a -&gt; a) -&gt; WithReducer m a -&gt; m
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">WithReducer m a -&gt; a
+forall m c. WithReducer m c -&gt; c
+</span><a href="Data.Semigroup.Reducer.With.html#withoutReducer"><span class="hs-identifier hs-var hs-var">withoutReducer</span></a></span></span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span id="local-6989586621679079356"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679079351"><span class="annot"><span class="hs-identifier hs-type">Traversable1</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Reducer.With.html#WithReducer"><span class="hs-identifier hs-type">WithReducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679079356"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-62"></span><span>  </span><span id="local-6989586621679079349"><span class="annot"><span class="annottext">traverse1 :: (a -&gt; f b) -&gt; WithReducer m a -&gt; f (WithReducer m b)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">traverse1</span></span></span><span> </span><span id="local-6989586621679079347"><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679079347"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Reducer.With.html#WithReducer"><span class="hs-identifier hs-type">WithReducer</span></a></span><span> </span><span id="local-6989586621679079346"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679079346"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">b -&gt; WithReducer m b
+forall m c. c -&gt; WithReducer m c
+</span><a href="Data.Semigroup.Reducer.With.html#WithReducer"><span class="hs-identifier hs-var">WithReducer</span></a></span><span> </span><span class="annot"><span class="annottext">(b -&gt; WithReducer m b) -&gt; f b -&gt; f (WithReducer m b)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679079347"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679079346"><span class="hs-identifier hs-var">a</span></a></span></span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span id="local-6989586621679079344"><span id="local-6989586621679079345"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679079338"><span id="local-6989586621679079340"><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679079345"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679079344"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Reducer.With.html#WithReducer"><span class="hs-identifier hs-type">WithReducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679079344"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679079345"><span class="hs-identifier hs-type">c</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679079344"><span class="hs-identifier hs-type">m</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-65"></span><span>  </span><span id="local-6989586621679079336"><span class="annot"><span class="annottext">unit :: WithReducer m c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">c -&gt; m
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span><span> </span><span class="annot"><span class="annottext">(c -&gt; m) -&gt; (WithReducer m c -&gt; c) -&gt; WithReducer m c -&gt; m
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">WithReducer m c -&gt; c
+forall m c. WithReducer m c -&gt; c
+</span><a href="Data.Semigroup.Reducer.With.html#withoutReducer"><span class="hs-identifier hs-var hs-var">withoutReducer</span></a></span></span></span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span id="local-6989586621679079333"><span id="local-6989586621679079334"><span class="hs-keyword">instance</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="#local-6989586621679079334"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679079333"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679079334"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Measured</span></span><span> </span><span class="annot"><a href="#local-6989586621679079334"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Reducer.With.html#WithReducer"><span class="hs-identifier hs-type">WithReducer</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679079334"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679079333"><span class="hs-identifier hs-type">c</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-68"></span><span>  </span><span id="local-6989586621679079329"><span class="annot"><span class="annottext">measure :: WithReducer m c -&gt; m
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">measure</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">c -&gt; m
+forall c m. Reducer c m =&gt; c -&gt; m
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var">unit</span></a></span><span> </span><span class="annot"><span class="annottext">(c -&gt; m) -&gt; (WithReducer m c -&gt; c) -&gt; WithReducer m c -&gt; m
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">WithReducer m c -&gt; c
+forall m c. WithReducer m c -&gt; c
+</span><a href="Data.Semigroup.Reducer.With.html#withoutReducer"><span class="hs-identifier hs-var hs-var">withoutReducer</span></a></span></span></span><span>
+</span><span id="line-69"></span></pre></body></html>

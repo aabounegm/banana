@@ -1,0 +1,411 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="%24maxtag_InR2TgYd5pdGzLqijVUCBZ"><span id="%24tag2con_InR2TgYd5pdGzLqijVUCBZ"><span id="%24con2tag_InR2TgYd5pdGzLqijVUCBZ"></span></span></span><span class="hs-pragma">{-# LANGUAGE OverloadedStrings          #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields      #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE RecordWildCards            #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell            #-}</span><span>
+</span><span id="line-5"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.Window</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson</span></span><span>                                 </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">A</span></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span>                                  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">data</span><span> </span><span id="MessageType"><span class="annot"><a href="Language.LSP.Types.Window.html#MessageType"><span class="hs-identifier hs-var">MessageType</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MtError"><span class="annot"><a href="Language.LSP.Types.Window.html#MtError"><span class="hs-identifier hs-var">MtError</span></a></span></span><span>   </span><span class="hs-comment">-- ^ Error = 1,</span><span>
+</span><span id="line-15"></span><span>                 </span><span class="hs-glyph">|</span><span> </span><span id="MtWarning"><span class="annot"><a href="Language.LSP.Types.Window.html#MtWarning"><span class="hs-identifier hs-var">MtWarning</span></a></span></span><span> </span><span class="hs-comment">-- ^ Warning = 2,</span><span>
+</span><span id="line-16"></span><span>                 </span><span class="hs-glyph">|</span><span> </span><span id="MtInfo"><span class="annot"><a href="Language.LSP.Types.Window.html#MtInfo"><span class="hs-identifier hs-var">MtInfo</span></a></span></span><span>    </span><span class="hs-comment">-- ^ Info = 3,</span><span>
+</span><span id="line-17"></span><span>                 </span><span class="hs-glyph">|</span><span> </span><span id="MtLog"><span class="annot"><a href="Language.LSP.Types.Window.html#MtLog"><span class="hs-identifier hs-var">MtLog</span></a></span></span><span>     </span><span class="hs-comment">-- ^ Log = 4</span><span>
+</span><span id="line-18"></span><span>        </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680442672"><span id="local-6989586621680442674"><span class="annot"><span class="annottext">MessageType -&gt; MessageType -&gt; Bool
+(MessageType -&gt; MessageType -&gt; Bool)
+-&gt; (MessageType -&gt; MessageType -&gt; Bool) -&gt; Eq MessageType
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: MessageType -&gt; MessageType -&gt; Bool
+$c/= :: MessageType -&gt; MessageType -&gt; Bool
+== :: MessageType -&gt; MessageType -&gt; Bool
+$c== :: MessageType -&gt; MessageType -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680442656"><span id="local-6989586621680442658"><span id="local-6989586621680442660"><span id="local-6989586621680442662"><span id="local-6989586621680442664"><span id="local-6989586621680442666"><span id="local-6989586621680442668"><span class="annot"><span class="annottext">Eq MessageType
+Eq MessageType
+-&gt; (MessageType -&gt; MessageType -&gt; Ordering)
+-&gt; (MessageType -&gt; MessageType -&gt; Bool)
+-&gt; (MessageType -&gt; MessageType -&gt; Bool)
+-&gt; (MessageType -&gt; MessageType -&gt; Bool)
+-&gt; (MessageType -&gt; MessageType -&gt; Bool)
+-&gt; (MessageType -&gt; MessageType -&gt; MessageType)
+-&gt; (MessageType -&gt; MessageType -&gt; MessageType)
+-&gt; Ord MessageType
+MessageType -&gt; MessageType -&gt; Bool
+MessageType -&gt; MessageType -&gt; Ordering
+MessageType -&gt; MessageType -&gt; MessageType
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: MessageType -&gt; MessageType -&gt; MessageType
+$cmin :: MessageType -&gt; MessageType -&gt; MessageType
+max :: MessageType -&gt; MessageType -&gt; MessageType
+$cmax :: MessageType -&gt; MessageType -&gt; MessageType
+&gt;= :: MessageType -&gt; MessageType -&gt; Bool
+$c&gt;= :: MessageType -&gt; MessageType -&gt; Bool
+&gt; :: MessageType -&gt; MessageType -&gt; Bool
+$c&gt; :: MessageType -&gt; MessageType -&gt; Bool
+&lt;= :: MessageType -&gt; MessageType -&gt; Bool
+$c&lt;= :: MessageType -&gt; MessageType -&gt; Bool
+&lt; :: MessageType -&gt; MessageType -&gt; Bool
+$c&lt; :: MessageType -&gt; MessageType -&gt; Bool
+compare :: MessageType -&gt; MessageType -&gt; Ordering
+$ccompare :: MessageType -&gt; MessageType -&gt; Ordering
+$cp1Ord :: Eq MessageType
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680442649"><span id="local-6989586621680442651"><span id="local-6989586621680442653"><span class="annot"><span class="annottext">Int -&gt; MessageType -&gt; ShowS
+[MessageType] -&gt; ShowS
+MessageType -&gt; String
+(Int -&gt; MessageType -&gt; ShowS)
+-&gt; (MessageType -&gt; String)
+-&gt; ([MessageType] -&gt; ShowS)
+-&gt; Show MessageType
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [MessageType] -&gt; ShowS
+$cshowList :: [MessageType] -&gt; ShowS
+show :: MessageType -&gt; String
+$cshow :: MessageType -&gt; String
+showsPrec :: Int -&gt; MessageType -&gt; ShowS
+$cshowsPrec :: Int -&gt; MessageType -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680442640"><span id="local-6989586621680442642"><span id="local-6989586621680442644"><span id="local-6989586621680442646"><span class="annot"><span class="annottext">ReadPrec [MessageType]
+ReadPrec MessageType
+Int -&gt; ReadS MessageType
+ReadS [MessageType]
+(Int -&gt; ReadS MessageType)
+-&gt; ReadS [MessageType]
+-&gt; ReadPrec MessageType
+-&gt; ReadPrec [MessageType]
+-&gt; Read MessageType
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [MessageType]
+$creadListPrec :: ReadPrec [MessageType]
+readPrec :: ReadPrec MessageType
+$creadPrec :: ReadPrec MessageType
+readList :: ReadS [MessageType]
+$creadList :: ReadS [MessageType]
+readsPrec :: Int -&gt; ReadS MessageType
+$creadsPrec :: Int -&gt; ReadS MessageType
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680442623"><span id="local-6989586621680442625"><span id="local-6989586621680442627"><span id="local-6989586621680442629"><span id="local-6989586621680442631"><span id="local-6989586621680442633"><span id="local-6989586621680442635"><span id="local-6989586621680442637"><span class="annot"><span class="annottext">Int -&gt; MessageType
+MessageType -&gt; Int
+MessageType -&gt; [MessageType]
+MessageType -&gt; MessageType
+MessageType -&gt; MessageType -&gt; [MessageType]
+MessageType -&gt; MessageType -&gt; MessageType -&gt; [MessageType]
+(MessageType -&gt; MessageType)
+-&gt; (MessageType -&gt; MessageType)
+-&gt; (Int -&gt; MessageType)
+-&gt; (MessageType -&gt; Int)
+-&gt; (MessageType -&gt; [MessageType])
+-&gt; (MessageType -&gt; MessageType -&gt; [MessageType])
+-&gt; (MessageType -&gt; MessageType -&gt; [MessageType])
+-&gt; (MessageType -&gt; MessageType -&gt; MessageType -&gt; [MessageType])
+-&gt; Enum MessageType
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+enumFromThenTo :: MessageType -&gt; MessageType -&gt; MessageType -&gt; [MessageType]
+$cenumFromThenTo :: MessageType -&gt; MessageType -&gt; MessageType -&gt; [MessageType]
+enumFromTo :: MessageType -&gt; MessageType -&gt; [MessageType]
+$cenumFromTo :: MessageType -&gt; MessageType -&gt; [MessageType]
+enumFromThen :: MessageType -&gt; MessageType -&gt; [MessageType]
+$cenumFromThen :: MessageType -&gt; MessageType -&gt; [MessageType]
+enumFrom :: MessageType -&gt; [MessageType]
+$cenumFrom :: MessageType -&gt; [MessageType]
+fromEnum :: MessageType -&gt; Int
+$cfromEnum :: MessageType -&gt; Int
+toEnum :: Int -&gt; MessageType
+$ctoEnum :: Int -&gt; MessageType
+pred :: MessageType -&gt; MessageType
+$cpred :: MessageType -&gt; MessageType
+succ :: MessageType -&gt; MessageType
+$csucc :: MessageType -&gt; MessageType
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Enum</span></span></span></span></span></span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680442615"><span id="local-6989586621680442617"><span id="local-6989586621680442619"><span class="annot"><span class="hs-identifier hs-type">A.ToJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Window.html#MessageType"><span class="hs-identifier hs-type">MessageType</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-21"></span><span>  </span><span id="local-6989586621680442613"><span class="annot"><span class="annottext">toJSON :: MessageType -&gt; Value
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></span></span><span> </span><span class="annot"><span class="annottext">MessageType
+</span><a href="Language.LSP.Types.Window.html#MtError"><span class="hs-identifier hs-var">MtError</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-22"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">MessageType
+</span><a href="Language.LSP.Types.Window.html#MtWarning"><span class="hs-identifier hs-var">MtWarning</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">2</span></span><span>
+</span><span id="line-23"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">MessageType
+</span><a href="Language.LSP.Types.Window.html#MtInfo"><span class="hs-identifier hs-var">MtInfo</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">3</span></span><span>
+</span><span id="line-24"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">MessageType
+</span><a href="Language.LSP.Types.Window.html#MtLog"><span class="hs-identifier hs-var">MtLog</span></a></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; Value
+</span><span class="hs-identifier hs-var">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">4</span></span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680442608"><span class="annot"><span class="hs-identifier hs-type">A.FromJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Window.html#MessageType"><span class="hs-identifier hs-type">MessageType</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-27"></span><span>  </span><span id="local-6989586621680442606"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser MessageType
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MessageType -&gt; Parser MessageType
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">MessageType
+</span><a href="Language.LSP.Types.Window.html#MtError"><span class="hs-identifier hs-var">MtError</span></a></span><span>
+</span><span id="line-28"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">2</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MessageType -&gt; Parser MessageType
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">MessageType
+</span><a href="Language.LSP.Types.Window.html#MtWarning"><span class="hs-identifier hs-var">MtWarning</span></a></span><span>
+</span><span id="line-29"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">3</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MessageType -&gt; Parser MessageType
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">MessageType
+</span><a href="Language.LSP.Types.Window.html#MtInfo"><span class="hs-identifier hs-var">MtInfo</span></a></span><span>
+</span><span id="line-30"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.Number</span></span><span> </span><span class="annot"><span class="annottext">Scientific
+</span><span class="hs-number">4</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MessageType -&gt; Parser MessageType
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">MessageType
+</span><a href="Language.LSP.Types.Window.html#MtLog"><span class="hs-identifier hs-var">MtLog</span></a></span><span>
+</span><span id="line-31"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><span class="hs-identifier">_</span></span><span>            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser MessageType
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span class="hs-comment">-- ---------------------------------------</span><span>
+</span><span id="line-34"></span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span class="hs-keyword">data</span><span> </span><span id="ShowMessageParams"><span class="annot"><a href="Language.LSP.Types.Window.html#ShowMessageParams"><span class="hs-identifier hs-var">ShowMessageParams</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-37"></span><span>  </span><span id="ShowMessageParams"><span class="annot"><a href="Language.LSP.Types.Window.html#ShowMessageParams"><span class="hs-identifier hs-var">ShowMessageParams</span></a></span></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-38"></span><span>    </span><span id="%24sel%3A_xtype%3AShowMessageParams"><span class="annot"><span class="annottext">ShowMessageParams -&gt; MessageType
+</span><a href="Language.LSP.Types.Window.html#%24sel%3A_xtype%3AShowMessageParams"><span class="hs-identifier hs-var hs-var">_xtype</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Window.html#MessageType"><span class="hs-identifier hs-type">MessageType</span></a></span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_message%3AShowMessageParams"><span class="annot"><span class="annottext">ShowMessageParams -&gt; Text
+</span><a href="Language.LSP.Types.Window.html#%24sel%3A_message%3AShowMessageParams"><span class="hs-identifier hs-var hs-var">_message</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-40"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680442596"><span id="local-6989586621680442598"><span id="local-6989586621680442600"><span class="annot"><span class="annottext">Int -&gt; ShowMessageParams -&gt; ShowS
+[ShowMessageParams] -&gt; ShowS
+ShowMessageParams -&gt; String
+(Int -&gt; ShowMessageParams -&gt; ShowS)
+-&gt; (ShowMessageParams -&gt; String)
+-&gt; ([ShowMessageParams] -&gt; ShowS)
+-&gt; Show ShowMessageParams
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [ShowMessageParams] -&gt; ShowS
+$cshowList :: [ShowMessageParams] -&gt; ShowS
+show :: ShowMessageParams -&gt; String
+$cshow :: ShowMessageParams -&gt; String
+showsPrec :: Int -&gt; ShowMessageParams -&gt; ShowS
+$cshowsPrec :: Int -&gt; ShowMessageParams -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680442588"><span id="local-6989586621680442590"><span id="local-6989586621680442592"><span id="local-6989586621680442594"><span class="annot"><span class="annottext">ReadPrec [ShowMessageParams]
+ReadPrec ShowMessageParams
+Int -&gt; ReadS ShowMessageParams
+ReadS [ShowMessageParams]
+(Int -&gt; ReadS ShowMessageParams)
+-&gt; ReadS [ShowMessageParams]
+-&gt; ReadPrec ShowMessageParams
+-&gt; ReadPrec [ShowMessageParams]
+-&gt; Read ShowMessageParams
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [ShowMessageParams]
+$creadListPrec :: ReadPrec [ShowMessageParams]
+readPrec :: ReadPrec ShowMessageParams
+$creadPrec :: ReadPrec ShowMessageParams
+readList :: ReadS [ShowMessageParams]
+$creadList :: ReadS [ShowMessageParams]
+readsPrec :: Int -&gt; ReadS ShowMessageParams
+$creadsPrec :: Int -&gt; ReadS ShowMessageParams
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680442584"><span id="local-6989586621680442586"><span class="annot"><span class="annottext">ShowMessageParams -&gt; ShowMessageParams -&gt; Bool
+(ShowMessageParams -&gt; ShowMessageParams -&gt; Bool)
+-&gt; (ShowMessageParams -&gt; ShowMessageParams -&gt; Bool)
+-&gt; Eq ShowMessageParams
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: ShowMessageParams -&gt; ShowMessageParams -&gt; Bool
+$c/= :: ShowMessageParams -&gt; ShowMessageParams -&gt; Bool
+== :: ShowMessageParams -&gt; ShowMessageParams -&gt; Bool
+$c== :: ShowMessageParams -&gt; ShowMessageParams -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span id="local-6989586621680442572"><span id="local-6989586621680442574"><span id="local-6989586621680442576"><span id="local-6989586621680442578"><span id="local-6989586621680442580"><span id="local-6989586621680442582"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ShowMessageParams</span></span></span></span></span></span></span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="hs-keyword">data</span><span> </span><span id="MessageActionItem"><span class="annot"><a href="Language.LSP.Types.Window.html#MessageActionItem"><span class="hs-identifier hs-var">MessageActionItem</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-47"></span><span>  </span><span id="MessageActionItem"><span class="annot"><a href="Language.LSP.Types.Window.html#MessageActionItem"><span class="hs-identifier hs-var">MessageActionItem</span></a></span></span><span>
+</span><span id="line-48"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_title%3AMessageActionItem"><span class="annot"><span class="annottext">MessageActionItem -&gt; Text
+</span><a href="Language.LSP.Types.Window.html#%24sel%3A_title%3AMessageActionItem"><span class="hs-identifier hs-var hs-var">_title</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-49"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680442563"><span id="local-6989586621680442565"><span id="local-6989586621680442567"><span class="annot"><span class="annottext">Int -&gt; MessageActionItem -&gt; ShowS
+[MessageActionItem] -&gt; ShowS
+MessageActionItem -&gt; String
+(Int -&gt; MessageActionItem -&gt; ShowS)
+-&gt; (MessageActionItem -&gt; String)
+-&gt; ([MessageActionItem] -&gt; ShowS)
+-&gt; Show MessageActionItem
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [MessageActionItem] -&gt; ShowS
+$cshowList :: [MessageActionItem] -&gt; ShowS
+show :: MessageActionItem -&gt; String
+$cshow :: MessageActionItem -&gt; String
+showsPrec :: Int -&gt; MessageActionItem -&gt; ShowS
+$cshowsPrec :: Int -&gt; MessageActionItem -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680442555"><span id="local-6989586621680442557"><span id="local-6989586621680442559"><span id="local-6989586621680442561"><span class="annot"><span class="annottext">ReadPrec [MessageActionItem]
+ReadPrec MessageActionItem
+Int -&gt; ReadS MessageActionItem
+ReadS [MessageActionItem]
+(Int -&gt; ReadS MessageActionItem)
+-&gt; ReadS [MessageActionItem]
+-&gt; ReadPrec MessageActionItem
+-&gt; ReadPrec [MessageActionItem]
+-&gt; Read MessageActionItem
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [MessageActionItem]
+$creadListPrec :: ReadPrec [MessageActionItem]
+readPrec :: ReadPrec MessageActionItem
+$creadPrec :: ReadPrec MessageActionItem
+readList :: ReadS [MessageActionItem]
+$creadList :: ReadS [MessageActionItem]
+readsPrec :: Int -&gt; ReadS MessageActionItem
+$creadsPrec :: Int -&gt; ReadS MessageActionItem
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680442551"><span id="local-6989586621680442553"><span class="annot"><span class="annottext">MessageActionItem -&gt; MessageActionItem -&gt; Bool
+(MessageActionItem -&gt; MessageActionItem -&gt; Bool)
+-&gt; (MessageActionItem -&gt; MessageActionItem -&gt; Bool)
+-&gt; Eq MessageActionItem
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: MessageActionItem -&gt; MessageActionItem -&gt; Bool
+$c/= :: MessageActionItem -&gt; MessageActionItem -&gt; Bool
+== :: MessageActionItem -&gt; MessageActionItem -&gt; Bool
+$c== :: MessageActionItem -&gt; MessageActionItem -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span id="local-6989586621680442539"><span id="local-6989586621680442541"><span id="local-6989586621680442543"><span id="local-6989586621680442545"><span id="local-6989586621680442547"><span id="local-6989586621680442549"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">MessageActionItem</span></span></span></span></span></span></span><span>
+</span><span id="line-52"></span><span>
+</span><span id="line-53"></span><span>
+</span><span id="line-54"></span><span class="hs-keyword">data</span><span> </span><span id="ShowMessageRequestParams"><span class="annot"><a href="Language.LSP.Types.Window.html#ShowMessageRequestParams"><span class="hs-identifier hs-var">ShowMessageRequestParams</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-55"></span><span>  </span><span id="ShowMessageRequestParams"><span class="annot"><a href="Language.LSP.Types.Window.html#ShowMessageRequestParams"><span class="hs-identifier hs-var">ShowMessageRequestParams</span></a></span></span><span>
+</span><span id="line-56"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="%24sel%3A_xtype%3AShowMessageRequestParams"><span class="annot"><span class="annottext">ShowMessageRequestParams -&gt; MessageType
+</span><a href="Language.LSP.Types.Window.html#%24sel%3A_xtype%3AShowMessageRequestParams"><span class="hs-identifier hs-var hs-var">_xtype</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Window.html#MessageType"><span class="hs-identifier hs-type">MessageType</span></a></span><span>
+</span><span id="line-57"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_message%3AShowMessageRequestParams"><span class="annot"><span class="annottext">ShowMessageRequestParams -&gt; Text
+</span><a href="Language.LSP.Types.Window.html#%24sel%3A_message%3AShowMessageRequestParams"><span class="hs-identifier hs-var hs-var">_message</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-58"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_actions%3AShowMessageRequestParams"><span class="annot"><span class="annottext">ShowMessageRequestParams -&gt; Maybe [MessageActionItem]
+</span><a href="Language.LSP.Types.Window.html#%24sel%3A_actions%3AShowMessageRequestParams"><span class="hs-identifier hs-var hs-var">_actions</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.LSP.Types.Window.html#MessageActionItem"><span class="hs-identifier hs-type">MessageActionItem</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-59"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680442529"><span id="local-6989586621680442531"><span id="local-6989586621680442533"><span class="annot"><span class="annottext">Int -&gt; ShowMessageRequestParams -&gt; ShowS
+[ShowMessageRequestParams] -&gt; ShowS
+ShowMessageRequestParams -&gt; String
+(Int -&gt; ShowMessageRequestParams -&gt; ShowS)
+-&gt; (ShowMessageRequestParams -&gt; String)
+-&gt; ([ShowMessageRequestParams] -&gt; ShowS)
+-&gt; Show ShowMessageRequestParams
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [ShowMessageRequestParams] -&gt; ShowS
+$cshowList :: [ShowMessageRequestParams] -&gt; ShowS
+show :: ShowMessageRequestParams -&gt; String
+$cshow :: ShowMessageRequestParams -&gt; String
+showsPrec :: Int -&gt; ShowMessageRequestParams -&gt; ShowS
+$cshowsPrec :: Int -&gt; ShowMessageRequestParams -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680442521"><span id="local-6989586621680442523"><span id="local-6989586621680442525"><span id="local-6989586621680442527"><span class="annot"><span class="annottext">ReadPrec [ShowMessageRequestParams]
+ReadPrec ShowMessageRequestParams
+Int -&gt; ReadS ShowMessageRequestParams
+ReadS [ShowMessageRequestParams]
+(Int -&gt; ReadS ShowMessageRequestParams)
+-&gt; ReadS [ShowMessageRequestParams]
+-&gt; ReadPrec ShowMessageRequestParams
+-&gt; ReadPrec [ShowMessageRequestParams]
+-&gt; Read ShowMessageRequestParams
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [ShowMessageRequestParams]
+$creadListPrec :: ReadPrec [ShowMessageRequestParams]
+readPrec :: ReadPrec ShowMessageRequestParams
+$creadPrec :: ReadPrec ShowMessageRequestParams
+readList :: ReadS [ShowMessageRequestParams]
+$creadList :: ReadS [ShowMessageRequestParams]
+readsPrec :: Int -&gt; ReadS ShowMessageRequestParams
+$creadsPrec :: Int -&gt; ReadS ShowMessageRequestParams
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680442517"><span id="local-6989586621680442519"><span class="annot"><span class="annottext">ShowMessageRequestParams -&gt; ShowMessageRequestParams -&gt; Bool
+(ShowMessageRequestParams -&gt; ShowMessageRequestParams -&gt; Bool)
+-&gt; (ShowMessageRequestParams -&gt; ShowMessageRequestParams -&gt; Bool)
+-&gt; Eq ShowMessageRequestParams
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: ShowMessageRequestParams -&gt; ShowMessageRequestParams -&gt; Bool
+$c/= :: ShowMessageRequestParams -&gt; ShowMessageRequestParams -&gt; Bool
+== :: ShowMessageRequestParams -&gt; ShowMessageRequestParams -&gt; Bool
+$c== :: ShowMessageRequestParams -&gt; ShowMessageRequestParams -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span id="local-6989586621680442505"><span id="local-6989586621680442507"><span id="local-6989586621680442509"><span id="local-6989586621680442511"><span id="local-6989586621680442513"><span id="local-6989586621680442515"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ShowMessageRequestParams</span></span></span></span></span></span></span><span>
+</span><span id="line-62"></span><span>
+</span><span id="line-63"></span><span class="hs-comment">-- ---------------------------------------------------------------------</span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span class="hs-keyword">data</span><span> </span><span id="LogMessageParams"><span class="annot"><a href="Language.LSP.Types.Window.html#LogMessageParams"><span class="hs-identifier hs-var">LogMessageParams</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-66"></span><span>  </span><span id="LogMessageParams"><span class="annot"><a href="Language.LSP.Types.Window.html#LogMessageParams"><span class="hs-identifier hs-var">LogMessageParams</span></a></span></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-67"></span><span>    </span><span id="%24sel%3A_xtype%3ALogMessageParams"><span class="annot"><span class="annottext">LogMessageParams -&gt; MessageType
+</span><a href="Language.LSP.Types.Window.html#%24sel%3A_xtype%3ALogMessageParams"><span class="hs-identifier hs-var hs-var">_xtype</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Window.html#MessageType"><span class="hs-identifier hs-type">MessageType</span></a></span><span>
+</span><span id="line-68"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_message%3ALogMessageParams"><span class="annot"><span class="annottext">LogMessageParams -&gt; Text
+</span><a href="Language.LSP.Types.Window.html#%24sel%3A_message%3ALogMessageParams"><span class="hs-identifier hs-var hs-var">_message</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-69"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680442496"><span id="local-6989586621680442498"><span id="local-6989586621680442500"><span class="annot"><span class="annottext">Int -&gt; LogMessageParams -&gt; ShowS
+[LogMessageParams] -&gt; ShowS
+LogMessageParams -&gt; String
+(Int -&gt; LogMessageParams -&gt; ShowS)
+-&gt; (LogMessageParams -&gt; String)
+-&gt; ([LogMessageParams] -&gt; ShowS)
+-&gt; Show LogMessageParams
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [LogMessageParams] -&gt; ShowS
+$cshowList :: [LogMessageParams] -&gt; ShowS
+show :: LogMessageParams -&gt; String
+$cshow :: LogMessageParams -&gt; String
+showsPrec :: Int -&gt; LogMessageParams -&gt; ShowS
+$cshowsPrec :: Int -&gt; LogMessageParams -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680442488"><span id="local-6989586621680442490"><span id="local-6989586621680442492"><span id="local-6989586621680442494"><span class="annot"><span class="annottext">ReadPrec [LogMessageParams]
+ReadPrec LogMessageParams
+Int -&gt; ReadS LogMessageParams
+ReadS [LogMessageParams]
+(Int -&gt; ReadS LogMessageParams)
+-&gt; ReadS [LogMessageParams]
+-&gt; ReadPrec LogMessageParams
+-&gt; ReadPrec [LogMessageParams]
+-&gt; Read LogMessageParams
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [LogMessageParams]
+$creadListPrec :: ReadPrec [LogMessageParams]
+readPrec :: ReadPrec LogMessageParams
+$creadPrec :: ReadPrec LogMessageParams
+readList :: ReadS [LogMessageParams]
+$creadList :: ReadS [LogMessageParams]
+readsPrec :: Int -&gt; ReadS LogMessageParams
+$creadsPrec :: Int -&gt; ReadS LogMessageParams
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680442484"><span id="local-6989586621680442486"><span class="annot"><span class="annottext">LogMessageParams -&gt; LogMessageParams -&gt; Bool
+(LogMessageParams -&gt; LogMessageParams -&gt; Bool)
+-&gt; (LogMessageParams -&gt; LogMessageParams -&gt; Bool)
+-&gt; Eq LogMessageParams
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: LogMessageParams -&gt; LogMessageParams -&gt; Bool
+$c/= :: LogMessageParams -&gt; LogMessageParams -&gt; Bool
+== :: LogMessageParams -&gt; LogMessageParams -&gt; Bool
+$c== :: LogMessageParams -&gt; LogMessageParams -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-70"></span><span>
+</span><span id="line-71"></span><span id="local-6989586621680442472"><span id="local-6989586621680442474"><span id="local-6989586621680442476"><span id="local-6989586621680442478"><span id="local-6989586621680442480"><span id="local-6989586621680442482"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">LogMessageParams</span></span></span></span></span></span></span><span>
+</span><span id="line-72"></span></pre></body></html>

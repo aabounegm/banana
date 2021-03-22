@@ -1,0 +1,15 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span class="hs-cpp">
+#if __GLASGOW_HASKELL__ &gt;= 702 &amp;&amp; __GLASGOW_HASKELL__ &lt; 710
+</span><span class="hs-pragma">{-# LANGUAGE Trustworthy #-}</span><span class="hs-cpp">
+#endif
+</span><span class="hs-pragma">{-# OPTIONS_GHC -fno-warn-orphans #-}</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.Semigroup.Instances</span><span> </span><span class="hs-keyword">where</span><span class="hs-cpp">
+
+#if !(MIN_VERSION_fingertree(0,1,2) &amp;&amp; MIN_VERSION_base(4,9,0))
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.FingerTree</span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Semigroup</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier">Measured</span><span> </span><span class="hs-identifier">v</span><span> </span><span class="hs-identifier">a</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-identifier">Semigroup</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">FingerTree</span><span> </span><span class="hs-identifier">v</span><span> </span><span class="hs-identifier">a</span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-13"></span><span>  </span><span class="hs-special">(</span><span class="hs-operator">&lt;&gt;</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">mappend</span><span class="hs-cpp">
+#endif
+</span></pre></body></html>

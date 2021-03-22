@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.Implementation</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Progress.html"><span class="hs-identifier">Language.LSP.Types.Progress</span></a></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.StaticRegistrationOptions.html"><span class="hs-identifier">Language.LSP.Types.StaticRegistrationOptions</span></a></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.TextDocument.html"><span class="hs-identifier">Language.LSP.Types.TextDocument</span></a></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">data</span><span> </span><span id="ImplementationClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Implementation.html#ImplementationClientCapabilities"><span class="hs-identifier hs-var">ImplementationClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ImplementationClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Implementation.html#ImplementationClientCapabilities"><span class="hs-identifier hs-var">ImplementationClientCapabilities</span></a></span></span><span>
+</span><span id="line-13"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Whether implementation supports dynamic registration. If this is set</span><span>
+</span><span id="line-14"></span><span>    </span><span class="hs-comment">-- to 'True'</span><span>
+</span><span id="line-15"></span><span>    </span><span class="hs-comment">-- the client supports the new 'ImplementationRegistrationOptions' return</span><span>
+</span><span id="line-16"></span><span>    </span><span class="hs-comment">-- value for the corresponding server capability as well.</span><span>
+</span><span id="line-17"></span><span>    </span><span id="%24sel%3A_dynamicRegistration%3AImplementationClientCapabilities"><span class="annot"><span class="annottext">ImplementationClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Implementation.html#%24sel%3A_dynamicRegistration%3AImplementationClientCapabilities"><span class="hs-identifier hs-var hs-var">_dynamicRegistration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>    </span><span class="hs-comment">-- | The client supports additional metadata in the form of definition links.</span><span>
+</span><span id="line-19"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-20"></span><span>    </span><span class="hs-comment">-- Since LSP 3.14.0</span><span>
+</span><span id="line-21"></span><span>    </span><span id="%24sel%3A_linkSupport%3AImplementationClientCapabilities"><span class="annot"><span class="annottext">ImplementationClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Implementation.html#%24sel%3A_linkSupport%3AImplementationClientCapabilities"><span class="hs-identifier hs-var hs-var">_linkSupport</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680438958"><span id="local-6989586621680438960"><span id="local-6989586621680438962"><span id="local-6989586621680438964"><span class="annot"><span class="annottext">ReadPrec [ImplementationClientCapabilities]
+ReadPrec ImplementationClientCapabilities
+Int -&gt; ReadS ImplementationClientCapabilities
+ReadS [ImplementationClientCapabilities]
+(Int -&gt; ReadS ImplementationClientCapabilities)
+-&gt; ReadS [ImplementationClientCapabilities]
+-&gt; ReadPrec ImplementationClientCapabilities
+-&gt; ReadPrec [ImplementationClientCapabilities]
+-&gt; Read ImplementationClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [ImplementationClientCapabilities]
+$creadListPrec :: ReadPrec [ImplementationClientCapabilities]
+readPrec :: ReadPrec ImplementationClientCapabilities
+$creadPrec :: ReadPrec ImplementationClientCapabilities
+readList :: ReadS [ImplementationClientCapabilities]
+$creadList :: ReadS [ImplementationClientCapabilities]
+readsPrec :: Int -&gt; ReadS ImplementationClientCapabilities
+$creadsPrec :: Int -&gt; ReadS ImplementationClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680438951"><span id="local-6989586621680438953"><span id="local-6989586621680438955"><span class="annot"><span class="annottext">Int -&gt; ImplementationClientCapabilities -&gt; ShowS
+[ImplementationClientCapabilities] -&gt; ShowS
+ImplementationClientCapabilities -&gt; String
+(Int -&gt; ImplementationClientCapabilities -&gt; ShowS)
+-&gt; (ImplementationClientCapabilities -&gt; String)
+-&gt; ([ImplementationClientCapabilities] -&gt; ShowS)
+-&gt; Show ImplementationClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [ImplementationClientCapabilities] -&gt; ShowS
+$cshowList :: [ImplementationClientCapabilities] -&gt; ShowS
+show :: ImplementationClientCapabilities -&gt; String
+$cshow :: ImplementationClientCapabilities -&gt; String
+showsPrec :: Int -&gt; ImplementationClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; ImplementationClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680438946"><span id="local-6989586621680438948"><span class="annot"><span class="annottext">ImplementationClientCapabilities
+-&gt; ImplementationClientCapabilities -&gt; Bool
+(ImplementationClientCapabilities
+ -&gt; ImplementationClientCapabilities -&gt; Bool)
+-&gt; (ImplementationClientCapabilities
+    -&gt; ImplementationClientCapabilities -&gt; Bool)
+-&gt; Eq ImplementationClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: ImplementationClientCapabilities
+-&gt; ImplementationClientCapabilities -&gt; Bool
+$c/= :: ImplementationClientCapabilities
+-&gt; ImplementationClientCapabilities -&gt; Bool
+== :: ImplementationClientCapabilities
+-&gt; ImplementationClientCapabilities -&gt; Bool
+$c== :: ImplementationClientCapabilities
+-&gt; ImplementationClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span id="local-6989586621680438933"><span id="local-6989586621680438935"><span id="local-6989586621680438937"><span id="local-6989586621680438939"><span id="local-6989586621680438941"><span id="local-6989586621680438943"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ImplementationClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span id="%24sel%3A_workDoneProgress%3AImplementationOptions"><span id="ImplementationOptions"><span id="local-6989586621680438910"><span id="local-6989586621680438912"><span id="local-6989586621680438914"><span id="local-6989586621680438916"><span id="local-6989586621680438918"><span id="local-6989586621680438920"><span id="local-6989586621680438922"><span id="local-6989586621680438924"><span id="local-6989586621680438926"><span id="ImplementationOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;ImplementationOptions&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressOptions</span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-28"></span><span id="local-6989586621680438896"><span id="local-6989586621680438898"><span id="local-6989586621680438900"><span id="local-6989586621680438902"><span id="local-6989586621680438904"><span id="local-6989586621680438906"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ImplementationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span id="%24sel%3A_id%3AImplementationRegistrationOptions"><span id="%24sel%3A_workDoneProgress%3AImplementationRegistrationOptions"><span id="%24sel%3A_documentSelector%3AImplementationRegistrationOptions"><span id="ImplementationRegistrationOptions"><span id="local-6989586621680438878"><span id="local-6989586621680438880"><span id="local-6989586621680438882"><span id="local-6989586621680438884"><span id="local-6989586621680438886"><span id="local-6989586621680438888"><span id="local-6989586621680438890"><span id="local-6989586621680438892"><span id="local-6989586621680438894"><span id="ImplementationRegistrationOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;ImplementationRegistrationOptions&quot;</span><span>
+</span><span id="line-31"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentRegistrationOptions</span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ImplementationOptions</span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">StaticRegistrationOptions</span><span>
+</span><span id="line-34"></span><span>  </span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-35"></span><span id="local-6989586621680438862"><span id="local-6989586621680438864"><span id="local-6989586621680438866"><span id="local-6989586621680438868"><span id="local-6989586621680438870"><span id="local-6989586621680438872"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ImplementationRegistrationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span id="%24sel%3A_partialResultToken%3AImplementationParams"><span id="%24sel%3A_workDoneToken%3AImplementationParams"><span id="%24sel%3A_position%3AImplementationParams"><span id="%24sel%3A_textDocument%3AImplementationParams"><span id="ImplementationParams"><span id="local-6989586621680438844"><span id="local-6989586621680438846"><span id="local-6989586621680438848"><span id="local-6989586621680438850"><span id="local-6989586621680438852"><span id="local-6989586621680438854"><span id="local-6989586621680438856"><span id="local-6989586621680438858"><span id="local-6989586621680438860"><span id="ImplementationParams"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;ImplementationParams&quot;</span><span>
+</span><span id="line-38"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentPositionParams</span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressParams</span><span>
+</span><span id="line-40"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">PartialResultParams</span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-42"></span><span id="local-6989586621680438827"><span id="local-6989586621680438829"><span id="local-6989586621680438831"><span id="local-6989586621680438833"><span id="local-6989586621680438835"><span id="local-6989586621680438837"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ImplementationParams</span></span></span></span></span></span></span><span>
+</span><span id="line-43"></span></pre></body></html>

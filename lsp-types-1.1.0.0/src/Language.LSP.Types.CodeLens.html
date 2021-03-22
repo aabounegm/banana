@@ -1,0 +1,155 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell       #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.CodeLens</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Command.html"><span class="hs-identifier">Language.LSP.Types.Command</span></a></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html"><span class="hs-identifier">Language.LSP.Types.Location</span></a></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Progress.html"><span class="hs-identifier">Language.LSP.Types.Progress</span></a></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.TextDocument.html"><span class="hs-identifier">Language.LSP.Types.TextDocument</span></a></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">data</span><span> </span><span id="CodeLensClientCapabilities"><span class="annot"><a href="Language.LSP.Types.CodeLens.html#CodeLensClientCapabilities"><span class="hs-identifier hs-var">CodeLensClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-17"></span><span>  </span><span id="CodeLensClientCapabilities"><span class="annot"><a href="Language.LSP.Types.CodeLens.html#CodeLensClientCapabilities"><span class="hs-identifier hs-var">CodeLensClientCapabilities</span></a></span></span><span>
+</span><span id="line-18"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Whether code lens supports dynamic registration.</span><span>
+</span><span id="line-19"></span><span>      </span><span id="%24sel%3A_dynamicRegistration%3ACodeLensClientCapabilities"><span class="annot"><span class="annottext">CodeLensClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.CodeLens.html#%24sel%3A_dynamicRegistration%3ACodeLensClientCapabilities"><span class="hs-identifier hs-var hs-var">_dynamicRegistration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-20"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680442084"><span id="local-6989586621680442086"><span id="local-6989586621680442088"><span class="annot"><span class="annottext">Int -&gt; CodeLensClientCapabilities -&gt; ShowS
+[CodeLensClientCapabilities] -&gt; ShowS
+CodeLensClientCapabilities -&gt; String
+(Int -&gt; CodeLensClientCapabilities -&gt; ShowS)
+-&gt; (CodeLensClientCapabilities -&gt; String)
+-&gt; ([CodeLensClientCapabilities] -&gt; ShowS)
+-&gt; Show CodeLensClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CodeLensClientCapabilities] -&gt; ShowS
+$cshowList :: [CodeLensClientCapabilities] -&gt; ShowS
+show :: CodeLensClientCapabilities -&gt; String
+$cshow :: CodeLensClientCapabilities -&gt; String
+showsPrec :: Int -&gt; CodeLensClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; CodeLensClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680442075"><span id="local-6989586621680442077"><span id="local-6989586621680442079"><span id="local-6989586621680442081"><span class="annot"><span class="annottext">ReadPrec [CodeLensClientCapabilities]
+ReadPrec CodeLensClientCapabilities
+Int -&gt; ReadS CodeLensClientCapabilities
+ReadS [CodeLensClientCapabilities]
+(Int -&gt; ReadS CodeLensClientCapabilities)
+-&gt; ReadS [CodeLensClientCapabilities]
+-&gt; ReadPrec CodeLensClientCapabilities
+-&gt; ReadPrec [CodeLensClientCapabilities]
+-&gt; Read CodeLensClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CodeLensClientCapabilities]
+$creadListPrec :: ReadPrec [CodeLensClientCapabilities]
+readPrec :: ReadPrec CodeLensClientCapabilities
+$creadPrec :: ReadPrec CodeLensClientCapabilities
+readList :: ReadS [CodeLensClientCapabilities]
+$creadList :: ReadS [CodeLensClientCapabilities]
+readsPrec :: Int -&gt; ReadS CodeLensClientCapabilities
+$creadsPrec :: Int -&gt; ReadS CodeLensClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680442070"><span id="local-6989586621680442072"><span class="annot"><span class="annottext">CodeLensClientCapabilities -&gt; CodeLensClientCapabilities -&gt; Bool
+(CodeLensClientCapabilities -&gt; CodeLensClientCapabilities -&gt; Bool)
+-&gt; (CodeLensClientCapabilities
+    -&gt; CodeLensClientCapabilities -&gt; Bool)
+-&gt; Eq CodeLensClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CodeLensClientCapabilities -&gt; CodeLensClientCapabilities -&gt; Bool
+$c/= :: CodeLensClientCapabilities -&gt; CodeLensClientCapabilities -&gt; Bool
+== :: CodeLensClientCapabilities -&gt; CodeLensClientCapabilities -&gt; Bool
+$c== :: CodeLensClientCapabilities -&gt; CodeLensClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span id="local-6989586621680442057"><span id="local-6989586621680442059"><span id="local-6989586621680442061"><span id="local-6989586621680442063"><span id="local-6989586621680442065"><span id="local-6989586621680442067"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CodeLensClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span id="%24sel%3A_resolveProvider%3ACodeLensOptions"><span id="%24sel%3A_workDoneProgress%3ACodeLensOptions"><span id="CodeLensOptions"><span id="local-6989586621680442034"><span id="local-6989586621680442036"><span id="local-6989586621680442038"><span id="local-6989586621680442040"><span id="local-6989586621680442042"><span id="local-6989586621680442044"><span id="local-6989586621680442046"><span id="local-6989586621680442048"><span id="local-6989586621680442050"><span id="CodeLensOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;CodeLensOptions&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressOptions</span><span class="hs-special">]</span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;_resolveProvider&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">Maybe</span><span> </span><span class="hs-identifier">Bool</span><span> </span><span class="hs-special">|]</span><span> </span><span class="hs-special">)</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-28"></span><span id="local-6989586621680442019"><span id="local-6989586621680442021"><span id="local-6989586621680442023"><span id="local-6989586621680442025"><span id="local-6989586621680442027"><span id="local-6989586621680442029"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CodeLensOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span id="%24sel%3A_resolveProvider%3ACodeLensRegistrationOptions"><span id="%24sel%3A_workDoneProgress%3ACodeLensRegistrationOptions"><span id="%24sel%3A_documentSelector%3ACodeLensRegistrationOptions"><span id="CodeLensRegistrationOptions"><span id="local-6989586621680442001"><span id="local-6989586621680442003"><span id="local-6989586621680442005"><span id="local-6989586621680442007"><span id="local-6989586621680442009"><span id="local-6989586621680442011"><span id="local-6989586621680442013"><span id="local-6989586621680442015"><span id="local-6989586621680442017"><span id="CodeLensRegistrationOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;CodeLensRegistrationOptions&quot;</span><span> </span><span>
+</span><span id="line-31"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentRegistrationOptions</span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CodeLensOptions</span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-34"></span><span id="local-6989586621680441985"><span id="local-6989586621680441987"><span id="local-6989586621680441989"><span id="local-6989586621680441991"><span id="local-6989586621680441993"><span id="local-6989586621680441995"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CodeLensRegistrationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span id="%24sel%3A_textDocument%3ACodeLensParams"><span id="%24sel%3A_partialResultToken%3ACodeLensParams"><span id="%24sel%3A_workDoneToken%3ACodeLensParams"><span id="CodeLensParams"><span id="local-6989586621680441967"><span id="local-6989586621680441969"><span id="local-6989586621680441971"><span id="local-6989586621680441973"><span id="local-6989586621680441975"><span id="local-6989586621680441977"><span id="local-6989586621680441979"><span id="local-6989586621680441981"><span id="local-6989586621680441983"><span id="CodeLensParams"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;CodeLensParams&quot;</span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressParams</span><span class="hs-special">,</span><span>
+</span><span id="line-40"></span><span>    </span><span class="hs-special">''</span><span class="hs-identifier">PartialResultParams</span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="hs-string">&quot;_textDocument&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span class="hs-identifier">TextDocumentIdentifier</span><span class="hs-special">|]</span><span class="hs-special">)</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-43"></span><span id="local-6989586621680441951"><span id="local-6989586621680441953"><span id="local-6989586621680441955"><span id="local-6989586621680441957"><span id="local-6989586621680441959"><span id="local-6989586621680441961"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CodeLensParams</span></span></span></span></span></span></span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-46"></span><span>
+</span><span id="line-47"></span><span class="hs-comment">-- | A code lens represents a command that should be shown along with source</span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- text, like the number of references, a way to run tests, etc.</span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- </span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- A code lens is _unresolved_ when no command is associated to it. For</span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- performance reasons the creation of a code lens and resolving should be done</span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- in two stages.</span><span>
+</span><span id="line-53"></span><span class="hs-keyword">data</span><span> </span><span id="CodeLens"><span class="annot"><a href="Language.LSP.Types.CodeLens.html#CodeLens"><span class="hs-identifier hs-var">CodeLens</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-54"></span><span>  </span><span id="CodeLens"><span class="annot"><a href="Language.LSP.Types.CodeLens.html#CodeLens"><span class="hs-identifier hs-var">CodeLens</span></a></span></span><span>
+</span><span id="line-55"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The range in which this code lens is valid. Should only span a single line.</span><span>
+</span><span id="line-56"></span><span>    </span><span id="%24sel%3A_range%3ACodeLens"><span class="annot"><span class="annottext">CodeLens -&gt; Range
+</span><a href="Language.LSP.Types.CodeLens.html#%24sel%3A_range%3ACodeLens"><span class="hs-identifier hs-var hs-var">_range</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html#Range"><span class="hs-identifier hs-type">Range</span></a></span><span>
+</span><span id="line-57"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-comment">-- | The command this code lens represents.</span><span>
+</span><span id="line-58"></span><span>    </span><span id="%24sel%3A_command%3ACodeLens"><span class="annot"><span class="annottext">CodeLens -&gt; Maybe Command
+</span><a href="Language.LSP.Types.CodeLens.html#%24sel%3A_command%3ACodeLens"><span class="hs-identifier hs-var hs-var">_command</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.Command.html#Command"><span class="hs-identifier hs-type">Command</span></a></span><span>
+</span><span id="line-59"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-comment">-- | A data entry field that is preserved on a code lens item between</span><span>
+</span><span id="line-60"></span><span>    </span><span class="hs-comment">-- a code lens and a code lens resolve request.</span><span>
+</span><span id="line-61"></span><span>    </span><span id="%24sel%3A_xdata%3ACodeLens"><span class="annot"><span class="annottext">CodeLens -&gt; Maybe Value
+</span><a href="Language.LSP.Types.CodeLens.html#%24sel%3A_xdata%3ACodeLens"><span class="hs-identifier hs-var hs-var">_xdata</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Value</span></span><span>
+</span><span id="line-62"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680441939"><span id="local-6989586621680441941"><span id="local-6989586621680441943"><span id="local-6989586621680441945"><span class="annot"><span class="annottext">ReadPrec [CodeLens]
+ReadPrec CodeLens
+Int -&gt; ReadS CodeLens
+ReadS [CodeLens]
+(Int -&gt; ReadS CodeLens)
+-&gt; ReadS [CodeLens]
+-&gt; ReadPrec CodeLens
+-&gt; ReadPrec [CodeLens]
+-&gt; Read CodeLens
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [CodeLens]
+$creadListPrec :: ReadPrec [CodeLens]
+readPrec :: ReadPrec CodeLens
+$creadPrec :: ReadPrec CodeLens
+readList :: ReadS [CodeLens]
+$creadList :: ReadS [CodeLens]
+readsPrec :: Int -&gt; ReadS CodeLens
+$creadsPrec :: Int -&gt; ReadS CodeLens
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680441933"><span id="local-6989586621680441935"><span id="local-6989586621680441937"><span class="annot"><span class="annottext">Int -&gt; CodeLens -&gt; ShowS
+[CodeLens] -&gt; ShowS
+CodeLens -&gt; String
+(Int -&gt; CodeLens -&gt; ShowS)
+-&gt; (CodeLens -&gt; String) -&gt; ([CodeLens] -&gt; ShowS) -&gt; Show CodeLens
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [CodeLens] -&gt; ShowS
+$cshowList :: [CodeLens] -&gt; ShowS
+show :: CodeLens -&gt; String
+$cshow :: CodeLens -&gt; String
+showsPrec :: Int -&gt; CodeLens -&gt; ShowS
+$cshowsPrec :: Int -&gt; CodeLens -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680441929"><span id="local-6989586621680441931"><span class="annot"><span class="annottext">CodeLens -&gt; CodeLens -&gt; Bool
+(CodeLens -&gt; CodeLens -&gt; Bool)
+-&gt; (CodeLens -&gt; CodeLens -&gt; Bool) -&gt; Eq CodeLens
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: CodeLens -&gt; CodeLens -&gt; Bool
+$c/= :: CodeLens -&gt; CodeLens -&gt; Bool
+== :: CodeLens -&gt; CodeLens -&gt; Bool
+$c== :: CodeLens -&gt; CodeLens -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span id="local-6989586621680441917"><span id="local-6989586621680441919"><span id="local-6989586621680441921"><span id="local-6989586621680441923"><span id="local-6989586621680441925"><span id="local-6989586621680441927"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">CodeLens</span></span></span></span></span></span></span><span>
+</span><span id="line-65"></span></pre></body></html>

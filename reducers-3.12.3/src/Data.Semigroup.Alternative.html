@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, GeneralizedNewtypeDeriving, FlexibleContexts, TypeOperators #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span class="hs-cpp">
+#if defined(__GLASGOW_HASKELL__) &amp;&amp; __GLASGOW_HASKELL__ &gt;= 702
+</span><span class="hs-pragma">{-# LANGUAGE Trustworthy #-}</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- Module      :  Data.Semigroup.Alternative</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Copyright   :  (c) Edward Kmett 2009-2011</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- License     :  BSD-style</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- Maintainer  :  ekmett@gmail.com</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- Stability   :  experimental</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- Portability :  non-portable (MPTCs)</span><span>
+</span><span id="line-15"></span><span class="hs-comment">--</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- A semigroup for working with 'Alternative' 'Functor's.</span><span>
+</span><span id="line-17"></span><span class="hs-comment">--</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.Semigroup.Alternative</span><span>
+</span><span id="line-21"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Data.Semigroup.Alternative.html#Alternate"><span class="hs-identifier">Alternate</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Applicative</span></span><span class="hs-cpp">
+#if __GLASGOW_HASKELL__ &lt; 710
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Monoid</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Monoid</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Semigroup</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Semigroup</span></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html"><span class="hs-identifier">Data.Semigroup.Reducer</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier">Reducer</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- | A 'Alternate' turns any 'Alternative' instance into a 'Monoid'.</span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">newtype</span><span> </span><span id="Alternate"><span class="annot"><a href="Data.Semigroup.Alternative.html#Alternate"><span class="hs-identifier hs-var">Alternate</span></a></span></span><span> </span><span id="local-6989586621679078401"><span class="annot"><a href="#local-6989586621679078401"><span class="hs-identifier hs-type">f</span></a></span></span><span> </span><span id="local-6989586621679078400"><span class="annot"><a href="#local-6989586621679078400"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Alternate"><span class="annot"><a href="Data.Semigroup.Alternative.html#Alternate"><span class="hs-identifier hs-var">Alternate</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="getAlternate"><span class="annot"><span class="annottext">Alternate f a -&gt; f a
+</span><a href="Data.Semigroup.Alternative.html#getAlternate"><span class="hs-identifier hs-var hs-var">getAlternate</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679078401"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078400"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-34"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679078386"><span id="local-6989586621679078388"><span class="annot"><span class="annottext">a -&gt; Alternate f b -&gt; Alternate f a
+(a -&gt; b) -&gt; Alternate f a -&gt; Alternate f b
+(forall a b. (a -&gt; b) -&gt; Alternate f a -&gt; Alternate f b)
+-&gt; (forall a b. a -&gt; Alternate f b -&gt; Alternate f a)
+-&gt; Functor (Alternate f)
+forall a b. a -&gt; Alternate f b -&gt; Alternate f a
+forall a b. (a -&gt; b) -&gt; Alternate f a -&gt; Alternate f b
+forall (f :: * -&gt; *) a b.
+Functor f =&gt;
+a -&gt; Alternate f b -&gt; Alternate f a
+forall (f :: * -&gt; *) a b.
+Functor f =&gt;
+(a -&gt; b) -&gt; Alternate f a -&gt; Alternate f b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+&lt;$ :: a -&gt; Alternate f b -&gt; Alternate f a
+$c&lt;$ :: forall (f :: * -&gt; *) a b.
+Functor f =&gt;
+a -&gt; Alternate f b -&gt; Alternate f a
+fmap :: (a -&gt; b) -&gt; Alternate f a -&gt; Alternate f b
+$cfmap :: forall (f :: * -&gt; *) a b.
+Functor f =&gt;
+(a -&gt; b) -&gt; Alternate f a -&gt; Alternate f b
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Functor</span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679078374"><span id="local-6989586621679078376"><span id="local-6989586621679078378"><span id="local-6989586621679078380"><span id="local-6989586621679078382"><span class="annot"><span class="annottext">Functor (Alternate f)
+a -&gt; Alternate f a
+Functor (Alternate f)
+-&gt; (forall a. a -&gt; Alternate f a)
+-&gt; (forall a b.
+    Alternate f (a -&gt; b) -&gt; Alternate f a -&gt; Alternate f b)
+-&gt; (forall a b c.
+    (a -&gt; b -&gt; c) -&gt; Alternate f a -&gt; Alternate f b -&gt; Alternate f c)
+-&gt; (forall a b. Alternate f a -&gt; Alternate f b -&gt; Alternate f b)
+-&gt; (forall a b. Alternate f a -&gt; Alternate f b -&gt; Alternate f a)
+-&gt; Applicative (Alternate f)
+Alternate f a -&gt; Alternate f b -&gt; Alternate f b
+Alternate f a -&gt; Alternate f b -&gt; Alternate f a
+Alternate f (a -&gt; b) -&gt; Alternate f a -&gt; Alternate f b
+(a -&gt; b -&gt; c) -&gt; Alternate f a -&gt; Alternate f b -&gt; Alternate f c
+forall a. a -&gt; Alternate f a
+forall a b. Alternate f a -&gt; Alternate f b -&gt; Alternate f a
+forall a b. Alternate f a -&gt; Alternate f b -&gt; Alternate f b
+forall a b. Alternate f (a -&gt; b) -&gt; Alternate f a -&gt; Alternate f b
+forall a b c.
+(a -&gt; b -&gt; c) -&gt; Alternate f a -&gt; Alternate f b -&gt; Alternate f c
+forall (f :: * -&gt; *).
+Functor f
+-&gt; (forall a. a -&gt; f a)
+-&gt; (forall a b. f (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b c. (a -&gt; b -&gt; c) -&gt; f a -&gt; f b -&gt; f c)
+-&gt; (forall a b. f a -&gt; f b -&gt; f b)
+-&gt; (forall a b. f a -&gt; f b -&gt; f a)
+-&gt; Applicative f
+forall (f :: * -&gt; *). Applicative f =&gt; Functor (Alternate f)
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; Alternate f a
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+Alternate f a -&gt; Alternate f b -&gt; Alternate f a
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+Alternate f a -&gt; Alternate f b -&gt; Alternate f b
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+Alternate f (a -&gt; b) -&gt; Alternate f a -&gt; Alternate f b
+forall (f :: * -&gt; *) a b c.
+Applicative f =&gt;
+(a -&gt; b -&gt; c) -&gt; Alternate f a -&gt; Alternate f b -&gt; Alternate f c
+&lt;* :: Alternate f a -&gt; Alternate f b -&gt; Alternate f a
+$c&lt;* :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+Alternate f a -&gt; Alternate f b -&gt; Alternate f a
+*&gt; :: Alternate f a -&gt; Alternate f b -&gt; Alternate f b
+$c*&gt; :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+Alternate f a -&gt; Alternate f b -&gt; Alternate f b
+liftA2 :: (a -&gt; b -&gt; c) -&gt; Alternate f a -&gt; Alternate f b -&gt; Alternate f c
+$cliftA2 :: forall (f :: * -&gt; *) a b c.
+Applicative f =&gt;
+(a -&gt; b -&gt; c) -&gt; Alternate f a -&gt; Alternate f b -&gt; Alternate f c
+&lt;*&gt; :: Alternate f (a -&gt; b) -&gt; Alternate f a -&gt; Alternate f b
+$c&lt;*&gt; :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+Alternate f (a -&gt; b) -&gt; Alternate f a -&gt; Alternate f b
+pure :: a -&gt; Alternate f a
+$cpure :: forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; Alternate f a
+$cp1Applicative :: forall (f :: * -&gt; *). Applicative f =&gt; Functor (Alternate f)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Applicative</span></span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679078364"><span id="local-6989586621679078366"><span id="local-6989586621679078368"><span id="local-6989586621679078370"><span class="annot"><span class="annottext">Applicative (Alternate f)
+Alternate f a
+Applicative (Alternate f)
+-&gt; (forall a. Alternate f a)
+-&gt; (forall a. Alternate f a -&gt; Alternate f a -&gt; Alternate f a)
+-&gt; (forall a. Alternate f a -&gt; Alternate f [a])
+-&gt; (forall a. Alternate f a -&gt; Alternate f [a])
+-&gt; Alternative (Alternate f)
+Alternate f a -&gt; Alternate f a -&gt; Alternate f a
+Alternate f a -&gt; Alternate f [a]
+Alternate f a -&gt; Alternate f [a]
+forall a. Alternate f a
+forall a. Alternate f a -&gt; Alternate f [a]
+forall a. Alternate f a -&gt; Alternate f a -&gt; Alternate f a
+forall (f :: * -&gt; *).
+Applicative f
+-&gt; (forall a. f a)
+-&gt; (forall a. f a -&gt; f a -&gt; f a)
+-&gt; (forall a. f a -&gt; f [a])
+-&gt; (forall a. f a -&gt; f [a])
+-&gt; Alternative f
+forall (f :: * -&gt; *). Alternative f =&gt; Applicative (Alternate f)
+forall (f :: * -&gt; *) a. Alternative f =&gt; Alternate f a
+forall (f :: * -&gt; *) a.
+Alternative f =&gt;
+Alternate f a -&gt; Alternate f [a]
+forall (f :: * -&gt; *) a.
+Alternative f =&gt;
+Alternate f a -&gt; Alternate f a -&gt; Alternate f a
+many :: Alternate f a -&gt; Alternate f [a]
+$cmany :: forall (f :: * -&gt; *) a.
+Alternative f =&gt;
+Alternate f a -&gt; Alternate f [a]
+some :: Alternate f a -&gt; Alternate f [a]
+$csome :: forall (f :: * -&gt; *) a.
+Alternative f =&gt;
+Alternate f a -&gt; Alternate f [a]
+&lt;|&gt; :: Alternate f a -&gt; Alternate f a -&gt; Alternate f a
+$c&lt;|&gt; :: forall (f :: * -&gt; *) a.
+Alternative f =&gt;
+Alternate f a -&gt; Alternate f a -&gt; Alternate f a
+empty :: Alternate f a
+$cempty :: forall (f :: * -&gt; *) a. Alternative f =&gt; Alternate f a
+$cp1Alternative :: forall (f :: * -&gt; *). Alternative f =&gt; Applicative (Alternate f)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Alternative</span></span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span id="local-6989586621679078361"><span id="local-6989586621679078362"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679078356"><span id="local-6989586621679078358"><span class="annot"><span class="hs-identifier hs-type">Alternative</span></span><span> </span><span class="annot"><a href="#local-6989586621679078362"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Alternative.html#Alternate"><span class="hs-identifier hs-type">Alternate</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078362"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078361"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-37"></span><span>  </span><span class="annot"><a href="Data.Semigroup.Alternative.html#Alternate"><span class="hs-identifier hs-type">Alternate</span></a></span><span> </span><span id="local-6989586621679078354"><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078354"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679078353"><span class="annot"><span class="annottext">&lt;&gt; :: Alternate f a -&gt; Alternate f a -&gt; Alternate f a
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></span></span><span> </span><span class="annot"><a href="Data.Semigroup.Alternative.html#Alternate"><span class="hs-identifier hs-type">Alternate</span></a></span><span> </span><span id="local-6989586621679078352"><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078352"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">f a -&gt; Alternate f a
+forall (f :: * -&gt; *) a. f a -&gt; Alternate f a
+</span><a href="Data.Semigroup.Alternative.html#Alternate"><span class="hs-identifier hs-var">Alternate</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078354"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">f a -&gt; f a -&gt; f a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078352"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span id="local-6989586621679078349"><span id="local-6989586621679078350"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679078344"><span class="annot"><span class="hs-identifier hs-type">Alternative</span></span><span> </span><span class="annot"><a href="#local-6989586621679078350"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Alternative.html#Alternate"><span class="hs-identifier hs-type">Alternate</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078350"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078349"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-40"></span><span>  </span><span id="local-6989586621679078342"><span class="annot"><span class="annottext">mempty :: Alternate f a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Alternate f a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a
+</span><span class="hs-identifier hs-var">empty</span></span><span>
+</span><span id="line-41"></span><span>  </span><span class="annot"><a href="Data.Semigroup.Alternative.html#Alternate"><span class="hs-identifier hs-type">Alternate</span></a></span><span> </span><span id="local-6989586621679078340"><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078340"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679078339"><span class="annot"><span class="annottext">mappend :: Alternate f a -&gt; Alternate f a -&gt; Alternate f a
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">`mappend`</span></span></span><span> </span><span class="annot"><a href="Data.Semigroup.Alternative.html#Alternate"><span class="hs-identifier hs-type">Alternate</span></a></span><span> </span><span id="local-6989586621679078338"><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078338"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">f a -&gt; Alternate f a
+forall (f :: * -&gt; *) a. f a -&gt; Alternate f a
+</span><a href="Data.Semigroup.Alternative.html#Alternate"><span class="hs-identifier hs-var">Alternate</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078340"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">f a -&gt; f a -&gt; f a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078338"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-42"></span><span>
+</span><span id="line-43"></span><span id="local-6989586621679078336"><span id="local-6989586621679078337"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679078330"><span id="local-6989586621679078332"><span class="annot"><span class="hs-identifier hs-type">Alternative</span></span><span> </span><span class="annot"><a href="#local-6989586621679078337"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679078337"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078336"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Alternative.html#Alternate"><span class="hs-identifier hs-type">Alternate</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078337"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078336"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-44"></span><span>  </span><span id="local-6989586621679078328"><span class="annot"><span class="annottext">unit :: f a -&gt; Alternate f a
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">f a -&gt; Alternate f a
+forall (f :: * -&gt; *) a. f a -&gt; Alternate f a
+</span><a href="Data.Semigroup.Alternative.html#Alternate"><span class="hs-identifier hs-var">Alternate</span></a></span></span></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span></pre></body></html>

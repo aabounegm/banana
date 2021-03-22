@@ -1,0 +1,372 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell       #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields #-}</span><span>
+</span><span id="line-3"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.Formatting</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Location.html"><span class="hs-identifier">Language.LSP.Types.Location</span></a></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Progress.html"><span class="hs-identifier">Language.LSP.Types.Progress</span></a></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.TextDocument.html"><span class="hs-identifier">Language.LSP.Types.TextDocument</span></a></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">data</span><span> </span><span id="DocumentFormattingClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Formatting.html#DocumentFormattingClientCapabilities"><span class="hs-identifier hs-var">DocumentFormattingClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-13"></span><span>  </span><span id="DocumentFormattingClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Formatting.html#DocumentFormattingClientCapabilities"><span class="hs-identifier hs-var">DocumentFormattingClientCapabilities</span></a></span></span><span>
+</span><span id="line-14"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Whether formatting supports dynamic registration.</span><span>
+</span><span id="line-15"></span><span>      </span><span id="%24sel%3A_dynamicRegistration%3ADocumentFormattingClientCapabilities"><span class="annot"><span class="annottext">DocumentFormattingClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Formatting.html#%24sel%3A_dynamicRegistration%3ADocumentFormattingClientCapabilities"><span class="hs-identifier hs-var hs-var">_dynamicRegistration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-16"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680439793"><span id="local-6989586621680439795"><span id="local-6989586621680439797"><span class="annot"><span class="annottext">Int -&gt; DocumentFormattingClientCapabilities -&gt; ShowS
+[DocumentFormattingClientCapabilities] -&gt; ShowS
+DocumentFormattingClientCapabilities -&gt; String
+(Int -&gt; DocumentFormattingClientCapabilities -&gt; ShowS)
+-&gt; (DocumentFormattingClientCapabilities -&gt; String)
+-&gt; ([DocumentFormattingClientCapabilities] -&gt; ShowS)
+-&gt; Show DocumentFormattingClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [DocumentFormattingClientCapabilities] -&gt; ShowS
+$cshowList :: [DocumentFormattingClientCapabilities] -&gt; ShowS
+show :: DocumentFormattingClientCapabilities -&gt; String
+$cshow :: DocumentFormattingClientCapabilities -&gt; String
+showsPrec :: Int -&gt; DocumentFormattingClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; DocumentFormattingClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680439784"><span id="local-6989586621680439786"><span id="local-6989586621680439788"><span id="local-6989586621680439790"><span class="annot"><span class="annottext">ReadPrec [DocumentFormattingClientCapabilities]
+ReadPrec DocumentFormattingClientCapabilities
+Int -&gt; ReadS DocumentFormattingClientCapabilities
+ReadS [DocumentFormattingClientCapabilities]
+(Int -&gt; ReadS DocumentFormattingClientCapabilities)
+-&gt; ReadS [DocumentFormattingClientCapabilities]
+-&gt; ReadPrec DocumentFormattingClientCapabilities
+-&gt; ReadPrec [DocumentFormattingClientCapabilities]
+-&gt; Read DocumentFormattingClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [DocumentFormattingClientCapabilities]
+$creadListPrec :: ReadPrec [DocumentFormattingClientCapabilities]
+readPrec :: ReadPrec DocumentFormattingClientCapabilities
+$creadPrec :: ReadPrec DocumentFormattingClientCapabilities
+readList :: ReadS [DocumentFormattingClientCapabilities]
+$creadList :: ReadS [DocumentFormattingClientCapabilities]
+readsPrec :: Int -&gt; ReadS DocumentFormattingClientCapabilities
+$creadsPrec :: Int -&gt; ReadS DocumentFormattingClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680439779"><span id="local-6989586621680439781"><span class="annot"><span class="annottext">DocumentFormattingClientCapabilities
+-&gt; DocumentFormattingClientCapabilities -&gt; Bool
+(DocumentFormattingClientCapabilities
+ -&gt; DocumentFormattingClientCapabilities -&gt; Bool)
+-&gt; (DocumentFormattingClientCapabilities
+    -&gt; DocumentFormattingClientCapabilities -&gt; Bool)
+-&gt; Eq DocumentFormattingClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: DocumentFormattingClientCapabilities
+-&gt; DocumentFormattingClientCapabilities -&gt; Bool
+$c/= :: DocumentFormattingClientCapabilities
+-&gt; DocumentFormattingClientCapabilities -&gt; Bool
+== :: DocumentFormattingClientCapabilities
+-&gt; DocumentFormattingClientCapabilities -&gt; Bool
+$c== :: DocumentFormattingClientCapabilities
+-&gt; DocumentFormattingClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span id="local-6989586621680439766"><span id="local-6989586621680439768"><span id="local-6989586621680439770"><span id="local-6989586621680439772"><span id="local-6989586621680439774"><span id="local-6989586621680439776"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentFormattingClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span id="%24sel%3A_workDoneProgress%3ADocumentFormattingOptions"><span id="DocumentFormattingOptions"><span id="local-6989586621680439743"><span id="local-6989586621680439745"><span id="local-6989586621680439747"><span id="local-6989586621680439749"><span id="local-6989586621680439751"><span id="local-6989586621680439753"><span id="local-6989586621680439755"><span id="local-6989586621680439757"><span id="local-6989586621680439759"><span id="DocumentFormattingOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;DocumentFormattingOptions&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressOptions</span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-20"></span><span id="local-6989586621680439729"><span id="local-6989586621680439731"><span id="local-6989586621680439733"><span id="local-6989586621680439735"><span id="local-6989586621680439737"><span id="local-6989586621680439739"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentFormattingOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span id="%24sel%3A_workDoneProgress%3ADocumentFormattingRegistrationOptions"><span id="%24sel%3A_documentSelector%3ADocumentFormattingRegistrationOptions"><span id="DocumentFormattingRegistrationOptions"><span id="local-6989586621680439711"><span id="local-6989586621680439713"><span id="local-6989586621680439715"><span id="local-6989586621680439717"><span id="local-6989586621680439719"><span id="local-6989586621680439721"><span id="local-6989586621680439723"><span id="local-6989586621680439725"><span id="local-6989586621680439727"><span id="DocumentFormattingRegistrationOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;DocumentFormattingRegistrationOptions&quot;</span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentRegistrationOptions</span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>    </span><span class="hs-special">''</span><span class="hs-identifier">DocumentFormattingOptions</span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-27"></span><span id="local-6989586621680439696"><span id="local-6989586621680439698"><span id="local-6989586621680439700"><span id="local-6989586621680439702"><span id="local-6989586621680439704"><span id="local-6989586621680439706"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentFormattingRegistrationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- | Value-object describing what options formatting should use.</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">data</span><span> </span><span id="FormattingOptions"><span class="annot"><a href="Language.LSP.Types.Formatting.html#FormattingOptions"><span class="hs-identifier hs-var">FormattingOptions</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="FormattingOptions"><span class="annot"><a href="Language.LSP.Types.Formatting.html#FormattingOptions"><span class="hs-identifier hs-var">FormattingOptions</span></a></span></span><span>
+</span><span id="line-31"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Size of a tab in spaces.</span><span>
+</span><span id="line-32"></span><span>    </span><span id="%24sel%3A_tabSize%3AFormattingOptions"><span class="annot"><span class="annottext">FormattingOptions -&gt; Int
+</span><a href="Language.LSP.Types.Formatting.html#%24sel%3A_tabSize%3AFormattingOptions"><span class="hs-identifier hs-var hs-var">_tabSize</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">,</span><span>
+</span><span id="line-33"></span><span>    </span><span class="hs-comment">-- | Prefer spaces over tabs</span><span>
+</span><span id="line-34"></span><span>    </span><span id="%24sel%3A_insertSpaces%3AFormattingOptions"><span class="annot"><span class="annottext">FormattingOptions -&gt; Bool
+</span><a href="Language.LSP.Types.Formatting.html#%24sel%3A_insertSpaces%3AFormattingOptions"><span class="hs-identifier hs-var hs-var">_insertSpaces</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span>
+</span><span id="line-35"></span><span>    </span><span class="hs-comment">-- | Trim trailing whitespace on a line.</span><span>
+</span><span id="line-36"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-37"></span><span>    </span><span class="hs-comment">-- Since LSP 3.15.0</span><span>
+</span><span id="line-38"></span><span>    </span><span id="%24sel%3A_trimTrailingWhitespace%3AFormattingOptions"><span class="annot"><span class="annottext">FormattingOptions -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Formatting.html#%24sel%3A_trimTrailingWhitespace%3AFormattingOptions"><span class="hs-identifier hs-var hs-var">_trimTrailingWhitespace</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span>
+</span><span id="line-39"></span><span>    </span><span class="hs-comment">-- | Insert a newline character at the end of the file if one does not exist.</span><span>
+</span><span id="line-40"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-41"></span><span>    </span><span class="hs-comment">-- Since LSP 3.15.0</span><span>
+</span><span id="line-42"></span><span>    </span><span id="%24sel%3A_insertFinalNewline%3AFormattingOptions"><span class="annot"><span class="annottext">FormattingOptions -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Formatting.html#%24sel%3A_insertFinalNewline%3AFormattingOptions"><span class="hs-identifier hs-var hs-var">_insertFinalNewline</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span>
+</span><span id="line-43"></span><span>    </span><span class="hs-comment">-- | Trim all newlines after the final newline at the end of the file.</span><span>
+</span><span id="line-44"></span><span>    </span><span class="hs-comment">-- </span><span>
+</span><span id="line-45"></span><span>    </span><span class="hs-comment">-- Since LSP 3.15.0</span><span>
+</span><span id="line-46"></span><span>    </span><span id="%24sel%3A_trimFinalNewlines%3AFormattingOptions"><span class="annot"><span class="annottext">FormattingOptions -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Formatting.html#%24sel%3A_trimFinalNewlines%3AFormattingOptions"><span class="hs-identifier hs-var hs-var">_trimFinalNewlines</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-47"></span><span>    </span><span class="hs-comment">-- Note: May be more properties</span><span>
+</span><span id="line-48"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680439682"><span id="local-6989586621680439684"><span id="local-6989586621680439686"><span id="local-6989586621680439688"><span class="annot"><span class="annottext">ReadPrec [FormattingOptions]
+ReadPrec FormattingOptions
+Int -&gt; ReadS FormattingOptions
+ReadS [FormattingOptions]
+(Int -&gt; ReadS FormattingOptions)
+-&gt; ReadS [FormattingOptions]
+-&gt; ReadPrec FormattingOptions
+-&gt; ReadPrec [FormattingOptions]
+-&gt; Read FormattingOptions
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [FormattingOptions]
+$creadListPrec :: ReadPrec [FormattingOptions]
+readPrec :: ReadPrec FormattingOptions
+$creadPrec :: ReadPrec FormattingOptions
+readList :: ReadS [FormattingOptions]
+$creadList :: ReadS [FormattingOptions]
+readsPrec :: Int -&gt; ReadS FormattingOptions
+$creadsPrec :: Int -&gt; ReadS FormattingOptions
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680439676"><span id="local-6989586621680439678"><span id="local-6989586621680439680"><span class="annot"><span class="annottext">Int -&gt; FormattingOptions -&gt; ShowS
+[FormattingOptions] -&gt; ShowS
+FormattingOptions -&gt; String
+(Int -&gt; FormattingOptions -&gt; ShowS)
+-&gt; (FormattingOptions -&gt; String)
+-&gt; ([FormattingOptions] -&gt; ShowS)
+-&gt; Show FormattingOptions
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [FormattingOptions] -&gt; ShowS
+$cshowList :: [FormattingOptions] -&gt; ShowS
+show :: FormattingOptions -&gt; String
+$cshow :: FormattingOptions -&gt; String
+showsPrec :: Int -&gt; FormattingOptions -&gt; ShowS
+$cshowsPrec :: Int -&gt; FormattingOptions -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680439672"><span id="local-6989586621680439674"><span class="annot"><span class="annottext">FormattingOptions -&gt; FormattingOptions -&gt; Bool
+(FormattingOptions -&gt; FormattingOptions -&gt; Bool)
+-&gt; (FormattingOptions -&gt; FormattingOptions -&gt; Bool)
+-&gt; Eq FormattingOptions
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: FormattingOptions -&gt; FormattingOptions -&gt; Bool
+$c/= :: FormattingOptions -&gt; FormattingOptions -&gt; Bool
+== :: FormattingOptions -&gt; FormattingOptions -&gt; Bool
+$c== :: FormattingOptions -&gt; FormattingOptions -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span id="local-6989586621680439660"><span id="local-6989586621680439662"><span id="local-6989586621680439664"><span id="local-6989586621680439666"><span id="local-6989586621680439668"><span id="local-6989586621680439670"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">FormattingOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-52"></span><span id="%24sel%3A_options%3ADocumentFormattingParams"><span id="%24sel%3A_textDocument%3ADocumentFormattingParams"><span id="%24sel%3A_workDoneToken%3ADocumentFormattingParams"><span id="DocumentFormattingParams"><span id="local-6989586621680439642"><span id="local-6989586621680439644"><span id="local-6989586621680439646"><span id="local-6989586621680439648"><span id="local-6989586621680439650"><span id="local-6989586621680439652"><span id="local-6989586621680439654"><span id="local-6989586621680439656"><span id="local-6989586621680439658"><span id="DocumentFormattingParams"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;DocumentFormattingParams&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressParams</span><span class="hs-special">]</span><span>
+</span><span id="line-53"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;_textDocument&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">TextDocumentIdentifier</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><span id="line-54"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;_options&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">FormattingOptions</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><span id="line-55"></span><span>  </span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-56"></span><span id="local-6989586621680439626"><span id="local-6989586621680439628"><span id="local-6989586621680439630"><span id="local-6989586621680439632"><span id="local-6989586621680439634"><span id="local-6989586621680439636"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentFormattingParams</span></span></span></span></span></span></span><span>
+</span><span id="line-57"></span><span>
+</span><span id="line-58"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-59"></span><span>
+</span><span id="line-60"></span><span class="hs-keyword">data</span><span> </span><span id="DocumentRangeFormattingClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Formatting.html#DocumentRangeFormattingClientCapabilities"><span class="hs-identifier hs-var">DocumentRangeFormattingClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-61"></span><span>  </span><span id="DocumentRangeFormattingClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Formatting.html#DocumentRangeFormattingClientCapabilities"><span class="hs-identifier hs-var">DocumentRangeFormattingClientCapabilities</span></a></span></span><span>
+</span><span id="line-62"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Whether formatting supports dynamic registration.</span><span>
+</span><span id="line-63"></span><span>      </span><span id="%24sel%3A_dynamicRegistration%3ADocumentRangeFormattingClientCapabilities"><span class="annot"><span class="annottext">DocumentRangeFormattingClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Formatting.html#%24sel%3A_dynamicRegistration%3ADocumentRangeFormattingClientCapabilities"><span class="hs-identifier hs-var hs-var">_dynamicRegistration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-64"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680439618"><span id="local-6989586621680439620"><span id="local-6989586621680439622"><span class="annot"><span class="annottext">Int -&gt; DocumentRangeFormattingClientCapabilities -&gt; ShowS
+[DocumentRangeFormattingClientCapabilities] -&gt; ShowS
+DocumentRangeFormattingClientCapabilities -&gt; String
+(Int -&gt; DocumentRangeFormattingClientCapabilities -&gt; ShowS)
+-&gt; (DocumentRangeFormattingClientCapabilities -&gt; String)
+-&gt; ([DocumentRangeFormattingClientCapabilities] -&gt; ShowS)
+-&gt; Show DocumentRangeFormattingClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [DocumentRangeFormattingClientCapabilities] -&gt; ShowS
+$cshowList :: [DocumentRangeFormattingClientCapabilities] -&gt; ShowS
+show :: DocumentRangeFormattingClientCapabilities -&gt; String
+$cshow :: DocumentRangeFormattingClientCapabilities -&gt; String
+showsPrec :: Int -&gt; DocumentRangeFormattingClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; DocumentRangeFormattingClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680439610"><span id="local-6989586621680439612"><span id="local-6989586621680439614"><span id="local-6989586621680439616"><span class="annot"><span class="annottext">ReadPrec [DocumentRangeFormattingClientCapabilities]
+ReadPrec DocumentRangeFormattingClientCapabilities
+Int -&gt; ReadS DocumentRangeFormattingClientCapabilities
+ReadS [DocumentRangeFormattingClientCapabilities]
+(Int -&gt; ReadS DocumentRangeFormattingClientCapabilities)
+-&gt; ReadS [DocumentRangeFormattingClientCapabilities]
+-&gt; ReadPrec DocumentRangeFormattingClientCapabilities
+-&gt; ReadPrec [DocumentRangeFormattingClientCapabilities]
+-&gt; Read DocumentRangeFormattingClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [DocumentRangeFormattingClientCapabilities]
+$creadListPrec :: ReadPrec [DocumentRangeFormattingClientCapabilities]
+readPrec :: ReadPrec DocumentRangeFormattingClientCapabilities
+$creadPrec :: ReadPrec DocumentRangeFormattingClientCapabilities
+readList :: ReadS [DocumentRangeFormattingClientCapabilities]
+$creadList :: ReadS [DocumentRangeFormattingClientCapabilities]
+readsPrec :: Int -&gt; ReadS DocumentRangeFormattingClientCapabilities
+$creadsPrec :: Int -&gt; ReadS DocumentRangeFormattingClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680439606"><span id="local-6989586621680439608"><span class="annot"><span class="annottext">DocumentRangeFormattingClientCapabilities
+-&gt; DocumentRangeFormattingClientCapabilities -&gt; Bool
+(DocumentRangeFormattingClientCapabilities
+ -&gt; DocumentRangeFormattingClientCapabilities -&gt; Bool)
+-&gt; (DocumentRangeFormattingClientCapabilities
+    -&gt; DocumentRangeFormattingClientCapabilities -&gt; Bool)
+-&gt; Eq DocumentRangeFormattingClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: DocumentRangeFormattingClientCapabilities
+-&gt; DocumentRangeFormattingClientCapabilities -&gt; Bool
+$c/= :: DocumentRangeFormattingClientCapabilities
+-&gt; DocumentRangeFormattingClientCapabilities -&gt; Bool
+== :: DocumentRangeFormattingClientCapabilities
+-&gt; DocumentRangeFormattingClientCapabilities -&gt; Bool
+$c== :: DocumentRangeFormattingClientCapabilities
+-&gt; DocumentRangeFormattingClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span id="local-6989586621680439594"><span id="local-6989586621680439596"><span id="local-6989586621680439598"><span id="local-6989586621680439600"><span id="local-6989586621680439602"><span id="local-6989586621680439604"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentRangeFormattingClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span id="%24sel%3A_workDoneProgress%3ADocumentRangeFormattingOptions"><span id="DocumentRangeFormattingOptions"><span id="local-6989586621680439576"><span id="local-6989586621680439578"><span id="local-6989586621680439580"><span id="local-6989586621680439582"><span id="local-6989586621680439584"><span id="local-6989586621680439586"><span id="local-6989586621680439588"><span id="local-6989586621680439590"><span id="local-6989586621680439592"><span id="DocumentRangeFormattingOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;DocumentRangeFormattingOptions&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressOptions</span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-68"></span><span id="local-6989586621680439562"><span id="local-6989586621680439564"><span id="local-6989586621680439566"><span id="local-6989586621680439568"><span id="local-6989586621680439570"><span id="local-6989586621680439572"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentRangeFormattingOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-69"></span><span>
+</span><span id="line-70"></span><span id="%24sel%3A_workDoneProgress%3ADocumentRangeFormattingRegistrationOptions"><span id="%24sel%3A_documentSelector%3ADocumentRangeFormattingRegistrationOptions"><span id="DocumentRangeFormattingRegistrationOptions"><span id="local-6989586621680439544"><span id="local-6989586621680439546"><span id="local-6989586621680439548"><span id="local-6989586621680439550"><span id="local-6989586621680439552"><span id="local-6989586621680439554"><span id="local-6989586621680439556"><span id="local-6989586621680439558"><span id="local-6989586621680439560"><span id="DocumentRangeFormattingRegistrationOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;DocumentRangeFormattingRegistrationOptions&quot;</span><span>
+</span><span id="line-71"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentRegistrationOptions</span><span>
+</span><span id="line-72"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentRangeFormattingOptions</span><span>
+</span><span id="line-73"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-74"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-75"></span><span id="local-6989586621680439529"><span id="local-6989586621680439531"><span id="local-6989586621680439533"><span id="local-6989586621680439535"><span id="local-6989586621680439537"><span id="local-6989586621680439539"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentRangeFormattingRegistrationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-76"></span><span>
+</span><span id="line-77"></span><span id="%24sel%3A_options%3ADocumentRangeFormattingParams"><span id="%24sel%3A_range%3ADocumentRangeFormattingParams"><span id="%24sel%3A_textDocument%3ADocumentRangeFormattingParams"><span id="%24sel%3A_workDoneToken%3ADocumentRangeFormattingParams"><span id="DocumentRangeFormattingParams"><span id="local-6989586621680439511"><span id="local-6989586621680439513"><span id="local-6989586621680439515"><span id="local-6989586621680439517"><span id="local-6989586621680439519"><span id="local-6989586621680439521"><span id="local-6989586621680439523"><span id="local-6989586621680439525"><span id="local-6989586621680439527"><span id="DocumentRangeFormattingParams"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;DocumentRangeFormattingParams&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressParams</span><span class="hs-special">]</span><span>
+</span><span id="line-78"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;_textDocument&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">TextDocumentIdentifier</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><span id="line-79"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;_range&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">Range</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><span id="line-80"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;_options&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">FormattingOptions</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><span id="line-81"></span><span>  </span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-82"></span><span id="local-6989586621680439494"><span id="local-6989586621680439496"><span id="local-6989586621680439498"><span id="local-6989586621680439500"><span id="local-6989586621680439502"><span id="local-6989586621680439504"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentRangeFormattingParams</span></span></span></span></span></span></span><span>
+</span><span id="line-83"></span><span>
+</span><span id="line-84"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-85"></span><span>
+</span><span id="line-86"></span><span class="hs-keyword">data</span><span> </span><span id="DocumentOnTypeFormattingClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Formatting.html#DocumentOnTypeFormattingClientCapabilities"><span class="hs-identifier hs-var">DocumentOnTypeFormattingClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-87"></span><span>  </span><span id="DocumentOnTypeFormattingClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Formatting.html#DocumentOnTypeFormattingClientCapabilities"><span class="hs-identifier hs-var">DocumentOnTypeFormattingClientCapabilities</span></a></span></span><span>
+</span><span id="line-88"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Whether formatting supports dynamic registration.</span><span>
+</span><span id="line-89"></span><span>      </span><span id="%24sel%3A_dynamicRegistration%3ADocumentOnTypeFormattingClientCapabilities"><span class="annot"><span class="annottext">DocumentOnTypeFormattingClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Formatting.html#%24sel%3A_dynamicRegistration%3ADocumentOnTypeFormattingClientCapabilities"><span class="hs-identifier hs-var hs-var">_dynamicRegistration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-90"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680439486"><span id="local-6989586621680439488"><span id="local-6989586621680439490"><span class="annot"><span class="annottext">Int -&gt; DocumentOnTypeFormattingClientCapabilities -&gt; ShowS
+[DocumentOnTypeFormattingClientCapabilities] -&gt; ShowS
+DocumentOnTypeFormattingClientCapabilities -&gt; String
+(Int -&gt; DocumentOnTypeFormattingClientCapabilities -&gt; ShowS)
+-&gt; (DocumentOnTypeFormattingClientCapabilities -&gt; String)
+-&gt; ([DocumentOnTypeFormattingClientCapabilities] -&gt; ShowS)
+-&gt; Show DocumentOnTypeFormattingClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [DocumentOnTypeFormattingClientCapabilities] -&gt; ShowS
+$cshowList :: [DocumentOnTypeFormattingClientCapabilities] -&gt; ShowS
+show :: DocumentOnTypeFormattingClientCapabilities -&gt; String
+$cshow :: DocumentOnTypeFormattingClientCapabilities -&gt; String
+showsPrec :: Int -&gt; DocumentOnTypeFormattingClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; DocumentOnTypeFormattingClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680439478"><span id="local-6989586621680439480"><span id="local-6989586621680439482"><span id="local-6989586621680439484"><span class="annot"><span class="annottext">ReadPrec [DocumentOnTypeFormattingClientCapabilities]
+ReadPrec DocumentOnTypeFormattingClientCapabilities
+Int -&gt; ReadS DocumentOnTypeFormattingClientCapabilities
+ReadS [DocumentOnTypeFormattingClientCapabilities]
+(Int -&gt; ReadS DocumentOnTypeFormattingClientCapabilities)
+-&gt; ReadS [DocumentOnTypeFormattingClientCapabilities]
+-&gt; ReadPrec DocumentOnTypeFormattingClientCapabilities
+-&gt; ReadPrec [DocumentOnTypeFormattingClientCapabilities]
+-&gt; Read DocumentOnTypeFormattingClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [DocumentOnTypeFormattingClientCapabilities]
+$creadListPrec :: ReadPrec [DocumentOnTypeFormattingClientCapabilities]
+readPrec :: ReadPrec DocumentOnTypeFormattingClientCapabilities
+$creadPrec :: ReadPrec DocumentOnTypeFormattingClientCapabilities
+readList :: ReadS [DocumentOnTypeFormattingClientCapabilities]
+$creadList :: ReadS [DocumentOnTypeFormattingClientCapabilities]
+readsPrec :: Int -&gt; ReadS DocumentOnTypeFormattingClientCapabilities
+$creadsPrec :: Int -&gt; ReadS DocumentOnTypeFormattingClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680439474"><span id="local-6989586621680439476"><span class="annot"><span class="annottext">DocumentOnTypeFormattingClientCapabilities
+-&gt; DocumentOnTypeFormattingClientCapabilities -&gt; Bool
+(DocumentOnTypeFormattingClientCapabilities
+ -&gt; DocumentOnTypeFormattingClientCapabilities -&gt; Bool)
+-&gt; (DocumentOnTypeFormattingClientCapabilities
+    -&gt; DocumentOnTypeFormattingClientCapabilities -&gt; Bool)
+-&gt; Eq DocumentOnTypeFormattingClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: DocumentOnTypeFormattingClientCapabilities
+-&gt; DocumentOnTypeFormattingClientCapabilities -&gt; Bool
+$c/= :: DocumentOnTypeFormattingClientCapabilities
+-&gt; DocumentOnTypeFormattingClientCapabilities -&gt; Bool
+== :: DocumentOnTypeFormattingClientCapabilities
+-&gt; DocumentOnTypeFormattingClientCapabilities -&gt; Bool
+$c== :: DocumentOnTypeFormattingClientCapabilities
+-&gt; DocumentOnTypeFormattingClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-91"></span><span id="local-6989586621680439462"><span id="local-6989586621680439464"><span id="local-6989586621680439466"><span id="local-6989586621680439468"><span id="local-6989586621680439470"><span id="local-6989586621680439472"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentOnTypeFormattingClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-92"></span><span>
+</span><span id="line-93"></span><span class="hs-keyword">data</span><span> </span><span id="DocumentOnTypeFormattingOptions"><span class="annot"><a href="Language.LSP.Types.Formatting.html#DocumentOnTypeFormattingOptions"><span class="hs-identifier hs-var">DocumentOnTypeFormattingOptions</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-94"></span><span>  </span><span id="DocumentOnTypeFormattingOptions"><span class="annot"><a href="Language.LSP.Types.Formatting.html#DocumentOnTypeFormattingOptions"><span class="hs-identifier hs-var">DocumentOnTypeFormattingOptions</span></a></span></span><span>
+</span><span id="line-95"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | A character on which formatting should be triggered, like @}@.</span><span>
+</span><span id="line-96"></span><span>      </span><span id="%24sel%3A_firstTriggerCharacter%3ADocumentOnTypeFormattingOptions"><span class="annot"><span class="annottext">DocumentOnTypeFormattingOptions -&gt; Text
+</span><a href="Language.LSP.Types.Formatting.html#%24sel%3A_firstTriggerCharacter%3ADocumentOnTypeFormattingOptions"><span class="hs-identifier hs-var hs-var">_firstTriggerCharacter</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-97"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-comment">-- | More trigger characters.</span><span>
+</span><span id="line-98"></span><span>      </span><span id="%24sel%3A_moreTriggerCharacter%3ADocumentOnTypeFormattingOptions"><span class="annot"><span class="annottext">DocumentOnTypeFormattingOptions -&gt; Maybe [Text]
+</span><a href="Language.LSP.Types.Formatting.html#%24sel%3A_moreTriggerCharacter%3ADocumentOnTypeFormattingOptions"><span class="hs-identifier hs-var hs-var">_moreTriggerCharacter</span></a></span></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">]</span><span>
+</span><span id="line-99"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680439451"><span id="local-6989586621680439453"><span id="local-6989586621680439455"><span id="local-6989586621680439457"><span class="annot"><span class="annottext">ReadPrec [DocumentOnTypeFormattingOptions]
+ReadPrec DocumentOnTypeFormattingOptions
+Int -&gt; ReadS DocumentOnTypeFormattingOptions
+ReadS [DocumentOnTypeFormattingOptions]
+(Int -&gt; ReadS DocumentOnTypeFormattingOptions)
+-&gt; ReadS [DocumentOnTypeFormattingOptions]
+-&gt; ReadPrec DocumentOnTypeFormattingOptions
+-&gt; ReadPrec [DocumentOnTypeFormattingOptions]
+-&gt; Read DocumentOnTypeFormattingOptions
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [DocumentOnTypeFormattingOptions]
+$creadListPrec :: ReadPrec [DocumentOnTypeFormattingOptions]
+readPrec :: ReadPrec DocumentOnTypeFormattingOptions
+$creadPrec :: ReadPrec DocumentOnTypeFormattingOptions
+readList :: ReadS [DocumentOnTypeFormattingOptions]
+$creadList :: ReadS [DocumentOnTypeFormattingOptions]
+readsPrec :: Int -&gt; ReadS DocumentOnTypeFormattingOptions
+$creadsPrec :: Int -&gt; ReadS DocumentOnTypeFormattingOptions
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680439445"><span id="local-6989586621680439447"><span id="local-6989586621680439449"><span class="annot"><span class="annottext">Int -&gt; DocumentOnTypeFormattingOptions -&gt; ShowS
+[DocumentOnTypeFormattingOptions] -&gt; ShowS
+DocumentOnTypeFormattingOptions -&gt; String
+(Int -&gt; DocumentOnTypeFormattingOptions -&gt; ShowS)
+-&gt; (DocumentOnTypeFormattingOptions -&gt; String)
+-&gt; ([DocumentOnTypeFormattingOptions] -&gt; ShowS)
+-&gt; Show DocumentOnTypeFormattingOptions
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [DocumentOnTypeFormattingOptions] -&gt; ShowS
+$cshowList :: [DocumentOnTypeFormattingOptions] -&gt; ShowS
+show :: DocumentOnTypeFormattingOptions -&gt; String
+$cshow :: DocumentOnTypeFormattingOptions -&gt; String
+showsPrec :: Int -&gt; DocumentOnTypeFormattingOptions -&gt; ShowS
+$cshowsPrec :: Int -&gt; DocumentOnTypeFormattingOptions -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680439441"><span id="local-6989586621680439443"><span class="annot"><span class="annottext">DocumentOnTypeFormattingOptions
+-&gt; DocumentOnTypeFormattingOptions -&gt; Bool
+(DocumentOnTypeFormattingOptions
+ -&gt; DocumentOnTypeFormattingOptions -&gt; Bool)
+-&gt; (DocumentOnTypeFormattingOptions
+    -&gt; DocumentOnTypeFormattingOptions -&gt; Bool)
+-&gt; Eq DocumentOnTypeFormattingOptions
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: DocumentOnTypeFormattingOptions
+-&gt; DocumentOnTypeFormattingOptions -&gt; Bool
+$c/= :: DocumentOnTypeFormattingOptions
+-&gt; DocumentOnTypeFormattingOptions -&gt; Bool
+== :: DocumentOnTypeFormattingOptions
+-&gt; DocumentOnTypeFormattingOptions -&gt; Bool
+$c== :: DocumentOnTypeFormattingOptions
+-&gt; DocumentOnTypeFormattingOptions -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-100"></span><span id="local-6989586621680439429"><span id="local-6989586621680439431"><span id="local-6989586621680439433"><span id="local-6989586621680439435"><span id="local-6989586621680439437"><span id="local-6989586621680439439"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentOnTypeFormattingOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-101"></span><span>
+</span><span id="line-102"></span><span id="%24sel%3A_moreTriggerCharacter%3ADocumentOnTypeFormattingRegistrationOptions"><span id="%24sel%3A_firstTriggerCharacter%3ADocumentOnTypeFormattingRegistrationOptions"><span id="%24sel%3A_documentSelector%3ADocumentOnTypeFormattingRegistrationOptions"><span id="DocumentOnTypeFormattingRegistrationOptions"><span id="local-6989586621680439411"><span id="local-6989586621680439413"><span id="local-6989586621680439415"><span id="local-6989586621680439417"><span id="local-6989586621680439419"><span id="local-6989586621680439421"><span id="local-6989586621680439423"><span id="local-6989586621680439425"><span id="local-6989586621680439427"><span id="DocumentOnTypeFormattingRegistrationOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;DocumentOnTypeFormattingRegistrationOptions&quot;</span><span>
+</span><span id="line-103"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentRegistrationOptions</span><span>
+</span><span id="line-104"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentOnTypeFormattingOptions</span><span>
+</span><span id="line-105"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-106"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-107"></span><span id="local-6989586621680439395"><span id="local-6989586621680439397"><span id="local-6989586621680439399"><span id="local-6989586621680439401"><span id="local-6989586621680439403"><span id="local-6989586621680439405"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentOnTypeFormattingRegistrationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-108"></span><span>
+</span><span id="line-109"></span><span id="%24sel%3A_options%3ADocumentOnTypeFormattingParams"><span id="%24sel%3A_ch%3ADocumentOnTypeFormattingParams"><span id="%24sel%3A_position%3ADocumentOnTypeFormattingParams"><span id="%24sel%3A_textDocument%3ADocumentOnTypeFormattingParams"><span id="DocumentOnTypeFormattingParams"><span id="local-6989586621680439377"><span id="local-6989586621680439379"><span id="local-6989586621680439381"><span id="local-6989586621680439383"><span id="local-6989586621680439385"><span id="local-6989586621680439387"><span id="local-6989586621680439389"><span id="local-6989586621680439391"><span id="local-6989586621680439393"><span id="DocumentOnTypeFormattingParams"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;DocumentOnTypeFormattingParams&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentPositionParams</span><span class="hs-special">]</span><span>
+</span><span id="line-110"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;_ch&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">Text</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><span id="line-111"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;_options&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">FormattingOptions</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><span id="line-112"></span><span>  </span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-113"></span><span id="local-6989586621680439360"><span id="local-6989586621680439362"><span id="local-6989586621680439364"><span id="local-6989586621680439366"><span id="local-6989586621680439368"><span id="local-6989586621680439370"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DocumentOnTypeFormattingParams</span></span></span></span></span></span></span><span>
+</span><span id="line-114"></span></pre></body></html>

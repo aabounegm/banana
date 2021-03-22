@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- Copyright   :  (C) 2011-2019 Edward Kmett</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- License     :  BSD-style (see the file LICENSE)</span><span>
+</span><span id="line-6"></span><span class="hs-comment">--</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- Stability   :  experimental</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- Portability :  non-portable</span><span>
+</span><span id="line-10"></span><span class="hs-comment">--</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- Utility functions to augment the prettyprinter library's interface.</span><span>
+</span><span id="line-12"></span><span class="hs-comment">----------------------------------------------------------------------------</span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.Trifecta.Util.Pretty</span><span>
+</span><span id="line-15"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">AnsiStyle</span></span><span>
+</span><span id="line-16"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">renderIO</span></span><span>
+</span><span id="line-17"></span><span>  </span><span class="annot"><span class="hs-comment">-- * Rendering</span></span><span>
+</span><span id="line-18"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.Pretty.html#char"><span class="hs-identifier">char</span></a></span><span>
+</span><span id="line-19"></span><span>  </span><span class="annot"><span class="hs-comment">-- * Styles</span></span><span>
+</span><span id="line-20"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">bold</span></span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.Pretty.html#debold"><span class="hs-identifier">debold</span></a></span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">underlined</span></span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.Pretty.html#deunderline"><span class="hs-identifier">deunderline</span></a></span><span>
+</span><span id="line-24"></span><span>  </span><span class="annot"><span class="hs-comment">-- * Compatibility shims</span></span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.Pretty.html#renderPretty"><span class="hs-identifier">renderPretty</span></a></span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.Pretty.html#columns"><span class="hs-identifier">columns</span></a></span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span class="hs-cpp">
+
+
+#if __GLASGOW_HASKELL__ &lt; 710
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Monoid</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Prettyprint.Doc</span></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Prettyprint.Doc.Render.Terminal</span></span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Prettyprint.Doc.Render.Terminal.Internal</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ansiBold</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">ansiUnderlining</span></span><span class="hs-special">)</span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span id="local-6989586621679236025"><span class="annot"><a href="Text.Trifecta.Util.Pretty.html#char"><span class="hs-identifier hs-type">char</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Doc</span></span><span> </span><span class="annot"><a href="#local-6989586621679236025"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-39"></span><span id="char"><span class="annot"><span class="annottext">char :: Char -&gt; Doc a
+</span><a href="Text.Trifecta.Util.Pretty.html#char"><span class="hs-identifier hs-var hs-var">char</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Doc a
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="annot"><a href="Text.Trifecta.Util.Pretty.html#renderPretty"><span class="hs-identifier hs-type">renderPretty</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Doc</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">AnsiStyle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">SimpleDocStream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">AnsiStyle</span></span><span>
+</span><span id="line-42"></span><span id="renderPretty"><span class="annot"><span class="annottext">renderPretty :: Double -&gt; Int -&gt; Doc AnsiStyle -&gt; SimpleDocStream AnsiStyle
+</span><a href="Text.Trifecta.Util.Pretty.html#renderPretty"><span class="hs-identifier hs-var hs-var">renderPretty</span></a></span></span><span> </span><span id="local-6989586621679236023"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679236023"><span class="hs-identifier hs-var">ribbonFraction</span></a></span></span><span> </span><span id="local-6989586621679236022"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679236022"><span class="hs-identifier hs-var">page</span></a></span></span><span>
+</span><span id="line-43"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LayoutOptions -&gt; Doc AnsiStyle -&gt; SimpleDocStream AnsiStyle
+forall ann. LayoutOptions -&gt; Doc ann -&gt; SimpleDocStream ann
+</span><span class="hs-identifier hs-var">layoutSmart</span></span><span> </span><span class="annot"><span class="annottext">LayoutOptions :: PageWidth -&gt; LayoutOptions
+</span><span class="hs-identifier hs-type">LayoutOptions</span></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">layoutPageWidth :: PageWidth
+</span><span class="hs-identifier hs-var">layoutPageWidth</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Double -&gt; PageWidth
+</span><span class="hs-identifier hs-var">AvailablePerLine</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679236022"><span class="hs-identifier hs-var">page</span></a></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679236023"><span class="hs-identifier hs-var">ribbonFraction</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span class="annot"><a href="Text.Trifecta.Util.Pretty.html#debold"><span class="hs-identifier hs-type">debold</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.Pretty.html#deunderline"><span class="hs-identifier hs-type">deunderline</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">AnsiStyle</span></span><span>
+</span><span id="line-46"></span><span id="debold"><span class="annot"><span class="annottext">debold :: AnsiStyle
+</span><a href="Text.Trifecta.Util.Pretty.html#debold"><span class="hs-identifier hs-var hs-var">debold</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnsiStyle
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">ansiBold :: Maybe Bold
+</span><span class="hs-identifier hs-var">ansiBold</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Bold
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-47"></span><span id="deunderline"><span class="annot"><span class="annottext">deunderline :: AnsiStyle
+</span><a href="Text.Trifecta.Util.Pretty.html#deunderline"><span class="hs-identifier hs-var hs-var">deunderline</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnsiStyle
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">ansiUnderlining :: Maybe Underlined
+</span><span class="hs-identifier hs-var">ansiUnderlining</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Underlined
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">}</span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span class="annot"><a href="Text.Trifecta.Util.Pretty.html#columns"><span class="hs-identifier hs-type">columns</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Doc</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">AnsiStyle</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Doc</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">AnsiStyle</span></span><span>
+</span><span id="line-50"></span><span id="columns"><span class="annot"><span class="annottext">columns :: (Maybe Int -&gt; Doc AnsiStyle) -&gt; Doc AnsiStyle
+</span><a href="Text.Trifecta.Util.Pretty.html#columns"><span class="hs-identifier hs-var hs-var">columns</span></a></span></span><span> </span><span id="local-6989586621679236017"><span class="annot"><span class="annottext">Maybe Int -&gt; Doc AnsiStyle
+</span><a href="#local-6989586621679236017"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PageWidth -&gt; Doc AnsiStyle) -&gt; Doc AnsiStyle
+forall ann. (PageWidth -&gt; Doc ann) -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pageWidth</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Maybe Int -&gt; Doc AnsiStyle
+</span><a href="#local-6989586621679236017"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">(Maybe Int -&gt; Doc AnsiStyle)
+-&gt; (PageWidth -&gt; Maybe Int) -&gt; PageWidth -&gt; Doc AnsiStyle
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PageWidth -&gt; Maybe Int
+</span><a href="#local-6989586621679236014"><span class="hs-identifier hs-var">toMaybeInt</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-51"></span><span>  </span><span id="local-6989586621679236014"><span class="annot"><span class="annottext">toMaybeInt :: PageWidth -&gt; Maybe Int
+</span><a href="#local-6989586621679236014"><span class="hs-identifier hs-var hs-var">toMaybeInt</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">AvailablePerLine</span></span><span> </span><span id="local-6989586621679236013"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679236013"><span class="hs-identifier hs-var">cpl</span></a></span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Maybe Int
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679236013"><span class="hs-identifier hs-var">cpl</span></a></span><span>
+</span><span id="line-52"></span><span>  </span><span class="annot"><a href="#local-6989586621679236014"><span class="hs-identifier hs-var">toMaybeInt</span></a></span><span> </span><span class="annot"><span class="annottext">PageWidth
+</span><span class="hs-identifier hs-var">Unbounded</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Int
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-53"></span></pre></body></html>

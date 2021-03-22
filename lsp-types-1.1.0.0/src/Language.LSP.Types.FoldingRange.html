@@ -1,0 +1,280 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE OverloadedStrings          #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields      #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell            #-}</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.FoldingRange</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson</span></span><span>                    </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">A</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span>                    </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Progress.html"><span class="hs-identifier">Language.LSP.Types.Progress</span></a></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.StaticRegistrationOptions.html"><span class="hs-identifier">Language.LSP.Types.StaticRegistrationOptions</span></a></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.TextDocument.html"><span class="hs-identifier">Language.LSP.Types.TextDocument</span></a></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- -------------------------------------</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">data</span><span> </span><span id="FoldingRangeClientCapabilities"><span class="annot"><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeClientCapabilities"><span class="hs-identifier hs-var">FoldingRangeClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-18"></span><span>  </span><span id="FoldingRangeClientCapabilities"><span class="annot"><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeClientCapabilities"><span class="hs-identifier hs-var">FoldingRangeClientCapabilities</span></a></span></span><span>
+</span><span id="line-19"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Whether implementation supports dynamic registration for folding range</span><span>
+</span><span id="line-20"></span><span>      </span><span class="hs-comment">-- providers. If this is set to `true` the client supports the new</span><span>
+</span><span id="line-21"></span><span>      </span><span class="hs-comment">-- `(FoldingRangeProviderOptions &amp; TextDocumentRegistrationOptions &amp; StaticRegistrationOptions)`</span><span>
+</span><span id="line-22"></span><span>      </span><span class="hs-comment">-- return value for the corresponding server capability as well.</span><span>
+</span><span id="line-23"></span><span>      </span><span id="%24sel%3A_dynamicRegistration%3AFoldingRangeClientCapabilities"><span class="annot"><span class="annottext">FoldingRangeClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.FoldingRange.html#%24sel%3A_dynamicRegistration%3AFoldingRangeClientCapabilities"><span class="hs-identifier hs-var hs-var">_dynamicRegistration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-24"></span><span>      </span><span class="hs-comment">-- | The maximum number of folding ranges that the client prefers to receive</span><span>
+</span><span id="line-25"></span><span>      </span><span class="hs-comment">-- per document. The value serves as a hint, servers are free to follow the limit.</span><span>
+</span><span id="line-26"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_rangeLimit%3AFoldingRangeClientCapabilities"><span class="annot"><span class="annottext">FoldingRangeClientCapabilities -&gt; Maybe Int
+</span><a href="Language.LSP.Types.FoldingRange.html#%24sel%3A_rangeLimit%3AFoldingRangeClientCapabilities"><span class="hs-identifier hs-var hs-var">_rangeLimit</span></a></span></span><span>          </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-27"></span><span>      </span><span class="hs-comment">-- | If set, the client signals that it only supports folding complete lines. If set,</span><span>
+</span><span id="line-28"></span><span>      </span><span class="hs-comment">-- client will ignore specified `startCharacter` and `endCharacter` properties in a</span><span>
+</span><span id="line-29"></span><span>      </span><span class="hs-comment">-- FoldingRange.</span><span>
+</span><span id="line-30"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_lineFoldingOnly%3AFoldingRangeClientCapabilities"><span class="annot"><span class="annottext">FoldingRangeClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.FoldingRange.html#%24sel%3A_lineFoldingOnly%3AFoldingRangeClientCapabilities"><span class="hs-identifier hs-var hs-var">_lineFoldingOnly</span></a></span></span><span>     </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-31"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680440039"><span id="local-6989586621680440041"><span id="local-6989586621680440043"><span class="annot"><span class="annottext">Int -&gt; FoldingRangeClientCapabilities -&gt; ShowS
+[FoldingRangeClientCapabilities] -&gt; ShowS
+FoldingRangeClientCapabilities -&gt; String
+(Int -&gt; FoldingRangeClientCapabilities -&gt; ShowS)
+-&gt; (FoldingRangeClientCapabilities -&gt; String)
+-&gt; ([FoldingRangeClientCapabilities] -&gt; ShowS)
+-&gt; Show FoldingRangeClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [FoldingRangeClientCapabilities] -&gt; ShowS
+$cshowList :: [FoldingRangeClientCapabilities] -&gt; ShowS
+show :: FoldingRangeClientCapabilities -&gt; String
+$cshow :: FoldingRangeClientCapabilities -&gt; String
+showsPrec :: Int -&gt; FoldingRangeClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; FoldingRangeClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680440030"><span id="local-6989586621680440032"><span id="local-6989586621680440034"><span id="local-6989586621680440036"><span class="annot"><span class="annottext">ReadPrec [FoldingRangeClientCapabilities]
+ReadPrec FoldingRangeClientCapabilities
+Int -&gt; ReadS FoldingRangeClientCapabilities
+ReadS [FoldingRangeClientCapabilities]
+(Int -&gt; ReadS FoldingRangeClientCapabilities)
+-&gt; ReadS [FoldingRangeClientCapabilities]
+-&gt; ReadPrec FoldingRangeClientCapabilities
+-&gt; ReadPrec [FoldingRangeClientCapabilities]
+-&gt; Read FoldingRangeClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [FoldingRangeClientCapabilities]
+$creadListPrec :: ReadPrec [FoldingRangeClientCapabilities]
+readPrec :: ReadPrec FoldingRangeClientCapabilities
+$creadPrec :: ReadPrec FoldingRangeClientCapabilities
+readList :: ReadS [FoldingRangeClientCapabilities]
+$creadList :: ReadS [FoldingRangeClientCapabilities]
+readsPrec :: Int -&gt; ReadS FoldingRangeClientCapabilities
+$creadsPrec :: Int -&gt; ReadS FoldingRangeClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680440025"><span id="local-6989586621680440027"><span class="annot"><span class="annottext">FoldingRangeClientCapabilities
+-&gt; FoldingRangeClientCapabilities -&gt; Bool
+(FoldingRangeClientCapabilities
+ -&gt; FoldingRangeClientCapabilities -&gt; Bool)
+-&gt; (FoldingRangeClientCapabilities
+    -&gt; FoldingRangeClientCapabilities -&gt; Bool)
+-&gt; Eq FoldingRangeClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: FoldingRangeClientCapabilities
+-&gt; FoldingRangeClientCapabilities -&gt; Bool
+$c/= :: FoldingRangeClientCapabilities
+-&gt; FoldingRangeClientCapabilities -&gt; Bool
+== :: FoldingRangeClientCapabilities
+-&gt; FoldingRangeClientCapabilities -&gt; Bool
+$c== :: FoldingRangeClientCapabilities
+-&gt; FoldingRangeClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span id="local-6989586621680440012"><span id="local-6989586621680440014"><span id="local-6989586621680440016"><span id="local-6989586621680440018"><span id="local-6989586621680440020"><span id="local-6989586621680440022"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">FoldingRangeClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-34"></span><span>
+</span><span id="line-35"></span><span id="%24sel%3A_workDoneProgress%3AFoldingRangeOptions"><span id="FoldingRangeOptions"><span id="local-6989586621680439989"><span id="local-6989586621680439991"><span id="local-6989586621680439993"><span id="local-6989586621680439995"><span id="local-6989586621680439997"><span id="local-6989586621680439999"><span id="local-6989586621680440001"><span id="local-6989586621680440003"><span id="local-6989586621680440005"><span id="FoldingRangeOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;FoldingRangeOptions&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressOptions</span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-36"></span><span id="local-6989586621680439975"><span id="local-6989586621680439977"><span id="local-6989586621680439979"><span id="local-6989586621680439981"><span id="local-6989586621680439983"><span id="local-6989586621680439985"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">FoldingRangeOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span id="%24sel%3A_id%3AFoldingRangeRegistrationOptions"><span id="%24sel%3A_workDoneProgress%3AFoldingRangeRegistrationOptions"><span id="%24sel%3A_documentSelector%3AFoldingRangeRegistrationOptions"><span id="FoldingRangeRegistrationOptions"><span id="local-6989586621680439957"><span id="local-6989586621680439959"><span id="local-6989586621680439961"><span id="local-6989586621680439963"><span id="local-6989586621680439965"><span id="local-6989586621680439967"><span id="local-6989586621680439969"><span id="local-6989586621680439971"><span id="local-6989586621680439973"><span id="FoldingRangeRegistrationOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;FoldingRangeRegistrationOptions&quot;</span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentRegistrationOptions</span><span>
+</span><span id="line-40"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">FoldingRangeOptions</span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">StaticRegistrationOptions</span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-43"></span><span id="local-6989586621680439941"><span id="local-6989586621680439943"><span id="local-6989586621680439945"><span id="local-6989586621680439947"><span id="local-6989586621680439949"><span id="local-6989586621680439951"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">FoldingRangeRegistrationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span id="%24sel%3A_textDocument%3AFoldingRangeParams"><span id="%24sel%3A_partialResultToken%3AFoldingRangeParams"><span id="%24sel%3A_workDoneToken%3AFoldingRangeParams"><span id="FoldingRangeParams"><span id="local-6989586621680439923"><span id="local-6989586621680439925"><span id="local-6989586621680439927"><span id="local-6989586621680439929"><span id="local-6989586621680439931"><span id="local-6989586621680439933"><span id="local-6989586621680439935"><span id="local-6989586621680439937"><span id="local-6989586621680439939"><span id="FoldingRangeParams"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;FoldingRangeParams&quot;</span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressParams</span><span>
+</span><span id="line-48"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">PartialResultParams</span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-50"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="hs-string">&quot;_textDocument&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">TextDocumentIdentifier</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-51"></span><span id="local-6989586621680439907"><span id="local-6989586621680439909"><span id="local-6989586621680439911"><span id="local-6989586621680439913"><span id="local-6989586621680439915"><span id="local-6989586621680439917"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">FoldingRangeParams</span></span></span></span></span></span></span><span>
+</span><span id="line-52"></span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- | Enum of known range kinds</span><span>
+</span><span id="line-54"></span><span class="hs-keyword">data</span><span> </span><span id="FoldingRangeKind"><span class="annot"><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeKind"><span class="hs-identifier hs-var">FoldingRangeKind</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="FoldingRangeComment"><span class="annot"><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeComment"><span class="hs-identifier hs-var">FoldingRangeComment</span></a></span></span><span>
+</span><span id="line-55"></span><span>                        </span><span class="hs-comment">-- ^ Folding range for a comment</span><span>
+</span><span id="line-56"></span><span>                      </span><span class="hs-glyph">|</span><span> </span><span id="FoldingRangeImports"><span class="annot"><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeImports"><span class="hs-identifier hs-var">FoldingRangeImports</span></a></span></span><span>
+</span><span id="line-57"></span><span>                        </span><span class="hs-comment">-- ^ Folding range for a imports or includes</span><span>
+</span><span id="line-58"></span><span>                      </span><span class="hs-glyph">|</span><span> </span><span id="FoldingRangeRegion"><span class="annot"><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeRegion"><span class="hs-identifier hs-var">FoldingRangeRegion</span></a></span></span><span>
+</span><span id="line-59"></span><span>                        </span><span class="hs-comment">-- ^ Folding range for a region (e.g. #region)</span><span>
+</span><span id="line-60"></span><span>                      </span><span class="hs-glyph">|</span><span> </span><span id="FoldingRangeUnknown"><span class="annot"><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeUnknown"><span class="hs-identifier hs-var">FoldingRangeUnknown</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-61"></span><span>                        </span><span class="hs-comment">-- ^ Folding range that haskell-lsp-types does</span><span>
+</span><span id="line-62"></span><span>                        </span><span class="hs-comment">-- not yet support</span><span>
+</span><span id="line-63"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680439895"><span id="local-6989586621680439897"><span id="local-6989586621680439899"><span id="local-6989586621680439901"><span class="annot"><span class="annottext">ReadPrec [FoldingRangeKind]
+ReadPrec FoldingRangeKind
+Int -&gt; ReadS FoldingRangeKind
+ReadS [FoldingRangeKind]
+(Int -&gt; ReadS FoldingRangeKind)
+-&gt; ReadS [FoldingRangeKind]
+-&gt; ReadPrec FoldingRangeKind
+-&gt; ReadPrec [FoldingRangeKind]
+-&gt; Read FoldingRangeKind
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [FoldingRangeKind]
+$creadListPrec :: ReadPrec [FoldingRangeKind]
+readPrec :: ReadPrec FoldingRangeKind
+$creadPrec :: ReadPrec FoldingRangeKind
+readList :: ReadS [FoldingRangeKind]
+$creadList :: ReadS [FoldingRangeKind]
+readsPrec :: Int -&gt; ReadS FoldingRangeKind
+$creadsPrec :: Int -&gt; ReadS FoldingRangeKind
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680439889"><span id="local-6989586621680439891"><span id="local-6989586621680439893"><span class="annot"><span class="annottext">Int -&gt; FoldingRangeKind -&gt; ShowS
+[FoldingRangeKind] -&gt; ShowS
+FoldingRangeKind -&gt; String
+(Int -&gt; FoldingRangeKind -&gt; ShowS)
+-&gt; (FoldingRangeKind -&gt; String)
+-&gt; ([FoldingRangeKind] -&gt; ShowS)
+-&gt; Show FoldingRangeKind
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [FoldingRangeKind] -&gt; ShowS
+$cshowList :: [FoldingRangeKind] -&gt; ShowS
+show :: FoldingRangeKind -&gt; String
+$cshow :: FoldingRangeKind -&gt; String
+showsPrec :: Int -&gt; FoldingRangeKind -&gt; ShowS
+$cshowsPrec :: Int -&gt; FoldingRangeKind -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680439885"><span id="local-6989586621680439887"><span class="annot"><span class="annottext">FoldingRangeKind -&gt; FoldingRangeKind -&gt; Bool
+(FoldingRangeKind -&gt; FoldingRangeKind -&gt; Bool)
+-&gt; (FoldingRangeKind -&gt; FoldingRangeKind -&gt; Bool)
+-&gt; Eq FoldingRangeKind
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: FoldingRangeKind -&gt; FoldingRangeKind -&gt; Bool
+$c/= :: FoldingRangeKind -&gt; FoldingRangeKind -&gt; Bool
+== :: FoldingRangeKind -&gt; FoldingRangeKind -&gt; Bool
+$c== :: FoldingRangeKind -&gt; FoldingRangeKind -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680439878"><span id="local-6989586621680439880"><span id="local-6989586621680439882"><span class="annot"><span class="hs-identifier hs-type">A.ToJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeKind"><span class="hs-identifier hs-type">FoldingRangeKind</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-66"></span><span>  </span><span id="local-6989586621680439877"><span class="annot"><span class="annottext">toJSON :: FoldingRangeKind -&gt; Value
+</span><a href="#local-6989586621680439877"><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></a></span></span><span> </span><span class="annot"><span class="annottext">FoldingRangeKind
+</span><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeComment"><span class="hs-identifier hs-var">FoldingRangeComment</span></a></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span class="hs-identifier hs-var">A.String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;comment&quot;</span></span><span>
+</span><span id="line-67"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">FoldingRangeKind
+</span><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeImports"><span class="hs-identifier hs-var">FoldingRangeImports</span></a></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span class="hs-identifier hs-var">A.String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;imports&quot;</span></span><span>
+</span><span id="line-68"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="annot"><span class="annottext">FoldingRangeKind
+</span><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeRegion"><span class="hs-identifier hs-var">FoldingRangeRegion</span></a></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span class="hs-identifier hs-var">A.String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;region&quot;</span></span><span>
+</span><span id="line-69"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeUnknown"><span class="hs-identifier hs-type">FoldingRangeUnknown</span></a></span><span> </span><span id="local-6989586621680439875"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680439875"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Value
+</span><span class="hs-identifier hs-var">A.String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680439875"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-70"></span><span>
+</span><span id="line-71"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680439872"><span class="annot"><span class="hs-identifier hs-type">A.FromJSON</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeKind"><span class="hs-identifier hs-type">FoldingRangeKind</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-72"></span><span>  </span><span id="local-6989586621680439871"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser FoldingRangeKind
+</span><a href="#local-6989586621680439871"><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;comment&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FoldingRangeKind -&gt; Parser FoldingRangeKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">FoldingRangeKind
+</span><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeComment"><span class="hs-identifier hs-var">FoldingRangeComment</span></a></span><span>
+</span><span id="line-73"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;imports&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FoldingRangeKind -&gt; Parser FoldingRangeKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">FoldingRangeKind
+</span><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeImports"><span class="hs-identifier hs-var">FoldingRangeImports</span></a></span><span>
+</span><span id="line-74"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.String</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;region&quot;</span></span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FoldingRangeKind -&gt; Parser FoldingRangeKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">FoldingRangeKind
+</span><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeRegion"><span class="hs-identifier hs-var">FoldingRangeRegion</span></a></span><span>
+</span><span id="line-75"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">A.String</span></span><span> </span><span id="local-6989586621680439870"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680439870"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FoldingRangeKind -&gt; Parser FoldingRangeKind
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; FoldingRangeKind
+</span><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeUnknown"><span class="hs-identifier hs-var">FoldingRangeUnknown</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680439870"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-76"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">parseJSON</span></span><span> </span><span class="annot"><span class="annottext">Value
+</span><span class="hs-identifier">_</span></span><span>                    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser FoldingRangeKind
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-77"></span><span>
+</span><span id="line-78"></span><span class="hs-comment">-- | Represents a folding range.</span><span>
+</span><span id="line-79"></span><span class="hs-keyword">data</span><span> </span><span id="FoldingRange"><span class="annot"><a href="Language.LSP.Types.FoldingRange.html#FoldingRange"><span class="hs-identifier hs-var">FoldingRange</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-80"></span><span>  </span><span id="FoldingRange"><span class="annot"><a href="Language.LSP.Types.FoldingRange.html#FoldingRange"><span class="hs-identifier hs-var">FoldingRange</span></a></span></span><span>
+</span><span id="line-81"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The zero-based line number from where the folded range starts.</span><span>
+</span><span id="line-82"></span><span>    </span><span id="%24sel%3A_startLine%3AFoldingRange"><span class="annot"><span class="annottext">FoldingRange -&gt; Int
+</span><a href="Language.LSP.Types.FoldingRange.html#%24sel%3A_startLine%3AFoldingRange"><span class="hs-identifier hs-var hs-var">_startLine</span></a></span></span><span>      </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-83"></span><span>    </span><span class="hs-comment">-- | The zero-based character offset from where the folded range</span><span>
+</span><span id="line-84"></span><span>    </span><span class="hs-comment">-- starts. If not defined, defaults to the length of the start line.</span><span>
+</span><span id="line-85"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_startCharacter%3AFoldingRange"><span class="annot"><span class="annottext">FoldingRange -&gt; Maybe Int
+</span><a href="Language.LSP.Types.FoldingRange.html#%24sel%3A_startCharacter%3AFoldingRange"><span class="hs-identifier hs-var hs-var">_startCharacter</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-86"></span><span>    </span><span class="hs-comment">-- | The zero-based line number where the folded range ends.</span><span>
+</span><span id="line-87"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_endLine%3AFoldingRange"><span class="annot"><span class="annottext">FoldingRange -&gt; Int
+</span><a href="Language.LSP.Types.FoldingRange.html#%24sel%3A_endLine%3AFoldingRange"><span class="hs-identifier hs-var hs-var">_endLine</span></a></span></span><span>        </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-88"></span><span>    </span><span class="hs-comment">-- | The zero-based character offset before the folded range ends.</span><span>
+</span><span id="line-89"></span><span>    </span><span class="hs-comment">-- If not defined, defaults to the length of the end line.</span><span>
+</span><span id="line-90"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_endCharacter%3AFoldingRange"><span class="annot"><span class="annottext">FoldingRange -&gt; Maybe Int
+</span><a href="Language.LSP.Types.FoldingRange.html#%24sel%3A_endCharacter%3AFoldingRange"><span class="hs-identifier hs-var hs-var">_endCharacter</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-91"></span><span>    </span><span class="hs-comment">-- | Describes the kind of the folding range such as 'comment' or</span><span>
+</span><span id="line-92"></span><span>    </span><span class="hs-comment">-- 'region'. The kind is used to categorize folding ranges and used</span><span>
+</span><span id="line-93"></span><span>    </span><span class="hs-comment">-- by commands like 'Fold all comments'. See 'FoldingRangeKind' for</span><span>
+</span><span id="line-94"></span><span>    </span><span class="hs-comment">-- an enumeration of standardized kinds.</span><span>
+</span><span id="line-95"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_kind%3AFoldingRange"><span class="annot"><span class="annottext">FoldingRange -&gt; Maybe FoldingRangeKind
+</span><a href="Language.LSP.Types.FoldingRange.html#%24sel%3A_kind%3AFoldingRange"><span class="hs-identifier hs-var hs-var">_kind</span></a></span></span><span>           </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.LSP.Types.FoldingRange.html#FoldingRangeKind"><span class="hs-identifier hs-type">FoldingRangeKind</span></a></span><span>
+</span><span id="line-96"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-97"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680439856"><span id="local-6989586621680439858"><span id="local-6989586621680439860"><span id="local-6989586621680439862"><span class="annot"><span class="annottext">ReadPrec [FoldingRange]
+ReadPrec FoldingRange
+Int -&gt; ReadS FoldingRange
+ReadS [FoldingRange]
+(Int -&gt; ReadS FoldingRange)
+-&gt; ReadS [FoldingRange]
+-&gt; ReadPrec FoldingRange
+-&gt; ReadPrec [FoldingRange]
+-&gt; Read FoldingRange
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [FoldingRange]
+$creadListPrec :: ReadPrec [FoldingRange]
+readPrec :: ReadPrec FoldingRange
+$creadPrec :: ReadPrec FoldingRange
+readList :: ReadS [FoldingRange]
+$creadList :: ReadS [FoldingRange]
+readsPrec :: Int -&gt; ReadS FoldingRange
+$creadsPrec :: Int -&gt; ReadS FoldingRange
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680439850"><span id="local-6989586621680439852"><span id="local-6989586621680439854"><span class="annot"><span class="annottext">Int -&gt; FoldingRange -&gt; ShowS
+[FoldingRange] -&gt; ShowS
+FoldingRange -&gt; String
+(Int -&gt; FoldingRange -&gt; ShowS)
+-&gt; (FoldingRange -&gt; String)
+-&gt; ([FoldingRange] -&gt; ShowS)
+-&gt; Show FoldingRange
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [FoldingRange] -&gt; ShowS
+$cshowList :: [FoldingRange] -&gt; ShowS
+show :: FoldingRange -&gt; String
+$cshow :: FoldingRange -&gt; String
+showsPrec :: Int -&gt; FoldingRange -&gt; ShowS
+$cshowsPrec :: Int -&gt; FoldingRange -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680439846"><span id="local-6989586621680439848"><span class="annot"><span class="annottext">FoldingRange -&gt; FoldingRange -&gt; Bool
+(FoldingRange -&gt; FoldingRange -&gt; Bool)
+-&gt; (FoldingRange -&gt; FoldingRange -&gt; Bool) -&gt; Eq FoldingRange
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: FoldingRange -&gt; FoldingRange -&gt; Bool
+$c/= :: FoldingRange -&gt; FoldingRange -&gt; Bool
+== :: FoldingRange -&gt; FoldingRange -&gt; Bool
+$c== :: FoldingRange -&gt; FoldingRange -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-98"></span><span>
+</span><span id="line-99"></span><span id="local-6989586621680439834"><span id="local-6989586621680439836"><span id="local-6989586621680439838"><span id="local-6989586621680439840"><span id="local-6989586621680439842"><span id="local-6989586621680439844"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">FoldingRange</span></span></span></span></span></span></span><span>
+</span><span id="line-100"></span></pre></body></html>

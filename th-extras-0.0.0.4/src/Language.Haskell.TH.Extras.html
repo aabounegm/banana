@@ -1,0 +1,480 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP, TemplateHaskell #-}</span><span>
+</span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.Haskell.TH.Extras</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Generics</span></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Maybe</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Language.Haskell.TH</span></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Language.Haskell.TH.Syntax</span></span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#intIs64"><span class="hs-identifier hs-type">intIs64</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-11"></span><span id="intIs64"><span class="annot"><span class="annottext">intIs64 :: Bool
+</span><a href="Language.Haskell.TH.Extras.html#intIs64"><span class="hs-identifier hs-var hs-var">intIs64</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Integer
+forall a. Integral a =&gt; a -&gt; Integer
+</span><span class="hs-identifier hs-var">toInteger</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+forall a. Bounded a =&gt; a
+</span><span class="hs-identifier hs-var">maxBound</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;</span></span><span> </span><span class="annot"><span class="annottext">Integer
+</span><span class="hs-number">2</span></span><span class="annot"><span class="annottext">Integer -&gt; Integer -&gt; Integer
+forall a b. (Num a, Integral b) =&gt; a -&gt; b -&gt; a
+</span><span class="hs-operator hs-var">^</span></span><span class="annot"><span class="annottext">Integer
+</span><span class="hs-number">32</span></span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span id="local-6989586621679037390"><span class="annot"><a href="Language.Haskell.TH.Extras.html#replace"><span class="hs-identifier hs-type">replace</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679037390"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679037390"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679037390"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679037390"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-14"></span><span id="replace"><span class="annot"><span class="annottext">replace :: (a -&gt; Maybe a) -&gt; a -&gt; a
+</span><a href="Language.Haskell.TH.Extras.html#replace"><span class="hs-identifier hs-var hs-var">replace</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a -&gt; Maybe a -&gt; a) -&gt; (a -&gt; Maybe a) -&gt; a -&gt; a
+forall (m :: * -&gt; *) a b. Monad m =&gt; m (a -&gt; b) -&gt; m a -&gt; m b
+</span><span class="hs-identifier hs-var">ap</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; Maybe a -&gt; a
+forall a. a -&gt; Maybe a -&gt; a
+</span><span class="hs-identifier hs-var">fromMaybe</span></span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#composeExprs"><span class="hs-identifier hs-type">composeExprs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">ExpQ</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ExpQ</span></span><span>
+</span><span id="line-17"></span><span id="composeExprs"><span class="annot"><span class="annottext">composeExprs :: [ExpQ] -&gt; ExpQ
+</span><a href="Language.Haskell.TH.Extras.html#composeExprs"><span class="hs-identifier hs-var hs-var">composeExprs</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[|</span><span> </span><span class="hs-identifier">id</span><span> </span><span class="hs-special">|]</span><span>
+</span><span id="line-18"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#composeExprs"><span class="hs-identifier hs-var">composeExprs</span></a></span><span> </span><span class="hs-special">[</span><span id="local-6989586621679037376"><span class="annot"><span class="annottext">ExpQ
+</span><a href="#local-6989586621679037376"><span class="hs-identifier hs-var">f</span></a></span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ExpQ
+</span><a href="#local-6989586621679037376"><span class="hs-identifier hs-var">f</span></a></span><span>
+</span><span id="line-19"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#composeExprs"><span class="hs-identifier hs-var">composeExprs</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679037375"><span class="annot"><span class="annottext">ExpQ
+</span><a href="#local-6989586621679037375"><span class="hs-identifier hs-var">f</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679037374"><span class="annot"><span class="annottext">[ExpQ]
+</span><a href="#local-6989586621679037374"><span class="hs-identifier hs-var">fs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[|</span><span> </span><span class="">$f</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-special">$(</span><span class="hs-identifier">composeExprs</span><span> </span><span class="hs-identifier">fs</span><span class="hs-special">)</span><span> </span><span class="hs-special">|]</span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#nameOfCon"><span class="hs-identifier hs-type">nameOfCon</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Con</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span>
+</span><span id="line-22"></span><span id="nameOfCon"><span class="annot"><span class="annottext">nameOfCon :: Con -&gt; Name
+</span><a href="Language.Haskell.TH.Extras.html#nameOfCon"><span class="hs-identifier hs-var hs-var">nameOfCon</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">NormalC</span></span><span>  </span><span id="local-6989586621679037371"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037371"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="annot"><span class="annottext">[BangType]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037371"><span class="hs-identifier hs-var">name</span></a></span><span>
+</span><span id="line-23"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#nameOfCon"><span class="hs-identifier hs-var">nameOfCon</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">RecC</span></span><span>     </span><span id="local-6989586621679037369"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037369"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="annot"><span class="annottext">[VarBangType]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037369"><span class="hs-identifier hs-var">name</span></a></span><span>
+</span><span id="line-24"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#nameOfCon"><span class="hs-identifier hs-var">nameOfCon</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">InfixC</span></span><span> </span><span class="annot"><span class="annottext">BangType
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679037367"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037367"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="annot"><span class="annottext">BangType
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037367"><span class="hs-identifier hs-var">name</span></a></span><span>
+</span><span id="line-25"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#nameOfCon"><span class="hs-identifier hs-var">nameOfCon</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ForallC</span></span><span> </span><span class="annot"><span class="annottext">[TyVarBndr]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Cxt
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679037365"><span class="annot"><span class="annottext">Con
+</span><a href="#local-6989586621679037365"><span class="hs-identifier hs-var">con</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Con -&gt; Name
+</span><a href="Language.Haskell.TH.Extras.html#nameOfCon"><span class="hs-identifier hs-var">nameOfCon</span></a></span><span> </span><span class="annot"><span class="annottext">Con
+</span><a href="#local-6989586621679037365"><span class="hs-identifier hs-var">con</span></a></span><span class="hs-cpp">
+#if defined(__GLASGOW_HASKELL__) &amp;&amp; __GLASGOW_HASKELL__ &gt;= 800
+</span><span class="annot"><a href="Language.Haskell.TH.Extras.html#nameOfCon"><span class="hs-identifier hs-var">nameOfCon</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">GadtC</span></span><span> </span><span class="hs-special">[</span><span id="local-6989586621679037363"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037363"><span class="hs-identifier hs-var">name</span></a></span></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">[BangType]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Type
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037363"><span class="hs-identifier hs-var">name</span></a></span><span>
+</span><span id="line-28"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#nameOfCon"><span class="hs-identifier hs-var">nameOfCon</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">RecGadtC</span></span><span> </span><span class="hs-special">[</span><span id="local-6989586621679037361"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037361"><span class="hs-identifier hs-var">name</span></a></span></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">[VarBangType]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Type
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037361"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- |WARNING: discards binders in GADTs and existentially-quantified constructors</span><span>
+</span><span id="line-32"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#argTypesOfCon"><span class="hs-identifier hs-type">argTypesOfCon</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Con</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span class="hs-special">]</span><span>
+</span><span id="line-33"></span><span id="argTypesOfCon"><span class="annot"><span class="annottext">argTypesOfCon :: Con -&gt; Cxt
+</span><a href="Language.Haskell.TH.Extras.html#argTypesOfCon"><span class="hs-identifier hs-var hs-var">argTypesOfCon</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">NormalC</span></span><span>  </span><span class="annot"><span class="annottext">Name
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679037359"><span class="annot"><span class="annottext">[BangType]
+</span><a href="#local-6989586621679037359"><span class="hs-identifier hs-var">args</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(BangType -&gt; Type) -&gt; [BangType] -&gt; Cxt
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">BangType -&gt; Type
+forall a b. (a, b) -&gt; b
+</span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">[BangType]
+</span><a href="#local-6989586621679037359"><span class="hs-identifier hs-var">args</span></a></span><span>
+</span><span id="line-34"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#argTypesOfCon"><span class="hs-identifier hs-var">argTypesOfCon</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">RecC</span></span><span>     </span><span class="annot"><span class="annottext">Name
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679037358"><span class="annot"><span class="annottext">[VarBangType]
+</span><a href="#local-6989586621679037358"><span class="hs-identifier hs-var">args</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037357"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Name
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Bang
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span id="local-6989586621679037357"><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037357"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[VarBangType]
+</span><a href="#local-6989586621679037358"><span class="hs-identifier hs-var">args</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-35"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#argTypesOfCon"><span class="hs-identifier hs-var">argTypesOfCon</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">InfixC</span></span><span> </span><span id="local-6989586621679037356"><span class="annot"><span class="annottext">BangType
+</span><a href="#local-6989586621679037356"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="annot"><span class="annottext">Name
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679037355"><span class="annot"><span class="annottext">BangType
+</span><a href="#local-6989586621679037355"><span class="hs-identifier hs-var">y</span></a></span></span><span class="hs-special">)</span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(BangType -&gt; Type) -&gt; [BangType] -&gt; Cxt
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">BangType -&gt; Type
+forall a b. (a, b) -&gt; b
+</span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">BangType
+</span><a href="#local-6989586621679037356"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">BangType
+</span><a href="#local-6989586621679037355"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-36"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#argTypesOfCon"><span class="hs-identifier hs-var">argTypesOfCon</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ForallC</span></span><span> </span><span class="annot"><span class="annottext">[TyVarBndr]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Cxt
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679037354"><span class="annot"><span class="annottext">Con
+</span><a href="#local-6989586621679037354"><span class="hs-identifier hs-var">con</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Con -&gt; Cxt
+</span><a href="Language.Haskell.TH.Extras.html#argTypesOfCon"><span class="hs-identifier hs-var">argTypesOfCon</span></a></span><span> </span><span class="annot"><span class="annottext">Con
+</span><a href="#local-6989586621679037354"><span class="hs-identifier hs-var">con</span></a></span><span class="hs-cpp">
+#if defined(__GLASGOW_HASKELL__) &amp;&amp; __GLASGOW_HASKELL__ &gt;= 800
+</span><span class="annot"><a href="Language.Haskell.TH.Extras.html#argTypesOfCon"><span class="hs-identifier hs-var">argTypesOfCon</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">GadtC</span></span><span> </span><span class="annot"><span class="annottext">[Name]
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679037353"><span class="annot"><span class="annottext">[BangType]
+</span><a href="#local-6989586621679037353"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="annot"><span class="annottext">Type
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(BangType -&gt; Type) -&gt; [BangType] -&gt; Cxt
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">BangType -&gt; Type
+forall a b. (a, b) -&gt; b
+</span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">[BangType]
+</span><a href="#local-6989586621679037353"><span class="hs-identifier hs-var">args</span></a></span><span>
+</span><span id="line-39"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#argTypesOfCon"><span class="hs-identifier hs-var">argTypesOfCon</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">RecGadtC</span></span><span> </span><span class="annot"><span class="annottext">[Name]
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679037352"><span class="annot"><span class="annottext">[VarBangType]
+</span><a href="#local-6989586621679037352"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="annot"><span class="annottext">Type
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037351"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Name
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Bang
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span id="local-6989586621679037351"><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037351"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[VarBangType]
+</span><a href="#local-6989586621679037352"><span class="hs-identifier hs-var">args</span></a></span><span class="hs-special">]</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-42"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#nameOfBinder"><span class="hs-identifier hs-type">nameOfBinder</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TyVarBndr</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span class="hs-cpp">
+#if defined(__GLASGOW_HASKELL__) &amp;&amp; __GLASGOW_HASKELL__ &gt;= 700
+</span><span id="nameOfBinder"><span class="annot"><span class="annottext">nameOfBinder :: TyVarBndr -&gt; Name
+</span><a href="Language.Haskell.TH.Extras.html#nameOfBinder"><span class="hs-identifier hs-var hs-var">nameOfBinder</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">PlainTV</span></span><span> </span><span id="local-6989586621679037348"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037348"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037348"><span class="hs-identifier hs-var">n</span></a></span><span>
+</span><span id="line-45"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#nameOfBinder"><span class="hs-identifier hs-var">nameOfBinder</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">KindedTV</span></span><span> </span><span id="local-6989586621679037346"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037346"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="annot"><span class="annottext">Type
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037346"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-cpp">
+#else
+</span><span class="hs-identifier">nameOfBinder</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">id</span><span>
+</span><span id="line-48"></span><span class="hs-keyword">type</span><span> </span><span class="hs-identifier">TyVarBndr</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">Name</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-51"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#varsBoundInCon"><span class="hs-identifier hs-type">varsBoundInCon</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Con</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">TyVarBndr</span></span><span class="hs-special">]</span><span>
+</span><span id="line-52"></span><span id="varsBoundInCon"><span class="annot"><span class="annottext">varsBoundInCon :: Con -&gt; [TyVarBndr]
+</span><a href="Language.Haskell.TH.Extras.html#varsBoundInCon"><span class="hs-identifier hs-var hs-var">varsBoundInCon</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ForallC</span></span><span> </span><span id="local-6989586621679037344"><span class="annot"><span class="annottext">[TyVarBndr]
+</span><a href="#local-6989586621679037344"><span class="hs-identifier hs-var">bndrs</span></a></span></span><span> </span><span class="annot"><span class="annottext">Cxt
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679037343"><span class="annot"><span class="annottext">Con
+</span><a href="#local-6989586621679037343"><span class="hs-identifier hs-var">con</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[TyVarBndr]
+</span><a href="#local-6989586621679037344"><span class="hs-identifier hs-var">bndrs</span></a></span><span> </span><span class="annot"><span class="annottext">[TyVarBndr] -&gt; [TyVarBndr] -&gt; [TyVarBndr]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Con -&gt; [TyVarBndr]
+</span><a href="Language.Haskell.TH.Extras.html#varsBoundInCon"><span class="hs-identifier hs-var">varsBoundInCon</span></a></span><span> </span><span class="annot"><span class="annottext">Con
+</span><a href="#local-6989586621679037343"><span class="hs-identifier hs-var">con</span></a></span><span>
+</span><span id="line-53"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#varsBoundInCon"><span class="hs-identifier hs-var">varsBoundInCon</span></a></span><span> </span><span class="annot"><span class="annottext">Con
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-54"></span><span>
+</span><span id="line-55"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-type">namesBoundInPat</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Pat</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span class="hs-special">]</span><span>
+</span><span id="line-56"></span><span id="namesBoundInPat"><span class="annot"><span class="annottext">namesBoundInPat :: Pat -&gt; [Name]
+</span><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var hs-var">namesBoundInPat</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">VarP</span></span><span> </span><span id="local-6989586621679037340"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037340"><span class="hs-identifier hs-var">name</span></a></span></span><span class="hs-special">)</span><span>             </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037340"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-57"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TupP</span></span><span> </span><span id="local-6989586621679037338"><span class="annot"><span class="annottext">[Pat]
+</span><a href="#local-6989586621679037338"><span class="hs-identifier hs-var">pats</span></a></span></span><span class="hs-special">)</span><span>             </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Pat]
+</span><a href="#local-6989586621679037338"><span class="hs-identifier hs-var">pats</span></a></span><span> </span><span class="annot"><span class="annottext">[Pat] -&gt; (Pat -&gt; [Name]) -&gt; [Name]
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Pat -&gt; [Name]
+</span><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span>
+</span><span id="line-58"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ConP</span></span><span> </span><span class="annot"><span class="annottext">Name
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679037336"><span class="annot"><span class="annottext">[Pat]
+</span><a href="#local-6989586621679037336"><span class="hs-identifier hs-var">pats</span></a></span></span><span class="hs-special">)</span><span>           </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Pat]
+</span><a href="#local-6989586621679037336"><span class="hs-identifier hs-var">pats</span></a></span><span> </span><span class="annot"><span class="annottext">[Pat] -&gt; (Pat -&gt; [Name]) -&gt; [Name]
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Pat -&gt; [Name]
+</span><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span>
+</span><span id="line-59"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">InfixP</span></span><span> </span><span id="local-6989586621679037334"><span class="annot"><span class="annottext">Pat
+</span><a href="#local-6989586621679037334"><span class="hs-identifier hs-var">p1</span></a></span></span><span> </span><span class="annot"><span class="annottext">Name
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679037333"><span class="annot"><span class="annottext">Pat
+</span><a href="#local-6989586621679037333"><span class="hs-identifier hs-var">p2</span></a></span></span><span class="hs-special">)</span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pat -&gt; [Name]
+</span><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="annot"><span class="annottext">Pat
+</span><a href="#local-6989586621679037334"><span class="hs-identifier hs-var">p1</span></a></span><span> </span><span class="annot"><span class="annottext">[Name] -&gt; [Name] -&gt; [Name]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Pat -&gt; [Name]
+</span><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="annot"><span class="annottext">Pat
+</span><a href="#local-6989586621679037333"><span class="hs-identifier hs-var">p2</span></a></span><span>
+</span><span id="line-60"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TildeP</span></span><span> </span><span id="local-6989586621679037331"><span class="annot"><span class="annottext">Pat
+</span><a href="#local-6989586621679037331"><span class="hs-identifier hs-var">pat</span></a></span></span><span class="hs-special">)</span><span>            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pat -&gt; [Name]
+</span><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="annot"><span class="annottext">Pat
+</span><a href="#local-6989586621679037331"><span class="hs-identifier hs-var">pat</span></a></span><span>
+</span><span id="line-61"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">AsP</span></span><span> </span><span id="local-6989586621679037329"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037329"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span id="local-6989586621679037328"><span class="annot"><span class="annottext">Pat
+</span><a href="#local-6989586621679037328"><span class="hs-identifier hs-var">pat</span></a></span></span><span class="hs-special">)</span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037329"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">Name -&gt; [Name] -&gt; [Name]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">Pat -&gt; [Name]
+</span><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="annot"><span class="annottext">Pat
+</span><a href="#local-6989586621679037328"><span class="hs-identifier hs-var">pat</span></a></span><span>
+</span><span id="line-62"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">RecP</span></span><span> </span><span class="annot"><span class="annottext">Name
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679037326"><span class="annot"><span class="annottext">[FieldPat]
+</span><a href="#local-6989586621679037326"><span class="hs-identifier hs-var">fieldPats</span></a></span></span><span class="hs-special">)</span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(FieldPat -&gt; Pat) -&gt; [FieldPat] -&gt; [Pat]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">FieldPat -&gt; Pat
+forall a b. (a, b) -&gt; b
+</span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">[FieldPat]
+</span><a href="#local-6989586621679037326"><span class="hs-identifier hs-var">fieldPats</span></a></span><span> </span><span class="annot"><span class="annottext">[Pat] -&gt; (Pat -&gt; [Name]) -&gt; [Name]
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Pat -&gt; [Name]
+</span><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span>
+</span><span id="line-63"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ListP</span></span><span> </span><span id="local-6989586621679037324"><span class="annot"><span class="annottext">[Pat]
+</span><a href="#local-6989586621679037324"><span class="hs-identifier hs-var">pats</span></a></span></span><span class="hs-special">)</span><span>            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Pat]
+</span><a href="#local-6989586621679037324"><span class="hs-identifier hs-var">pats</span></a></span><span> </span><span class="annot"><span class="annottext">[Pat] -&gt; (Pat -&gt; [Name]) -&gt; [Name]
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Pat -&gt; [Name]
+</span><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span>
+</span><span id="line-64"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">SigP</span></span><span> </span><span id="local-6989586621679037322"><span class="annot"><span class="annottext">Pat
+</span><a href="#local-6989586621679037322"><span class="hs-identifier hs-var">pat</span></a></span></span><span> </span><span class="annot"><span class="annottext">Type
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span>            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pat -&gt; [Name]
+</span><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="annot"><span class="annottext">Pat
+</span><a href="#local-6989586621679037322"><span class="hs-identifier hs-var">pat</span></a></span><span class="hs-cpp">
+
+#if defined(__GLASGOW_HASKELL__) &amp;&amp; __GLASGOW_HASKELL__ &gt;= 612
+</span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">BangP</span></span><span> </span><span id="local-6989586621679037320"><span class="annot"><span class="annottext">Pat
+</span><a href="#local-6989586621679037320"><span class="hs-identifier hs-var">pat</span></a></span></span><span class="hs-special">)</span><span>             </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pat -&gt; [Name]
+</span><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="annot"><span class="annottext">Pat
+</span><a href="#local-6989586621679037320"><span class="hs-identifier hs-var">pat</span></a></span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+#if defined(__GLASGOW_HASKELL__) &amp;&amp; __GLASGOW_HASKELL__ &gt;= 700
+</span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ViewP</span></span><span> </span><span class="annot"><span class="annottext">Exp
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679037318"><span class="annot"><span class="annottext">Pat
+</span><a href="#local-6989586621679037318"><span class="hs-identifier hs-var">pat</span></a></span></span><span class="hs-special">)</span><span>           </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pat -&gt; [Name]
+</span><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="annot"><span class="annottext">Pat
+</span><a href="#local-6989586621679037318"><span class="hs-identifier hs-var">pat</span></a></span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+#if defined(__GLASGOW_HASKELL__) &amp;&amp; __GLASGOW_HASKELL__ &gt;= 702
+</span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">UnboxedTupP</span></span><span> </span><span id="local-6989586621679037316"><span class="annot"><span class="annottext">[Pat]
+</span><a href="#local-6989586621679037316"><span class="hs-identifier hs-var">pats</span></a></span></span><span class="hs-special">)</span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Pat]
+</span><a href="#local-6989586621679037316"><span class="hs-identifier hs-var">pats</span></a></span><span> </span><span class="annot"><span class="annottext">[Pat] -&gt; (Pat -&gt; [Name]) -&gt; [Name]
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Pat -&gt; [Name]
+</span><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-78"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="annot"><span class="annottext">Pat
+</span><span class="hs-identifier">_</span></span><span>                       </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span>
+</span><span id="line-81"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInDec"><span class="hs-identifier hs-type">namesBoundInDec</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Dec</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span class="hs-special">]</span><span>
+</span><span id="line-82"></span><span id="namesBoundInDec"><span class="annot"><span class="annottext">namesBoundInDec :: Dec -&gt; [Name]
+</span><a href="Language.Haskell.TH.Extras.html#namesBoundInDec"><span class="hs-identifier hs-var hs-var">namesBoundInDec</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">FunD</span></span><span> </span><span id="local-6989586621679037313"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037313"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="annot"><span class="annottext">[Clause]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span>                       </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037313"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-83"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInDec"><span class="hs-identifier hs-var">namesBoundInDec</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ValD</span></span><span> </span><span id="local-6989586621679037311"><span class="annot"><span class="annottext">Pat
+</span><a href="#local-6989586621679037311"><span class="hs-identifier hs-var">pat</span></a></span></span><span> </span><span class="annot"><span class="annottext">Body
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[Dec]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span>                      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pat -&gt; [Name]
+</span><a href="Language.Haskell.TH.Extras.html#namesBoundInPat"><span class="hs-identifier hs-var">namesBoundInPat</span></a></span><span> </span><span class="annot"><span class="annottext">Pat
+</span><a href="#local-6989586621679037311"><span class="hs-identifier hs-var">pat</span></a></span><span class="hs-cpp">
+
+#if defined(__GLASGOW_HASKELL__) &amp;&amp; __GLASGOW_HASKELL__ &gt;= 800
+</span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInDec"><span class="hs-identifier hs-var">namesBoundInDec</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">DataD</span></span><span> </span><span class="annot"><span class="annottext">Cxt
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679037309"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037309"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="annot"><span class="annottext">[TyVarBndr]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Maybe Type
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[Con]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[DerivClause]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span>              </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037309"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-87"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInDec"><span class="hs-identifier hs-var">namesBoundInDec</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">NewtypeD</span></span><span> </span><span class="annot"><span class="annottext">Cxt
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679037307"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037307"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="annot"><span class="annottext">[TyVarBndr]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Maybe Type
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Con
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[DerivClause]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span>           </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037307"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">]</span><span class="hs-cpp">
+#else
+</span><span class="hs-identifier">namesBoundInDec</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">DataD</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">name</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">_</span><span class="hs-special">)</span><span>                </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-identifier">name</span><span class="hs-special">]</span><span>
+</span><span id="line-90"></span><span class="hs-identifier">namesBoundInDec</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">NewtypeD</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">name</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">_</span><span class="hs-special">)</span><span>             </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-identifier">name</span><span class="hs-special">]</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-93"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInDec"><span class="hs-identifier hs-var">namesBoundInDec</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TySynD</span></span><span> </span><span id="local-6989586621679037305"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037305"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="annot"><span class="annottext">[TyVarBndr]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Type
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span>                   </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037305"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-94"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInDec"><span class="hs-identifier hs-var">namesBoundInDec</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ClassD</span></span><span> </span><span class="annot"><span class="annottext">Cxt
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679037303"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037303"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="annot"><span class="annottext">[TyVarBndr]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[FunDep]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[Dec]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span>               </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037303"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-95"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInDec"><span class="hs-identifier hs-var">namesBoundInDec</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ForeignD</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ImportF</span></span><span> </span><span class="annot"><span class="annottext">Callconv
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Safety
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679037300"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037300"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="annot"><span class="annottext">Type
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037300"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">]</span><span class="hs-cpp">
+
+#if defined(__GLASGOW_HASKELL__)
+</span><span class="hs-cpp">#if __GLASGOW_HASKELL__ &gt;= 800
+</span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInDec"><span class="hs-identifier hs-var">namesBoundInDec</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">OpenTypeFamilyD</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TypeFamilyHead</span></span><span> </span><span id="local-6989586621679037297"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037297"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="annot"><span class="annottext">[TyVarBndr]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">FamilyResultSig
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Maybe InjectivityAnn
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037297"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-100"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInDec"><span class="hs-identifier hs-var">namesBoundInDec</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ClosedTypeFamilyD</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TypeFamilyHead</span></span><span> </span><span id="local-6989586621679037295"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037295"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="annot"><span class="annottext">[TyVarBndr]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">FamilyResultSig
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Maybe InjectivityAnn
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[TySynEqn]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037295"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">]</span><span class="hs-cpp">
+#elif __GLASGOW_HASKELL__ &gt;= 612
+</span><span class="hs-identifier">namesBoundInDec</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">FamilyD</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">name</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">_</span><span class="hs-special">)</span><span>                </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-identifier">name</span><span class="hs-special">]</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">#endif
+</span><span>
+</span><span id="line-106"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#namesBoundInDec"><span class="hs-identifier hs-var">namesBoundInDec</span></a></span><span> </span><span class="annot"><span class="annottext">Dec
+</span><span class="hs-identifier">_</span></span><span>                                   </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-107"></span><span>
+</span><span id="line-108"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#genericalizeName"><span class="hs-identifier hs-type">genericalizeName</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span>
+</span><span id="line-109"></span><span id="genericalizeName"><span class="annot"><span class="annottext">genericalizeName :: Name -&gt; Name
+</span><a href="Language.Haskell.TH.Extras.html#genericalizeName"><span class="hs-identifier hs-var hs-var">genericalizeName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Name
+</span><span class="hs-identifier hs-var">mkName</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Name) -&gt; (Name -&gt; String) -&gt; Name -&gt; Name
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Name -&gt; String
+</span><span class="hs-identifier hs-var">nameBase</span></span><span>
+</span><span id="line-110"></span><span>
+</span><span id="line-111"></span><span class="hs-comment">-- Genericalize all names defined at the top level, to fix the lunacy introduced in GHC 7.2.</span><span>
+</span><span id="line-112"></span><span class="hs-comment">-- Why they should be fresh is beyond me; it really seems absurd because there is no way whatsoever</span><span>
+</span><span id="line-113"></span><span class="hs-comment">-- to refer to names known to be bound in [d||] quotes other than to scrounge around inside the</span><span>
+</span><span id="line-114"></span><span class="hs-comment">-- generated 'Dec's.</span><span>
+</span><span id="line-115"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#genericalizeDecs"><span class="hs-identifier hs-type">genericalizeDecs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Dec</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Dec</span></span><span class="hs-special">]</span><span>
+</span><span id="line-116"></span><span id="genericalizeDecs"><span class="annot"><span class="annottext">genericalizeDecs :: [Dec] -&gt; [Dec]
+</span><a href="Language.Haskell.TH.Extras.html#genericalizeDecs"><span class="hs-identifier hs-var hs-var">genericalizeDecs</span></a></span></span><span> </span><span id="local-6989586621679037290"><span class="annot"><span class="annottext">[Dec]
+</span><a href="#local-6989586621679037290"><span class="hs-identifier hs-var">decs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(forall a. Data a =&gt; a -&gt; a) -&gt; [Dec] -&gt; [Dec]
+(forall a. Data a =&gt; a -&gt; a) -&gt; forall a. Data a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">everywhere</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Name -&gt; Name) -&gt; a -&gt; a
+forall a b. (Typeable a, Typeable b) =&gt; (b -&gt; b) -&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">mkT</span></span><span> </span><span class="annot"><span class="annottext">Name -&gt; Name
+</span><a href="#local-6989586621679037287"><span class="hs-identifier hs-var">fixName</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Dec]
+</span><a href="#local-6989586621679037290"><span class="hs-identifier hs-var">decs</span></a></span><span>
+</span><span id="line-117"></span><span>    </span><span class="hs-keyword">where</span><span>
+</span><span id="line-118"></span><span>        </span><span class="hs-comment">-- get all names bound in the decs and make them generic</span><span>
+</span><span id="line-119"></span><span>        </span><span class="hs-comment">-- at every occurence in decs.</span><span>
+</span><span id="line-120"></span><span>        </span><span id="local-6989586621679037286"><span class="annot"><span class="annottext">names :: [Name]
+</span><a href="#local-6989586621679037286"><span class="hs-identifier hs-var hs-var">names</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Dec]
+</span><a href="#local-6989586621679037290"><span class="hs-identifier hs-var">decs</span></a></span><span> </span><span class="annot"><span class="annottext">[Dec] -&gt; (Dec -&gt; [Name]) -&gt; [Name]
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Dec -&gt; [Name]
+</span><a href="Language.Haskell.TH.Extras.html#namesBoundInDec"><span class="hs-identifier hs-var">namesBoundInDec</span></a></span><span>
+</span><span id="line-121"></span><span>        </span><span id="local-6989586621679037285"><span class="annot"><span class="annottext">genericalizedNames :: [(Name, Name)]
+</span><a href="#local-6989586621679037285"><span class="hs-identifier hs-var hs-var">genericalizedNames</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037284"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Name -&gt; Name
+</span><a href="Language.Haskell.TH.Extras.html#genericalizeName"><span class="hs-identifier hs-var">genericalizeName</span></a></span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037284"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679037284"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037284"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Name]
+</span><a href="#local-6989586621679037286"><span class="hs-identifier hs-var">names</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-122"></span><span>        </span><span id="local-6989586621679037287"><span class="annot"><span class="annottext">fixName :: Name -&gt; Name
+</span><a href="#local-6989586621679037287"><span class="hs-identifier hs-var hs-var">fixName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Name -&gt; Maybe Name) -&gt; Name -&gt; Name
+forall a. (a -&gt; Maybe a) -&gt; a -&gt; a
+</span><a href="Language.Haskell.TH.Extras.html#replace"><span class="hs-identifier hs-var">replace</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Name -&gt; [(Name, Name)] -&gt; Maybe Name
+forall a b. Eq a =&gt; a -&gt; [(a, b)] -&gt; Maybe b
+</span><span class="hs-operator hs-var">`lookup`</span></span><span> </span><span class="annot"><span class="annottext">[(Name, Name)]
+</span><a href="#local-6989586621679037285"><span class="hs-identifier hs-var">genericalizedNames</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-123"></span><span>
+</span><span id="line-124"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#headOfType"><span class="hs-identifier hs-type">headOfType</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span>
+</span><span id="line-125"></span><span id="headOfType"><span class="annot"><span class="annottext">headOfType :: Type -&gt; Name
+</span><a href="Language.Haskell.TH.Extras.html#headOfType"><span class="hs-identifier hs-var hs-var">headOfType</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ForallT</span></span><span> </span><span class="annot"><span class="annottext">[TyVarBndr]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Cxt
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679037280"><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037280"><span class="hs-identifier hs-var">ty</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Type -&gt; Name
+</span><a href="Language.Haskell.TH.Extras.html#headOfType"><span class="hs-identifier hs-var">headOfType</span></a></span><span> </span><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037280"><span class="hs-identifier hs-var">ty</span></a></span><span>
+</span><span id="line-126"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#headOfType"><span class="hs-identifier hs-var">headOfType</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">VarT</span></span><span> </span><span id="local-6989586621679037278"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037278"><span class="hs-identifier hs-var">name</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037278"><span class="hs-identifier hs-var">name</span></a></span><span>
+</span><span id="line-127"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#headOfType"><span class="hs-identifier hs-var">headOfType</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ConT</span></span><span> </span><span id="local-6989586621679037276"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037276"><span class="hs-identifier hs-var">name</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037276"><span class="hs-identifier hs-var">name</span></a></span><span>
+</span><span id="line-128"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#headOfType"><span class="hs-identifier hs-var">headOfType</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TupleT</span></span><span> </span><span id="local-6989586621679037274"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679037274"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Name
+</span><span class="hs-identifier hs-var">tupleTypeName</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679037274"><span class="hs-identifier hs-var">n</span></a></span><span>
+</span><span id="line-129"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#headOfType"><span class="hs-identifier hs-var">headOfType</span></a></span><span> </span><span class="annot"><span class="annottext">Type
+</span><span class="hs-identifier hs-var">ArrowT</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">''</span><span class="hs-special">(</span><span class="hs-glyph">-&gt;</span><span class="hs-special">)</span><span>
+</span><span id="line-130"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#headOfType"><span class="hs-identifier hs-var">headOfType</span></a></span><span> </span><span class="annot"><span class="annottext">Type
+</span><span class="hs-identifier hs-var">ListT</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">''</span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-131"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#headOfType"><span class="hs-identifier hs-var">headOfType</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">AppT</span></span><span> </span><span id="local-6989586621679037269"><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037269"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="annot"><span class="annottext">Type
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Type -&gt; Name
+</span><a href="Language.Haskell.TH.Extras.html#headOfType"><span class="hs-identifier hs-var">headOfType</span></a></span><span> </span><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037269"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-cpp">
+
+#if defined(__GLASGOW_HASKELL__) &amp;&amp; __GLASGOW_HASKELL__ &gt;= 612
+</span><span class="annot"><a href="Language.Haskell.TH.Extras.html#headOfType"><span class="hs-identifier hs-var">headOfType</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">SigT</span></span><span> </span><span id="local-6989586621679037267"><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037267"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="annot"><span class="annottext">Type
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Type -&gt; Name
+</span><a href="Language.Haskell.TH.Extras.html#headOfType"><span class="hs-identifier hs-var">headOfType</span></a></span><span> </span><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037267"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+#if defined(__GLASGOW_HASKELL__) &amp;&amp; __GLASGOW_HASKELL__ &gt;= 702
+</span><span class="annot"><a href="Language.Haskell.TH.Extras.html#headOfType"><span class="hs-identifier hs-var">headOfType</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">UnboxedTupleT</span></span><span> </span><span id="local-6989586621679037265"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679037265"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Name
+</span><span class="hs-identifier hs-var">unboxedTupleTypeName</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679037265"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-141"></span><span class="annot"><a href="Language.Haskell.TH.Extras.html#occursInType"><span class="hs-identifier hs-type">occursInType</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-142"></span><span id="occursInType"><span class="annot"><span class="annottext">occursInType :: Name -&gt; Type -&gt; Bool
+</span><a href="Language.Haskell.TH.Extras.html#occursInType"><span class="hs-identifier hs-var hs-var">occursInType</span></a></span></span><span> </span><span id="local-6989586621679037262"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037262"><span class="hs-identifier hs-var">var</span></a></span></span><span> </span><span id="local-6989586621679037261"><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037261"><span class="hs-identifier hs-var">ty</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037261"><span class="hs-identifier hs-var">ty</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-143"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">ForallT</span></span><span> </span><span id="local-6989586621679037260"><span class="annot"><span class="annottext">[TyVarBndr]
+</span><a href="#local-6989586621679037260"><span class="hs-identifier hs-var">bndrs</span></a></span></span><span> </span><span class="annot"><span class="annottext">Cxt
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679037259"><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037259"><span class="hs-identifier hs-var">ty</span></a></span></span><span>
+</span><span id="line-144"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">(Name -&gt; Bool) -&gt; [Name] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">any</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037262"><span class="hs-identifier hs-var">var</span></a></span><span> </span><span class="annot"><span class="annottext">Name -&gt; Name -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(TyVarBndr -&gt; Name) -&gt; [TyVarBndr] -&gt; [Name]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">TyVarBndr -&gt; Name
+</span><a href="Language.Haskell.TH.Extras.html#nameOfBinder"><span class="hs-identifier hs-var">nameOfBinder</span></a></span><span> </span><span class="annot"><span class="annottext">[TyVarBndr]
+</span><a href="#local-6989586621679037260"><span class="hs-identifier hs-var">bndrs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-145"></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-146"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span>
+</span><span id="line-147"></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Name -&gt; Type -&gt; Bool
+</span><a href="Language.Haskell.TH.Extras.html#occursInType"><span class="hs-identifier hs-var">occursInType</span></a></span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037262"><span class="hs-identifier hs-var">var</span></a></span><span> </span><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037259"><span class="hs-identifier hs-var">ty</span></a></span><span>
+</span><span id="line-148"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">VarT</span></span><span> </span><span id="local-6989586621679037257"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037257"><span class="hs-identifier hs-var">name</span></a></span></span><span>
+</span><span id="line-149"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037257"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">Name -&gt; Name -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037262"><span class="hs-identifier hs-var">var</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-150"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-151"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">AppT</span></span><span> </span><span id="local-6989586621679037256"><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037256"><span class="hs-identifier hs-var">ty1</span></a></span></span><span> </span><span id="local-6989586621679037255"><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037255"><span class="hs-identifier hs-var">ty2</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Name -&gt; Type -&gt; Bool
+</span><a href="Language.Haskell.TH.Extras.html#occursInType"><span class="hs-identifier hs-var">occursInType</span></a></span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037262"><span class="hs-identifier hs-var">var</span></a></span><span> </span><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037256"><span class="hs-identifier hs-var">ty1</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Name -&gt; Type -&gt; Bool
+</span><a href="Language.Haskell.TH.Extras.html#occursInType"><span class="hs-identifier hs-var">occursInType</span></a></span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037262"><span class="hs-identifier hs-var">var</span></a></span><span> </span><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037255"><span class="hs-identifier hs-var">ty2</span></a></span><span class="hs-cpp">
+#if defined(__GLASGOW_HASKELL__) &amp;&amp; __GLASGOW_HASKELL__ &gt;= 612
+</span><span>        </span><span class="annot"><span class="hs-identifier hs-type">SigT</span></span><span> </span><span id="local-6989586621679037253"><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037253"><span class="hs-identifier hs-var">ty</span></a></span></span><span> </span><span class="annot"><span class="annottext">Type
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Name -&gt; Type -&gt; Bool
+</span><a href="Language.Haskell.TH.Extras.html#occursInType"><span class="hs-identifier hs-var">occursInType</span></a></span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679037262"><span class="hs-identifier hs-var">var</span></a></span><span> </span><span class="annot"><span class="annottext">Type
+</span><a href="#local-6989586621679037253"><span class="hs-identifier hs-var">ty</span></a></span><span class="hs-cpp">
+#endif
+</span><span>        </span><span class="annot"><span class="annottext">Type
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-156"></span><span>
+</span><span id="line-157"></span></pre></body></html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell       #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.Declaration</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Progress.html"><span class="hs-identifier">Language.LSP.Types.Progress</span></a></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.StaticRegistrationOptions.html"><span class="hs-identifier">Language.LSP.Types.StaticRegistrationOptions</span></a></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.TextDocument.html"><span class="hs-identifier">Language.LSP.Types.TextDocument</span></a></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">data</span><span> </span><span id="DeclarationClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Declaration.html#DeclarationClientCapabilities"><span class="hs-identifier hs-var">DeclarationClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-13"></span><span>  </span><span id="DeclarationClientCapabilities"><span class="annot"><a href="Language.LSP.Types.Declaration.html#DeclarationClientCapabilities"><span class="hs-identifier hs-var">DeclarationClientCapabilities</span></a></span></span><span>
+</span><span id="line-14"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Whether declaration supports dynamic registration. If this is set to 'true'</span><span>
+</span><span id="line-15"></span><span>    </span><span class="hs-comment">-- the client supports the new 'DeclarationRegistrationOptions' return value</span><span>
+</span><span id="line-16"></span><span>    </span><span class="hs-comment">-- for the corresponding server capability as well.</span><span>
+</span><span id="line-17"></span><span>    </span><span id="%24sel%3A_dynamicRegistration%3ADeclarationClientCapabilities"><span class="annot"><span class="annottext">DeclarationClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Declaration.html#%24sel%3A_dynamicRegistration%3ADeclarationClientCapabilities"><span class="hs-identifier hs-var hs-var">_dynamicRegistration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-18"></span><span>    </span><span class="hs-comment">-- | The client supports additional metadata in the form of declaration links.</span><span>
+</span><span id="line-19"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3A_linkSupport%3ADeclarationClientCapabilities"><span class="annot"><span class="annottext">DeclarationClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.Declaration.html#%24sel%3A_linkSupport%3ADeclarationClientCapabilities"><span class="hs-identifier hs-var hs-var">_linkSupport</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-20"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680441530"><span id="local-6989586621680441532"><span id="local-6989586621680441534"><span id="local-6989586621680441536"><span class="annot"><span class="annottext">ReadPrec [DeclarationClientCapabilities]
+ReadPrec DeclarationClientCapabilities
+Int -&gt; ReadS DeclarationClientCapabilities
+ReadS [DeclarationClientCapabilities]
+(Int -&gt; ReadS DeclarationClientCapabilities)
+-&gt; ReadS [DeclarationClientCapabilities]
+-&gt; ReadPrec DeclarationClientCapabilities
+-&gt; ReadPrec [DeclarationClientCapabilities]
+-&gt; Read DeclarationClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [DeclarationClientCapabilities]
+$creadListPrec :: ReadPrec [DeclarationClientCapabilities]
+readPrec :: ReadPrec DeclarationClientCapabilities
+$creadPrec :: ReadPrec DeclarationClientCapabilities
+readList :: ReadS [DeclarationClientCapabilities]
+$creadList :: ReadS [DeclarationClientCapabilities]
+readsPrec :: Int -&gt; ReadS DeclarationClientCapabilities
+$creadsPrec :: Int -&gt; ReadS DeclarationClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680441523"><span id="local-6989586621680441525"><span id="local-6989586621680441527"><span class="annot"><span class="annottext">Int -&gt; DeclarationClientCapabilities -&gt; ShowS
+[DeclarationClientCapabilities] -&gt; ShowS
+DeclarationClientCapabilities -&gt; String
+(Int -&gt; DeclarationClientCapabilities -&gt; ShowS)
+-&gt; (DeclarationClientCapabilities -&gt; String)
+-&gt; ([DeclarationClientCapabilities] -&gt; ShowS)
+-&gt; Show DeclarationClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [DeclarationClientCapabilities] -&gt; ShowS
+$cshowList :: [DeclarationClientCapabilities] -&gt; ShowS
+show :: DeclarationClientCapabilities -&gt; String
+$cshow :: DeclarationClientCapabilities -&gt; String
+showsPrec :: Int -&gt; DeclarationClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; DeclarationClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680441518"><span id="local-6989586621680441520"><span class="annot"><span class="annottext">DeclarationClientCapabilities
+-&gt; DeclarationClientCapabilities -&gt; Bool
+(DeclarationClientCapabilities
+ -&gt; DeclarationClientCapabilities -&gt; Bool)
+-&gt; (DeclarationClientCapabilities
+    -&gt; DeclarationClientCapabilities -&gt; Bool)
+-&gt; Eq DeclarationClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: DeclarationClientCapabilities
+-&gt; DeclarationClientCapabilities -&gt; Bool
+$c/= :: DeclarationClientCapabilities
+-&gt; DeclarationClientCapabilities -&gt; Bool
+== :: DeclarationClientCapabilities
+-&gt; DeclarationClientCapabilities -&gt; Bool
+$c== :: DeclarationClientCapabilities
+-&gt; DeclarationClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span id="local-6989586621680441505"><span id="local-6989586621680441507"><span id="local-6989586621680441509"><span id="local-6989586621680441511"><span id="local-6989586621680441513"><span id="local-6989586621680441515"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DeclarationClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span id="%24sel%3A_workDoneProgress%3ADeclarationOptions"><span id="DeclarationOptions"><span id="local-6989586621680441482"><span id="local-6989586621680441484"><span id="local-6989586621680441486"><span id="local-6989586621680441488"><span id="local-6989586621680441490"><span id="local-6989586621680441492"><span id="local-6989586621680441494"><span id="local-6989586621680441496"><span id="local-6989586621680441498"><span id="DeclarationOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;DeclarationOptions&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressOptions</span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-25"></span><span id="local-6989586621680441468"><span id="local-6989586621680441470"><span id="local-6989586621680441472"><span id="local-6989586621680441474"><span id="local-6989586621680441476"><span id="local-6989586621680441478"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DeclarationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span id="%24sel%3A_id%3ADeclarationRegistrationOptions"><span id="%24sel%3A_documentSelector%3ADeclarationRegistrationOptions"><span id="%24sel%3A_workDoneProgress%3ADeclarationRegistrationOptions"><span id="DeclarationRegistrationOptions"><span id="local-6989586621680441450"><span id="local-6989586621680441452"><span id="local-6989586621680441454"><span id="local-6989586621680441456"><span id="local-6989586621680441458"><span id="local-6989586621680441460"><span id="local-6989586621680441462"><span id="local-6989586621680441464"><span id="local-6989586621680441466"><span id="DeclarationRegistrationOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;DeclarationRegistrationOptions&quot;</span><span>
+</span><span id="line-28"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DeclarationOptions</span><span>
+</span><span id="line-29"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentRegistrationOptions</span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">StaticRegistrationOptions</span><span>
+</span><span id="line-31"></span><span>  </span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-32"></span><span id="local-6989586621680441434"><span id="local-6989586621680441436"><span id="local-6989586621680441438"><span id="local-6989586621680441440"><span id="local-6989586621680441442"><span id="local-6989586621680441444"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DeclarationRegistrationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span id="%24sel%3A_partialResultToken%3ADeclarationParams"><span id="%24sel%3A_workDoneToken%3ADeclarationParams"><span id="%24sel%3A_position%3ADeclarationParams"><span id="%24sel%3A_textDocument%3ADeclarationParams"><span id="DeclarationParams"><span id="local-6989586621680441416"><span id="local-6989586621680441418"><span id="local-6989586621680441420"><span id="local-6989586621680441422"><span id="local-6989586621680441424"><span id="local-6989586621680441426"><span id="local-6989586621680441428"><span id="local-6989586621680441430"><span id="local-6989586621680441432"><span id="DeclarationParams"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;DeclarationParams&quot;</span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentPositionParams</span><span>
+</span><span id="line-36"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressParams</span><span>
+</span><span id="line-37"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">PartialResultParams</span><span>
+</span><span id="line-38"></span><span>  </span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-39"></span><span id="local-6989586621680441399"><span id="local-6989586621680441401"><span id="local-6989586621680441403"><span id="local-6989586621680441405"><span id="local-6989586621680441407"><span id="local-6989586621680441409"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">DeclarationParams</span></span></span></span></span></span></span><span>
+</span><span id="line-40"></span></pre></body></html>

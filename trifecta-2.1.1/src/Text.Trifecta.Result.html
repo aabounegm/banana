@@ -1,0 +1,840 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# language CPP                    #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# language DeriveFoldable         #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# language DeriveFunctor          #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# language DeriveTraversable      #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# language FlexibleContexts       #-}</span><span>
+</span><span id="line-6"></span><span class="hs-pragma">{-# language FlexibleInstances      #-}</span><span>
+</span><span id="line-7"></span><span class="hs-pragma">{-# language FunctionalDependencies #-}</span><span>
+</span><span id="line-8"></span><span class="hs-pragma">{-# language MultiParamTypeClasses  #-}</span><span>
+</span><span id="line-9"></span><span class="hs-pragma">{-# language Rank2Types             #-}</span><span>
+</span><span id="line-10"></span><span class="hs-pragma">{-# language TemplateHaskell        #-}</span><span>
+</span><span id="line-11"></span><span class="hs-pragma">{-# language UndecidableInstances   #-}</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- Copyright   :  (c) Edward Kmett 2011-2019</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- License     :  BSD3</span><span>
+</span><span id="line-16"></span><span class="hs-comment">--</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- Maintainer  :  ekmett@gmail.com</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- Stability   :  experimental</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- Portability :  non-portable</span><span>
+</span><span id="line-20"></span><span class="hs-comment">--</span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- Results and Parse Errors</span><span>
+</span><span id="line-22"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.Trifecta.Result</span><span>
+</span><span id="line-24"></span><span>  </span><span class="hs-special">(</span><span>
+</span><span id="line-25"></span><span>  </span><span class="annot"><span class="hs-comment">-- * Parse Results</span></span><span>
+</span><span id="line-26"></span><span>    </span><span class="annot"><a href="Text.Trifecta.Result.html#Result"><span class="hs-identifier">Result</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#AsResult"><span class="hs-identifier">AsResult</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#foldResult"><span class="hs-identifier">foldResult</span></a></span><span>
+</span><span id="line-29"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#_Success"><span class="hs-identifier">_Success</span></a></span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#_Failure"><span class="hs-identifier">_Failure</span></a></span><span>
+</span><span id="line-31"></span><span>  </span><span class="annot"><span class="hs-comment">-- * Parsing Errors</span></span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Err"><span class="hs-identifier">Err</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#HasErr"><span class="hs-identifier">HasErr</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Errable"><span class="hs-identifier">Errable</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#ErrInfo"><span class="hs-identifier">ErrInfo</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-34"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#explain"><span class="hs-identifier">explain</span></a></span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#failed"><span class="hs-identifier">failed</span></a></span><span>
+</span><span id="line-36"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Applicative</span></span><span>                          </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Alternative</span></span><span>
+</span><span id="line-39"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Lens</span></span><span>                                 </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">cons</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">snoc</span></span><span class="hs-special">)</span><span>
+</span><span id="line-40"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span>                                </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">guard</span></span><span class="hs-special">)</span><span>
+</span><span id="line-41"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Foldable</span></span><span>
+</span><span id="line-42"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span>                                    </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">List</span></span><span>
+</span><span id="line-43"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Maybe</span></span><span>                                   </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">fromMaybe</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">isJust</span></span><span class="hs-special">)</span><span class="hs-cpp">
+#if !(MIN_VERSION_base(4,11,0))
+</span><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data.Semigroup</span><span class="hs-cpp">
+#endif
+</span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Set</span></span><span>                                     </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Set</span></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">empty</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">toList</span></span><span class="hs-special">)</span><span>
+</span><span id="line-48"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Text.Prettyprint.Doc</span></span><span>                    </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Pretty</span></span><span>
+</span><span id="line-49"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Text.Prettyprint.Doc.Render.Terminal</span></span><span>    </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Pretty</span></span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Trifecta.Delta.html"><span class="hs-identifier">Text.Trifecta.Delta</span></a></span><span>       </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Delta</span></span><span>
+</span><span id="line-52"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Trifecta.Rendering.html"><span class="hs-identifier">Text.Trifecta.Rendering</span></a></span><span>
+</span><span id="line-53"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.Trifecta.Util.Pretty.html"><span class="hs-identifier">Text.Trifecta.Util.Pretty</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Pretty</span></span><span>
+</span><span id="line-54"></span><span>
+</span><span id="line-55"></span><span class="hs-keyword">data</span><span> </span><span id="ErrInfo"><span class="annot"><a href="Text.Trifecta.Result.html#ErrInfo"><span class="hs-identifier hs-var">ErrInfo</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ErrInfo"><span class="annot"><a href="Text.Trifecta.Result.html#ErrInfo"><span class="hs-identifier hs-var">ErrInfo</span></a></span></span><span>
+</span><span id="line-56"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="_errDoc"><span class="annot"><span class="annottext">ErrInfo -&gt; Doc AnsiStyle
+</span><a href="Text.Trifecta.Result.html#_errDoc"><span class="hs-identifier hs-var hs-var">_errDoc</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Doc</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">AnsiStyle</span></span><span>
+</span><span id="line-57"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_errDeltas"><span class="annot"><span class="annottext">ErrInfo -&gt; [Delta]
+</span><a href="Text.Trifecta.Result.html#_errDeltas"><span class="hs-identifier hs-var hs-var">_errDeltas</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-58"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679238885"><span id="local-6989586621679238887"><span id="local-6989586621679238889"><span class="annot"><span class="annottext">Int -&gt; ErrInfo -&gt; ShowS
+[ErrInfo] -&gt; ShowS
+ErrInfo -&gt; String
+(Int -&gt; ErrInfo -&gt; ShowS)
+-&gt; (ErrInfo -&gt; String) -&gt; ([ErrInfo] -&gt; ShowS) -&gt; Show ErrInfo
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [ErrInfo] -&gt; ShowS
+$cshowList :: [ErrInfo] -&gt; ShowS
+show :: ErrInfo -&gt; String
+$cshow :: ErrInfo -&gt; String
+showsPrec :: Int -&gt; ErrInfo -&gt; ShowS
+$cshowsPrec :: Int -&gt; ErrInfo -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-59"></span><span>
+</span><span id="line-60"></span><span class="hs-comment">-- | This is used to report an error. What went wrong, some supplemental docs</span><span>
+</span><span id="line-61"></span><span class="hs-comment">-- and a set of things expected at the current location. This does not, however,</span><span>
+</span><span id="line-62"></span><span class="hs-comment">-- include the actual location.</span><span>
+</span><span id="line-63"></span><span class="hs-keyword">data</span><span> </span><span id="Err"><span class="annot"><a href="Text.Trifecta.Result.html#Err"><span class="hs-identifier hs-var">Err</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Err"><span class="annot"><a href="Text.Trifecta.Result.html#Err"><span class="hs-identifier hs-var">Err</span></a></span></span><span>
+</span><span id="line-64"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="_reason"><span class="annot"><span class="annottext">Err -&gt; Maybe (Doc AnsiStyle)
+</span><a href="Text.Trifecta.Result.html#_reason"><span class="hs-identifier hs-var hs-var">_reason</span></a></span></span><span>      </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Doc</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">AnsiStyle</span></span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_footnotes"><span class="annot"><span class="annottext">Err -&gt; [Doc AnsiStyle]
+</span><a href="Text.Trifecta.Result.html#_footnotes"><span class="hs-identifier hs-var hs-var">_footnotes</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Doc</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">AnsiStyle</span></span><span class="hs-special">]</span><span>
+</span><span id="line-66"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_expected"><span class="annot"><span class="annottext">Err -&gt; Set String
+</span><a href="Text.Trifecta.Result.html#_expected"><span class="hs-identifier hs-var hs-var">_expected</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Set</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-67"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_finalDeltas"><span class="annot"><span class="annottext">Err -&gt; [Delta]
+</span><a href="Text.Trifecta.Result.html#_finalDeltas"><span class="hs-identifier hs-var hs-var">_finalDeltas</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.Trifecta.Delta.html#Delta"><span class="hs-identifier hs-type">Delta</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-68"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-69"></span><span>
+</span><span id="line-70"></span><span id="reason"><span id="footnotes"><span id="finalDeltas"><span id="expected"><span id="err"><span id="local-6989586621679238865"><span id="local-6989586621679238867"><span id="local-6989586621679238869"><span id="local-6989586621679238871"><span id="local-6989586621679238873"><span id="local-6989586621679238875"><span id="local-6989586621679238876"><span id="local-6989586621679238877"><span id="local-6989586621679238878"><span id="HasErr"><span id="local-6989586621679239114"><span class="hs-identifier">makeClassy</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">Err</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-71"></span><span>
+</span><span id="line-72"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679238854"><span id="local-6989586621679238856"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Err"><span class="hs-identifier hs-type">Err</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-73"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Result.html#Err"><span class="hs-identifier hs-type">Err</span></a></span><span> </span><span id="local-6989586621679238852"><span class="annot"><span class="annottext">Maybe (Doc AnsiStyle)
+</span><a href="#local-6989586621679238852"><span class="hs-identifier hs-var">md</span></a></span></span><span> </span><span id="local-6989586621679238851"><span class="annot"><span class="annottext">[Doc AnsiStyle]
+</span><a href="#local-6989586621679238851"><span class="hs-identifier hs-var">mds</span></a></span></span><span> </span><span id="local-6989586621679238850"><span class="annot"><span class="annottext">Set String
+</span><a href="#local-6989586621679238850"><span class="hs-identifier hs-var">mes</span></a></span></span><span> </span><span id="local-6989586621679238849"><span class="annot"><span class="annottext">[Delta]
+</span><a href="#local-6989586621679238849"><span class="hs-identifier hs-var">delta1</span></a></span></span><span> </span><span id="local-6989586621679238848"><span class="annot"><span class="annottext">&lt;&gt; :: Err -&gt; Err -&gt; Err
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></span></span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Err"><span class="hs-identifier hs-type">Err</span></a></span><span> </span><span id="local-6989586621679238847"><span class="annot"><span class="annottext">Maybe (Doc AnsiStyle)
+</span><a href="#local-6989586621679238847"><span class="hs-identifier hs-var">nd</span></a></span></span><span> </span><span id="local-6989586621679238846"><span class="annot"><span class="annottext">[Doc AnsiStyle]
+</span><a href="#local-6989586621679238846"><span class="hs-identifier hs-var">nds</span></a></span></span><span> </span><span id="local-6989586621679238845"><span class="annot"><span class="annottext">Set String
+</span><a href="#local-6989586621679238845"><span class="hs-identifier hs-var">nes</span></a></span></span><span> </span><span id="local-6989586621679238844"><span class="annot"><span class="annottext">[Delta]
+</span><a href="#local-6989586621679238844"><span class="hs-identifier hs-var">delta2</span></a></span></span><span>
+</span><span id="line-74"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe (Doc AnsiStyle)
+-&gt; [Doc AnsiStyle] -&gt; Set String -&gt; [Delta] -&gt; Err
+</span><a href="Text.Trifecta.Result.html#Err"><span class="hs-identifier hs-var">Err</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Maybe (Doc AnsiStyle)
+</span><a href="#local-6989586621679238847"><span class="hs-identifier hs-var">nd</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe (Doc AnsiStyle)
+-&gt; Maybe (Doc AnsiStyle) -&gt; Maybe (Doc AnsiStyle)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Maybe (Doc AnsiStyle)
+</span><a href="#local-6989586621679238852"><span class="hs-identifier hs-var">md</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Maybe (Doc AnsiStyle) -&gt; Bool
+forall a. Maybe a -&gt; Bool
+</span><span class="hs-identifier hs-var">isJust</span></span><span> </span><span class="annot"><span class="annottext">Maybe (Doc AnsiStyle)
+</span><a href="#local-6989586621679238847"><span class="hs-identifier hs-var">nd</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">[Doc AnsiStyle]
+</span><a href="#local-6989586621679238846"><span class="hs-identifier hs-var">nds</span></a></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Maybe (Doc AnsiStyle) -&gt; Bool
+forall a. Maybe a -&gt; Bool
+</span><span class="hs-identifier hs-var">isJust</span></span><span> </span><span class="annot"><span class="annottext">Maybe (Doc AnsiStyle)
+</span><a href="#local-6989586621679238852"><span class="hs-identifier hs-var">md</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">[Doc AnsiStyle]
+</span><a href="#local-6989586621679238851"><span class="hs-identifier hs-var">mds</span></a></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">[Doc AnsiStyle]
+</span><a href="#local-6989586621679238846"><span class="hs-identifier hs-var">nds</span></a></span><span> </span><span class="annot"><span class="annottext">[Doc AnsiStyle] -&gt; [Doc AnsiStyle] -&gt; [Doc AnsiStyle]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Doc AnsiStyle]
+</span><a href="#local-6989586621679238851"><span class="hs-identifier hs-var">mds</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Set String
+</span><a href="#local-6989586621679238850"><span class="hs-identifier hs-var">mes</span></a></span><span> </span><span class="annot"><span class="annottext">Set String -&gt; Set String -&gt; Set String
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Set String
+</span><a href="#local-6989586621679238845"><span class="hs-identifier hs-var">nes</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Delta]
+</span><a href="#local-6989586621679238849"><span class="hs-identifier hs-var">delta1</span></a></span><span> </span><span class="annot"><span class="annottext">[Delta] -&gt; [Delta] -&gt; [Delta]
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Delta]
+</span><a href="#local-6989586621679238844"><span class="hs-identifier hs-var">delta2</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-75"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="hs-pragma">(</span><span class="hs-pragma">&lt;&gt;</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-76"></span><span>
+</span><span id="line-77"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679238838"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Err"><span class="hs-identifier hs-type">Err</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-78"></span><span>  </span><span id="local-6989586621679238836"><span class="annot"><span class="annottext">mempty :: Err
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe (Doc AnsiStyle)
+-&gt; [Doc AnsiStyle] -&gt; Set String -&gt; [Delta] -&gt; Err
+</span><a href="Text.Trifecta.Result.html#Err"><span class="hs-identifier hs-var">Err</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe (Doc AnsiStyle)
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">Set String
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="annot"><span class="annottext">[Delta]
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-79"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><span class="hs-pragma hs-type">mempty</span></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-80"></span><span>  </span><span id="local-6989586621679238835"><span class="annot"><span class="annottext">mappend :: Err -&gt; Err -&gt; Err
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mappend</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Err -&gt; Err -&gt; Err
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(&lt;&gt;)</span></span><span>
+</span><span id="line-81"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><span class="hs-pragma hs-type">mappend</span></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-82"></span><span>
+</span><span id="line-83"></span><span class="hs-comment">-- | Generate a simple 'Err' word-wrapping the supplied message.</span><span>
+</span><span id="line-84"></span><span class="annot"><a href="Text.Trifecta.Result.html#failed"><span class="hs-identifier hs-type">failed</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Err"><span class="hs-identifier hs-type">Err</span></a></span><span>
+</span><span id="line-85"></span><span id="failed"><span class="annot"><span class="annottext">failed :: String -&gt; Err
+</span><a href="Text.Trifecta.Result.html#failed"><span class="hs-identifier hs-var hs-var">failed</span></a></span></span><span> </span><span id="local-6989586621679238834"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679238834"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe (Doc AnsiStyle)
+-&gt; [Doc AnsiStyle] -&gt; Set String -&gt; [Delta] -&gt; Err
+</span><a href="Text.Trifecta.Result.html#Err"><span class="hs-identifier hs-var">Err</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; Maybe (Doc AnsiStyle)
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Doc AnsiStyle] -&gt; Doc AnsiStyle
+forall ann. [Doc ann] -&gt; Doc ann
+</span><span class="hs-identifier hs-var">fillSep</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Doc AnsiStyle
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Doc AnsiStyle) -&gt; [String] -&gt; [Doc AnsiStyle]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><span class="hs-identifier hs-var">words</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679238834"><span class="hs-identifier hs-var">m</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">Set String
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="annot"><span class="annottext">[Delta]
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-86"></span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#failed"><span class="hs-pragma hs-type">failed</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-87"></span><span>
+</span><span id="line-88"></span><span class="hs-comment">-- | Convert a 'Rendering' of auxiliary information and an 'Err' into a 'Doc AnsiStyle',</span><span>
+</span><span id="line-89"></span><span class="hs-comment">-- ready to be prettyprinted to the user.</span><span>
+</span><span id="line-90"></span><span class="annot"><a href="Text.Trifecta.Result.html#explain"><span class="hs-identifier hs-type">explain</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Trifecta.Rendering.html#Rendering"><span class="hs-identifier hs-type">Rendering</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Err"><span class="hs-identifier hs-type">Err</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Doc</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">AnsiStyle</span></span><span>
+</span><span id="line-91"></span><span id="explain"><span class="annot"><span class="annottext">explain :: Rendering -&gt; Err -&gt; Doc AnsiStyle
+</span><a href="Text.Trifecta.Result.html#explain"><span class="hs-identifier hs-var hs-var">explain</span></a></span></span><span> </span><span id="local-6989586621679238829"><span class="annot"><span class="annottext">Rendering
+</span><a href="#local-6989586621679238829"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Result.html#Err"><span class="hs-identifier hs-type">Err</span></a></span><span> </span><span id="local-6989586621679238828"><span class="annot"><span class="annottext">Maybe (Doc AnsiStyle)
+</span><a href="#local-6989586621679238828"><span class="hs-identifier hs-var">mm</span></a></span></span><span> </span><span id="local-6989586621679238827"><span class="annot"><span class="annottext">[Doc AnsiStyle]
+</span><a href="#local-6989586621679238827"><span class="hs-keyword hs-var">as</span></a></span></span><span> </span><span id="local-6989586621679238826"><span class="annot"><span class="annottext">Set String
+</span><a href="#local-6989586621679238826"><span class="hs-identifier hs-var">es</span></a></span></span><span> </span><span class="annot"><span class="annottext">[Delta]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span>
+</span><span id="line-92"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Set String -&gt; Bool
+forall a. Set a -&gt; Bool
+</span><span class="hs-identifier hs-var">Set.null</span></span><span> </span><span class="annot"><span class="annottext">Set String
+</span><a href="#local-6989586621679238826"><span class="hs-identifier hs-var">es</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; Doc AnsiStyle
+</span><a href="#local-6989586621679238824"><span class="hs-identifier hs-var">report</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; Doc AnsiStyle
+</span><a href="#local-6989586621679238823"><span class="hs-identifier hs-var">withEx</span></a></span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span class="hs-special">)</span><span>
+</span><span id="line-93"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Maybe (Doc AnsiStyle) -&gt; Bool
+forall a. Maybe a -&gt; Bool
+</span><span class="hs-identifier hs-var">isJust</span></span><span> </span><span class="annot"><span class="annottext">Maybe (Doc AnsiStyle)
+</span><a href="#local-6989586621679238828"><span class="hs-identifier hs-var">mm</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; Doc AnsiStyle
+</span><a href="#local-6989586621679238824"><span class="hs-identifier hs-var">report</span></a></span><span> </span><span class="annot"><span class="annottext">(Doc AnsiStyle -&gt; Doc AnsiStyle) -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; Doc AnsiStyle
+</span><a href="#local-6989586621679238823"><span class="hs-identifier hs-var">withEx</span></a></span><span> </span><span class="annot"><span class="annottext">(Doc AnsiStyle -&gt; Doc AnsiStyle) -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Doc AnsiStyle
+forall a. Char -&gt; Doc a
+</span><a href="Text.Trifecta.Util.Pretty.html#char"><span class="hs-identifier hs-var">Pretty.char</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">','</span></span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle
+forall ann. Doc ann
+</span><a href="#local-6989586621679238820"><span class="hs-identifier hs-var">expecting</span></a></span><span>
+</span><span id="line-94"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; Doc AnsiStyle
+</span><a href="#local-6989586621679238824"><span class="hs-identifier hs-var">report</span></a></span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle
+forall ann. Doc ann
+</span><a href="#local-6989586621679238820"><span class="hs-identifier hs-var">expecting</span></a></span><span>
+</span><span id="line-95"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-96"></span><span>    </span><span id="local-6989586621679238819"><span class="annot"><span class="annottext">now :: [String]
+</span><a href="#local-6989586621679238819"><span class="hs-identifier hs-var hs-var">now</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; [String]
+</span><a href="#local-6989586621679238818"><span class="hs-identifier hs-var">spaceHack</span></a></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; [String]) -&gt; [String] -&gt; [String]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Set String -&gt; [String]
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; [a]
+</span><span class="hs-identifier hs-var">toList</span></span><span> </span><span class="annot"><span class="annottext">Set String
+</span><a href="#local-6989586621679238826"><span class="hs-identifier hs-var">es</span></a></span><span>
+</span><span id="line-97"></span><span>    </span><span id="local-6989586621679238818"><span class="annot"><span class="annottext">spaceHack :: [String] -&gt; [String]
+</span><a href="#local-6989586621679238818"><span class="hs-identifier hs-var hs-var">spaceHack</span></a></span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;space&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-98"></span><span>    </span><span class="annot"><a href="#local-6989586621679238818"><span class="hs-identifier hs-var">spaceHack</span></a></span><span> </span><span id="local-6989586621679238816"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679238816"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Bool) -&gt; [String] -&gt; [String]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">List.filter</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679238816"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-99"></span><span>    </span><span id="local-6989586621679238823"><span class="annot"><span class="annottext">withEx :: Doc AnsiStyle -&gt; Doc AnsiStyle
+</span><a href="#local-6989586621679238823"><span class="hs-identifier hs-var hs-var">withEx</span></a></span></span><span> </span><span id="local-6989586621679238814"><span class="annot"><span class="annottext">Doc AnsiStyle
+</span><a href="#local-6989586621679238814"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; Maybe (Doc AnsiStyle) -&gt; Doc AnsiStyle
+forall a. a -&gt; Maybe a -&gt; a
+</span><span class="hs-identifier hs-var">fromMaybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Doc AnsiStyle] -&gt; Doc AnsiStyle
+forall ann. [Doc ann] -&gt; Doc ann
+</span><span class="hs-identifier hs-var">fillSep</span></span><span> </span><span class="annot"><span class="annottext">([Doc AnsiStyle] -&gt; Doc AnsiStyle)
+-&gt; [Doc AnsiStyle] -&gt; Doc AnsiStyle
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc AnsiStyle
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Doc AnsiStyle) -&gt; [String] -&gt; [Doc AnsiStyle]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><span class="hs-identifier hs-var">words</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;unspecified error&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Maybe (Doc AnsiStyle)
+</span><a href="#local-6989586621679238828"><span class="hs-identifier hs-var">mm</span></a></span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle
+</span><a href="#local-6989586621679238814"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-100"></span><span>    </span><span id="local-6989586621679238820"><span class="annot"><span class="annottext">expecting :: Doc ann
+</span><a href="#local-6989586621679238820"><span class="hs-identifier hs-var hs-var">expecting</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;expected:&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Doc ann] -&gt; Doc ann
+forall ann. [Doc ann] -&gt; Doc ann
+</span><span class="hs-identifier hs-var">fillSep</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Doc ann -&gt; [Doc ann] -&gt; [Doc ann]
+forall ann. Doc ann -&gt; [Doc ann] -&gt; [Doc ann]
+</span><span class="hs-identifier hs-var">punctuate</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Doc ann
+forall a. Char -&gt; Doc a
+</span><a href="Text.Trifecta.Util.Pretty.html#char"><span class="hs-identifier hs-var">Pretty.char</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">','</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Doc ann) -&gt; [String] -&gt; [Doc ann]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679238819"><span class="hs-identifier hs-var">now</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-101"></span><span>    </span><span id="local-6989586621679238824"><span class="annot"><span class="annottext">report :: Doc AnsiStyle -&gt; Doc AnsiStyle
+</span><a href="#local-6989586621679238824"><span class="hs-identifier hs-var hs-var">report</span></a></span></span><span> </span><span id="local-6989586621679238812"><span class="annot"><span class="annottext">Doc AnsiStyle
+</span><a href="#local-6989586621679238812"><span class="hs-identifier hs-var">txt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Doc AnsiStyle] -&gt; Doc AnsiStyle
+forall ann. [Doc ann] -&gt; Doc ann
+</span><span class="hs-identifier hs-var">vsep</span></span><span> </span><span class="annot"><span class="annottext">([Doc AnsiStyle] -&gt; Doc AnsiStyle)
+-&gt; [Doc AnsiStyle] -&gt; Doc AnsiStyle
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Delta -&gt; Doc AnsiStyle
+</span><a href="Text.Trifecta.Delta.html#prettyDelta"><span class="hs-identifier hs-var">prettyDelta</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Rendering -&gt; Delta
+forall t. HasDelta t =&gt; t -&gt; Delta
+</span><a href="Text.Trifecta.Delta.html#delta"><span class="hs-identifier hs-var">delta</span></a></span><span> </span><span class="annot"><span class="annottext">Rendering
+</span><a href="#local-6989586621679238829"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Doc AnsiStyle
+forall a. Char -&gt; Doc a
+</span><a href="Text.Trifecta.Util.Pretty.html#char"><span class="hs-identifier hs-var">Pretty.char</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">':'</span></span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall ann. ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">annotate</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Color -&gt; AnsiStyle
+</span><span class="hs-identifier hs-var">Pretty.color</span></span><span> </span><span class="annot"><span class="annottext">Color
+</span><span class="hs-identifier hs-var">Pretty.Red</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Doc AnsiStyle
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;error&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Doc AnsiStyle
+forall a. Char -&gt; Doc a
+</span><a href="Text.Trifecta.Util.Pretty.html#char"><span class="hs-identifier hs-var">Pretty.char</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">':'</span></span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Doc AnsiStyle -&gt; Doc AnsiStyle
+forall ann. Int -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">nest</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">4</span></span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle
+</span><a href="#local-6989586621679238812"><span class="hs-identifier hs-var">txt</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-102"></span><span>             </span><span class="annot"><span class="annottext">[Doc AnsiStyle] -&gt; [Doc AnsiStyle] -&gt; [Doc AnsiStyle]
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Rendering -&gt; Doc AnsiStyle
+</span><a href="Text.Trifecta.Rendering.html#prettyRendering"><span class="hs-identifier hs-var">prettyRendering</span></a></span><span> </span><span class="annot"><span class="annottext">Rendering
+</span><a href="#local-6989586621679238829"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; [()] -&gt; [Doc AnsiStyle]
+forall (f :: * -&gt; *) a b. Functor f =&gt; a -&gt; f b -&gt; f a
+</span><span class="hs-operator hs-var">&lt;$</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; [()]
+forall (f :: * -&gt; *). Alternative f =&gt; Bool -&gt; f ()
+</span><span class="hs-identifier hs-var">guard</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Rendering -&gt; Bool
+</span><a href="Text.Trifecta.Rendering.html#nullRendering"><span class="hs-identifier hs-var">nullRendering</span></a></span><span> </span><span class="annot"><span class="annottext">Rendering
+</span><a href="#local-6989586621679238829"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-103"></span><span>             </span><span class="annot"><span class="annottext">[Doc AnsiStyle] -&gt; [Doc AnsiStyle] -&gt; [Doc AnsiStyle]
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Doc AnsiStyle]
+</span><a href="#local-6989586621679238827"><span class="hs-keyword hs-var">as</span></a></span><span>
+</span><span id="line-104"></span><span>
+</span><span id="line-105"></span><span class="hs-keyword">class</span><span> </span><span id="Errable"><span class="annot"><a href="Text.Trifecta.Result.html#Errable"><span class="hs-identifier hs-var">Errable</span></a></span></span><span> </span><span id="local-6989586621679238800"><span class="annot"><a href="#local-6989586621679238800"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-106"></span><span>  </span><span id="local-6989586621679238799"><span id="raiseErr"><span class="annot"><a href="Text.Trifecta.Result.html#raiseErr"><span class="hs-identifier hs-type">raiseErr</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Err"><span class="hs-identifier hs-type">Err</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679238800"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238799"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-107"></span><span>
+</span><span id="line-108"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679238793"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#ErrInfo"><span class="hs-identifier hs-type">ErrInfo</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-109"></span><span>  </span><span id="local-6989586621679238792"><span class="annot"><span class="annottext">mempty :: ErrInfo
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; [Delta] -&gt; ErrInfo
+</span><a href="Text.Trifecta.Result.html#ErrInfo"><span class="hs-identifier hs-var">ErrInfo</span></a></span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="annot"><span class="annottext">[Delta]
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-110"></span><span>  </span><span id="local-6989586621679238791"><span class="annot"><span class="annottext">mappend :: ErrInfo -&gt; ErrInfo -&gt; ErrInfo
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mappend</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ErrInfo -&gt; ErrInfo -&gt; ErrInfo
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(&lt;&gt;)</span></span><span>
+</span><span id="line-111"></span><span>
+</span><span id="line-112"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679238786"><span id="local-6989586621679238788"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#ErrInfo"><span class="hs-identifier hs-type">ErrInfo</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-113"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Result.html#ErrInfo"><span class="hs-identifier hs-type">ErrInfo</span></a></span><span> </span><span id="local-6989586621679238785"><span class="annot"><span class="annottext">Doc AnsiStyle
+</span><a href="#local-6989586621679238785"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span id="local-6989586621679238784"><span class="annot"><span class="annottext">[Delta]
+</span><a href="#local-6989586621679238784"><span class="hs-identifier hs-var">d1</span></a></span></span><span> </span><span id="local-6989586621679238783"><span class="annot"><span class="annottext">&lt;&gt; :: ErrInfo -&gt; ErrInfo -&gt; ErrInfo
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></span></span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#ErrInfo"><span class="hs-identifier hs-type">ErrInfo</span></a></span><span> </span><span id="local-6989586621679238782"><span class="annot"><span class="annottext">Doc AnsiStyle
+</span><a href="#local-6989586621679238782"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span id="local-6989586621679238781"><span class="annot"><span class="annottext">[Delta]
+</span><a href="#local-6989586621679238781"><span class="hs-identifier hs-var">d2</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; [Delta] -&gt; ErrInfo
+</span><a href="Text.Trifecta.Result.html#ErrInfo"><span class="hs-identifier hs-var">ErrInfo</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Doc AnsiStyle] -&gt; Doc AnsiStyle
+forall ann. [Doc ann] -&gt; Doc ann
+</span><span class="hs-identifier hs-var">vsep</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Doc AnsiStyle
+</span><a href="#local-6989586621679238785"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle
+</span><a href="#local-6989586621679238782"><span class="hs-identifier hs-var">ys</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Delta] -&gt; [Delta] -&gt; [Delta]
+forall a. Ord a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">max</span></span><span> </span><span class="annot"><span class="annottext">[Delta]
+</span><a href="#local-6989586621679238784"><span class="hs-identifier hs-var">d1</span></a></span><span> </span><span class="annot"><span class="annottext">[Delta]
+</span><a href="#local-6989586621679238781"><span class="hs-identifier hs-var">d2</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-114"></span><span>
+</span><span id="line-115"></span><span class="hs-comment">-- | The result of parsing. Either we succeeded or something went wrong.</span><span>
+</span><span id="line-116"></span><span class="hs-keyword">data</span><span> </span><span id="Result"><span class="annot"><a href="Text.Trifecta.Result.html#Result"><span class="hs-identifier hs-var">Result</span></a></span></span><span> </span><span id="local-6989586621679238953"><span class="annot"><a href="#local-6989586621679238953"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-117"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="Success"><span class="annot"><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-var">Success</span></a></span></span><span> </span><span class="annot"><a href="#local-6989586621679238953"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-118"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="Failure"><span class="annot"><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-var">Failure</span></a></span></span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#ErrInfo"><span class="hs-identifier hs-type">ErrInfo</span></a></span><span>
+</span><span id="line-119"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679238772"><span id="local-6989586621679238774"><span id="local-6989586621679238776"><span class="annot"><span class="annottext">Int -&gt; Result a -&gt; ShowS
+[Result a] -&gt; ShowS
+Result a -&gt; String
+(Int -&gt; Result a -&gt; ShowS)
+-&gt; (Result a -&gt; String) -&gt; ([Result a] -&gt; ShowS) -&gt; Show (Result a)
+forall a. Show a =&gt; Int -&gt; Result a -&gt; ShowS
+forall a. Show a =&gt; [Result a] -&gt; ShowS
+forall a. Show a =&gt; Result a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Result a] -&gt; ShowS
+$cshowList :: forall a. Show a =&gt; [Result a] -&gt; ShowS
+show :: Result a -&gt; String
+$cshow :: forall a. Show a =&gt; Result a -&gt; String
+showsPrec :: Int -&gt; Result a -&gt; ShowS
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; Result a -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679238768"><span id="local-6989586621679238770"><span class="annot"><span class="annottext">a -&gt; Result b -&gt; Result a
+(a -&gt; b) -&gt; Result a -&gt; Result b
+(forall a b. (a -&gt; b) -&gt; Result a -&gt; Result b)
+-&gt; (forall a b. a -&gt; Result b -&gt; Result a) -&gt; Functor Result
+forall a b. a -&gt; Result b -&gt; Result a
+forall a b. (a -&gt; b) -&gt; Result a -&gt; Result b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+&lt;$ :: a -&gt; Result b -&gt; Result a
+$c&lt;$ :: forall a b. a -&gt; Result b -&gt; Result a
+fmap :: (a -&gt; b) -&gt; Result a -&gt; Result b
+$cfmap :: forall a b. (a -&gt; b) -&gt; Result a -&gt; Result b
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Functor</span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679238733"><span id="local-6989586621679238735"><span id="local-6989586621679238737"><span id="local-6989586621679238739"><span id="local-6989586621679238741"><span id="local-6989586621679238743"><span id="local-6989586621679238745"><span id="local-6989586621679238747"><span id="local-6989586621679238749"><span id="local-6989586621679238751"><span id="local-6989586621679238753"><span id="local-6989586621679238755"><span id="local-6989586621679238757"><span id="local-6989586621679238759"><span id="local-6989586621679238761"><span id="local-6989586621679238763"><span id="local-6989586621679238765"><span class="annot"><span class="annottext">Result a -&gt; Bool
+(a -&gt; m) -&gt; Result a -&gt; m
+(a -&gt; b -&gt; b) -&gt; b -&gt; Result a -&gt; b
+(forall m. Monoid m =&gt; Result m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Result a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Result a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Result a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Result a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Result a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Result a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; Result a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; Result a -&gt; a)
+-&gt; (forall a. Result a -&gt; [a])
+-&gt; (forall a. Result a -&gt; Bool)
+-&gt; (forall a. Result a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; Result a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; Result a -&gt; a)
+-&gt; (forall a. Ord a =&gt; Result a -&gt; a)
+-&gt; (forall a. Num a =&gt; Result a -&gt; a)
+-&gt; (forall a. Num a =&gt; Result a -&gt; a)
+-&gt; Foldable Result
+forall a. Eq a =&gt; a -&gt; Result a -&gt; Bool
+forall a. Num a =&gt; Result a -&gt; a
+forall a. Ord a =&gt; Result a -&gt; a
+forall m. Monoid m =&gt; Result m -&gt; m
+forall a. Result a -&gt; Bool
+forall a. Result a -&gt; Int
+forall a. Result a -&gt; [a]
+forall a. (a -&gt; a -&gt; a) -&gt; Result a -&gt; a
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Result a -&gt; m
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Result a -&gt; b
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Result a -&gt; b
+forall (t :: * -&gt; *).
+(forall m. Monoid m =&gt; t m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. t a -&gt; [a])
+-&gt; (forall a. t a -&gt; Bool)
+-&gt; (forall a. t a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; t a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; Foldable t
+product :: Result a -&gt; a
+$cproduct :: forall a. Num a =&gt; Result a -&gt; a
+sum :: Result a -&gt; a
+$csum :: forall a. Num a =&gt; Result a -&gt; a
+minimum :: Result a -&gt; a
+$cminimum :: forall a. Ord a =&gt; Result a -&gt; a
+maximum :: Result a -&gt; a
+$cmaximum :: forall a. Ord a =&gt; Result a -&gt; a
+elem :: a -&gt; Result a -&gt; Bool
+$celem :: forall a. Eq a =&gt; a -&gt; Result a -&gt; Bool
+length :: Result a -&gt; Int
+$clength :: forall a. Result a -&gt; Int
+null :: Result a -&gt; Bool
+$cnull :: forall a. Result a -&gt; Bool
+toList :: Result a -&gt; [a]
+$ctoList :: forall a. Result a -&gt; [a]
+foldl1 :: (a -&gt; a -&gt; a) -&gt; Result a -&gt; a
+$cfoldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; Result a -&gt; a
+foldr1 :: (a -&gt; a -&gt; a) -&gt; Result a -&gt; a
+$cfoldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; Result a -&gt; a
+foldl' :: (b -&gt; a -&gt; b) -&gt; b -&gt; Result a -&gt; b
+$cfoldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Result a -&gt; b
+foldl :: (b -&gt; a -&gt; b) -&gt; b -&gt; Result a -&gt; b
+$cfoldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Result a -&gt; b
+foldr' :: (a -&gt; b -&gt; b) -&gt; b -&gt; Result a -&gt; b
+$cfoldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Result a -&gt; b
+foldr :: (a -&gt; b -&gt; b) -&gt; b -&gt; Result a -&gt; b
+$cfoldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Result a -&gt; b
+foldMap' :: (a -&gt; m) -&gt; Result a -&gt; m
+$cfoldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Result a -&gt; m
+foldMap :: (a -&gt; m) -&gt; Result a -&gt; m
+$cfoldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Result a -&gt; m
+fold :: Result m -&gt; m
+$cfold :: forall m. Monoid m =&gt; Result m -&gt; m
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Foldable</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679238722"><span id="local-6989586621679238724"><span id="local-6989586621679238726"><span id="local-6989586621679238728"><span class="annot"><span class="annottext">Functor Result
+Foldable Result
+Functor Result
+-&gt; Foldable Result
+-&gt; (forall (f :: * -&gt; *) a b.
+    Applicative f =&gt;
+    (a -&gt; f b) -&gt; Result a -&gt; f (Result b))
+-&gt; (forall (f :: * -&gt; *) a.
+    Applicative f =&gt;
+    Result (f a) -&gt; f (Result a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; Result a -&gt; m (Result b))
+-&gt; (forall (m :: * -&gt; *) a.
+    Monad m =&gt;
+    Result (m a) -&gt; m (Result a))
+-&gt; Traversable Result
+(a -&gt; f b) -&gt; Result a -&gt; f (Result b)
+forall (t :: * -&gt; *).
+Functor t
+-&gt; Foldable t
+-&gt; (forall (f :: * -&gt; *) a b.
+    Applicative f =&gt;
+    (a -&gt; f b) -&gt; t a -&gt; f (t b))
+-&gt; (forall (f :: * -&gt; *) a. Applicative f =&gt; t (f a) -&gt; f (t a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; t a -&gt; m (t b))
+-&gt; (forall (m :: * -&gt; *) a. Monad m =&gt; t (m a) -&gt; m (t a))
+-&gt; Traversable t
+forall (m :: * -&gt; *) a. Monad m =&gt; Result (m a) -&gt; m (Result a)
+forall (f :: * -&gt; *) a.
+Applicative f =&gt;
+Result (f a) -&gt; f (Result a)
+forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; Result a -&gt; m (Result b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; Result a -&gt; f (Result b)
+sequence :: Result (m a) -&gt; m (Result a)
+$csequence :: forall (m :: * -&gt; *) a. Monad m =&gt; Result (m a) -&gt; m (Result a)
+mapM :: (a -&gt; m b) -&gt; Result a -&gt; m (Result b)
+$cmapM :: forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; Result a -&gt; m (Result b)
+sequenceA :: Result (f a) -&gt; f (Result a)
+$csequenceA :: forall (f :: * -&gt; *) a.
+Applicative f =&gt;
+Result (f a) -&gt; f (Result a)
+traverse :: (a -&gt; f b) -&gt; Result a -&gt; f (Result b)
+$ctraverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; Result a -&gt; f (Result b)
+$cp2Traversable :: Foldable Result
+$cp1Traversable :: Functor Result
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Traversable</span></span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-120"></span><span>
+</span><span id="line-121"></span><span class="hs-comment">-- | Fold over a 'Result'</span><span>
+</span><span id="line-122"></span><span id="local-6989586621679238719"><span id="local-6989586621679238720"><span class="annot"><a href="Text.Trifecta.Result.html#foldResult"><span class="hs-identifier hs-type">foldResult</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Result.html#ErrInfo"><span class="hs-identifier hs-type">ErrInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679238720"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679238719"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679238720"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Result"><span class="hs-identifier hs-type">Result</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238719"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679238720"><span class="hs-identifier hs-type">b</span></a></span></span></span><span>
+</span><span id="line-123"></span><span id="foldResult"><span class="annot"><span class="annottext">foldResult :: (ErrInfo -&gt; b) -&gt; (a -&gt; b) -&gt; Result a -&gt; b
+</span><a href="Text.Trifecta.Result.html#foldResult"><span class="hs-identifier hs-var hs-var">foldResult</span></a></span></span><span> </span><span id="local-6989586621679238718"><span class="annot"><span class="annottext">ErrInfo -&gt; b
+</span><a href="#local-6989586621679238718"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679238717"><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679238717"><span class="hs-identifier hs-var">g</span></a></span></span><span> </span><span id="local-6989586621679238716"><span class="annot"><span class="annottext">Result a
+</span><a href="#local-6989586621679238716"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Result a
+</span><a href="#local-6989586621679238716"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-124"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-type">Failure</span></a></span><span> </span><span id="local-6989586621679238715"><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238715"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ErrInfo -&gt; b
+</span><a href="#local-6989586621679238718"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238715"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-125"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span id="local-6989586621679238714"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679238714"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679238717"><span class="hs-identifier hs-var">g</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679238714"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-126"></span><span>
+</span><span id="line-127"></span><span class="hs-comment">-- | A 'Prism' that lets you embed or retrieve a 'Result' in a potentially larger type.</span><span>
+</span><span id="line-128"></span><span class="hs-keyword">class</span><span> </span><span id="AsResult"><span class="annot"><a href="Text.Trifecta.Result.html#AsResult"><span class="hs-identifier hs-var">AsResult</span></a></span></span><span> </span><span id="local-6989586621679238989"><span class="annot"><a href="#local-6989586621679238989"><span class="hs-identifier hs-type">s</span></a></span></span><span> </span><span id="local-6989586621679238988"><span class="annot"><a href="#local-6989586621679238988"><span class="hs-identifier hs-type">t</span></a></span></span><span> </span><span id="local-6989586621679238987"><span class="annot"><a href="#local-6989586621679238987"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span id="local-6989586621679238986"><span class="annot"><a href="#local-6989586621679238986"><span class="hs-identifier hs-type">b</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><a href="#local-6989586621679238989"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679238987"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679238988"><span class="hs-identifier hs-type">t</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679238986"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679238989"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238986"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679238988"><span class="hs-identifier hs-type">t</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679238988"><span class="hs-identifier hs-type">t</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238987"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679238989"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-129"></span><span>  </span><span id="_Result"><span class="annot"><a href="Text.Trifecta.Result.html#_Result"><span class="hs-identifier hs-type">_Result</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Prism</span></span><span> </span><span class="annot"><a href="#local-6989586621679238989"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238988"><span class="hs-identifier hs-type">t</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Result.html#Result"><span class="hs-identifier hs-type">Result</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238987"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Result.html#Result"><span class="hs-identifier hs-type">Result</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238986"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-130"></span><span>
+</span><span id="line-131"></span><span id="local-6989586621679238711"><span id="local-6989586621679238712"><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#AsResult"><span class="hs-identifier hs-type">AsResult</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Result.html#Result"><span class="hs-identifier hs-type">Result</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238712"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Result.html#Result"><span class="hs-identifier hs-type">Result</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238711"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679238712"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238711"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-132"></span><span>  </span><span id="local-6989586621679238708"><span class="annot"><span class="annottext">_Result :: p (Result a) (f (Result b)) -&gt; p (Result a) (f (Result b))
+</span><a href="#local-6989586621679238708"><span class="hs-identifier hs-var hs-var hs-var hs-var">_Result</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">p (Result a) (f (Result b)) -&gt; p (Result a) (f (Result b))
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span>
+</span><span id="line-133"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#_Result"><span class="hs-pragma hs-type">_Result</span></a></span><span> </span><span class="hs-pragma">#-}</span></span></span><span>
+</span><span id="line-134"></span><span>
+</span><span id="line-135"></span><span class="hs-comment">-- | The 'Prism' for the 'Success' constructor of 'Result'</span><span>
+</span><span id="line-136"></span><span id="local-6989586621679238703"><span id="local-6989586621679238704"><span id="local-6989586621679238705"><span id="local-6989586621679238706"><span class="annot"><a href="Text.Trifecta.Result.html#_Success"><span class="hs-identifier hs-type">_Success</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#AsResult"><span class="hs-identifier hs-type">AsResult</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238706"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238705"><span class="hs-identifier hs-type">t</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238704"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238703"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Prism</span></span><span> </span><span class="annot"><a href="#local-6989586621679238706"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238705"><span class="hs-identifier hs-type">t</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238704"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238703"><span class="hs-identifier hs-type">b</span></a></span></span></span></span></span><span>
+</span><span id="line-137"></span><span id="_Success"><span class="annot"><span class="annottext">_Success :: Prism s t a b
+</span><a href="Text.Trifecta.Result.html#_Success"><span class="hs-identifier hs-var hs-var">_Success</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">p (Result a) (f (Result b)) -&gt; p s (f t)
+forall s t a b. AsResult s t a b =&gt; Prism s t (Result a) (Result b)
+</span><a href="Text.Trifecta.Result.html#_Result"><span class="hs-identifier hs-var">_Result</span></a></span><span> </span><span class="annot"><span class="annottext">(p (Result a) (f (Result b)) -&gt; p s (f t))
+-&gt; (p a (f b) -&gt; p (Result a) (f (Result b)))
+-&gt; p a (f b)
+-&gt; p s (f t)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Result a -&gt; Either (f (Result b)) a)
+-&gt; (Either (f (Result b)) (f (Result b)) -&gt; f (Result b))
+-&gt; p (Either (f (Result b)) a)
+     (Either (f (Result b)) (f (Result b)))
+-&gt; p (Result a) (f (Result b))
+forall (p :: * -&gt; * -&gt; *) a b c d.
+Profunctor p =&gt;
+(a -&gt; b) -&gt; (c -&gt; d) -&gt; p b c -&gt; p a d
+</span><span class="hs-identifier hs-var">dimap</span></span><span> </span><span class="annot"><span class="annottext">Result a -&gt; Either (f (Result b)) a
+forall (f :: * -&gt; *) b a.
+Applicative f =&gt;
+Result b -&gt; Either (f (Result a)) b
+</span><a href="#local-6989586621679238700"><span class="hs-identifier hs-var">seta</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(f (Result b) -&gt; f (Result b))
+-&gt; (f (Result b) -&gt; f (Result b))
+-&gt; Either (f (Result b)) (f (Result b))
+-&gt; f (Result b)
+forall a c b. (a -&gt; c) -&gt; (b -&gt; c) -&gt; Either a b -&gt; c
+</span><span class="hs-identifier hs-var">either</span></span><span> </span><span class="annot"><span class="annottext">f (Result b) -&gt; f (Result b)
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span> </span><span class="annot"><span class="annottext">f (Result b) -&gt; f (Result b)
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(p (Either (f (Result b)) a) (Either (f (Result b)) (f (Result b)))
+ -&gt; p (Result a) (f (Result b)))
+-&gt; (p a (f b)
+    -&gt; p (Either (f (Result b)) a)
+         (Either (f (Result b)) (f (Result b))))
+-&gt; p a (f b)
+-&gt; p (Result a) (f (Result b))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">p a (f (Result b))
+-&gt; p (Either (f (Result b)) a)
+     (Either (f (Result b)) (f (Result b)))
+forall (p :: * -&gt; * -&gt; *) a b c.
+Choice p =&gt;
+p a b -&gt; p (Either c a) (Either c b)
+</span><span class="hs-identifier hs-var">right'</span></span><span> </span><span class="annot"><span class="annottext">(p a (f (Result b))
+ -&gt; p (Either (f (Result b)) a)
+      (Either (f (Result b)) (f (Result b))))
+-&gt; (p a (f b) -&gt; p a (f (Result b)))
+-&gt; p a (f b)
+-&gt; p (Either (f (Result b)) a)
+     (Either (f (Result b)) (f (Result b)))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(f b -&gt; f (Result b)) -&gt; p a (f b) -&gt; p a (f (Result b))
+forall (p :: * -&gt; * -&gt; *) b c a.
+Profunctor p =&gt;
+(b -&gt; c) -&gt; p a b -&gt; p a c
+</span><span class="hs-identifier hs-var">rmap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(b -&gt; Result b) -&gt; f b -&gt; f (Result b)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">b -&gt; Result b
+forall a. a -&gt; Result a
+</span><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-138"></span><span>  </span><span id="local-6989586621679238700"><span class="annot"><span class="annottext">seta :: Result b -&gt; Either (f (Result a)) b
+</span><a href="#local-6989586621679238700"><span class="hs-identifier hs-var hs-var">seta</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span id="local-6989586621679238696"><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679238696"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">b -&gt; Either (f (Result a)) b
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679238696"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-139"></span><span>  </span><span class="annot"><a href="#local-6989586621679238700"><span class="hs-identifier hs-var">seta</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-type">Failure</span></a></span><span> </span><span id="local-6989586621679238695"><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238695"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">f (Result a) -&gt; Either (f (Result a)) b
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Result a -&gt; f (Result a)
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ErrInfo -&gt; Result a
+forall a. ErrInfo -&gt; Result a
+</span><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-var">Failure</span></a></span><span> </span><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238695"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-140"></span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#_Success"><span class="hs-pragma hs-type">_Success</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-141"></span><span>
+</span><span id="line-142"></span><span class="hs-comment">-- | The 'Prism' for the 'Failure' constructor of 'Result'</span><span>
+</span><span id="line-143"></span><span id="local-6989586621679238693"><span id="local-6989586621679238694"><span class="annot"><a href="Text.Trifecta.Result.html#_Failure"><span class="hs-identifier hs-type">_Failure</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#AsResult"><span class="hs-identifier hs-type">AsResult</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238694"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238694"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238693"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679238693"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Prism'</span></span><span> </span><span class="annot"><a href="#local-6989586621679238694"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#ErrInfo"><span class="hs-identifier hs-type">ErrInfo</span></a></span></span></span><span>
+</span><span id="line-144"></span><span id="_Failure"><span class="annot"><span class="annottext">_Failure :: Prism' s ErrInfo
+</span><a href="Text.Trifecta.Result.html#_Failure"><span class="hs-identifier hs-var hs-var">_Failure</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">p (Result a) (f (Result a)) -&gt; p s (f s)
+forall s t a b. AsResult s t a b =&gt; Prism s t (Result a) (Result b)
+</span><a href="Text.Trifecta.Result.html#_Result"><span class="hs-identifier hs-var">_Result</span></a></span><span> </span><span class="annot"><span class="annottext">(p (Result a) (f (Result a)) -&gt; p s (f s))
+-&gt; (p ErrInfo (f ErrInfo) -&gt; p (Result a) (f (Result a)))
+-&gt; p ErrInfo (f ErrInfo)
+-&gt; p s (f s)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Result a -&gt; Either (f (Result a)) ErrInfo)
+-&gt; (Either (f (Result a)) (f (Result a)) -&gt; f (Result a))
+-&gt; p (Either (f (Result a)) ErrInfo)
+     (Either (f (Result a)) (f (Result a)))
+-&gt; p (Result a) (f (Result a))
+forall (p :: * -&gt; * -&gt; *) a b c d.
+Profunctor p =&gt;
+(a -&gt; b) -&gt; (c -&gt; d) -&gt; p b c -&gt; p a d
+</span><span class="hs-identifier hs-var">dimap</span></span><span> </span><span class="annot"><span class="annottext">Result a -&gt; Either (f (Result a)) ErrInfo
+forall (f :: * -&gt; *) a.
+Applicative f =&gt;
+Result a -&gt; Either (f (Result a)) ErrInfo
+</span><a href="#local-6989586621679238692"><span class="hs-identifier hs-var">seta</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(f (Result a) -&gt; f (Result a))
+-&gt; (f (Result a) -&gt; f (Result a))
+-&gt; Either (f (Result a)) (f (Result a))
+-&gt; f (Result a)
+forall a c b. (a -&gt; c) -&gt; (b -&gt; c) -&gt; Either a b -&gt; c
+</span><span class="hs-identifier hs-var">either</span></span><span> </span><span class="annot"><span class="annottext">f (Result a) -&gt; f (Result a)
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span> </span><span class="annot"><span class="annottext">f (Result a) -&gt; f (Result a)
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(p (Either (f (Result a)) ErrInfo)
+   (Either (f (Result a)) (f (Result a)))
+ -&gt; p (Result a) (f (Result a)))
+-&gt; (p ErrInfo (f ErrInfo)
+    -&gt; p (Either (f (Result a)) ErrInfo)
+         (Either (f (Result a)) (f (Result a))))
+-&gt; p ErrInfo (f ErrInfo)
+-&gt; p (Result a) (f (Result a))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">p ErrInfo (f (Result a))
+-&gt; p (Either (f (Result a)) ErrInfo)
+     (Either (f (Result a)) (f (Result a)))
+forall (p :: * -&gt; * -&gt; *) a b c.
+Choice p =&gt;
+p a b -&gt; p (Either c a) (Either c b)
+</span><span class="hs-identifier hs-var">right'</span></span><span> </span><span class="annot"><span class="annottext">(p ErrInfo (f (Result a))
+ -&gt; p (Either (f (Result a)) ErrInfo)
+      (Either (f (Result a)) (f (Result a))))
+-&gt; (p ErrInfo (f ErrInfo) -&gt; p ErrInfo (f (Result a)))
+-&gt; p ErrInfo (f ErrInfo)
+-&gt; p (Either (f (Result a)) ErrInfo)
+     (Either (f (Result a)) (f (Result a)))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(f ErrInfo -&gt; f (Result a))
+-&gt; p ErrInfo (f ErrInfo) -&gt; p ErrInfo (f (Result a))
+forall (p :: * -&gt; * -&gt; *) b c a.
+Profunctor p =&gt;
+(b -&gt; c) -&gt; p a b -&gt; p a c
+</span><span class="hs-identifier hs-var">rmap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(ErrInfo -&gt; Result a) -&gt; f ErrInfo -&gt; f (Result a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">ErrInfo -&gt; Result a
+forall a. ErrInfo -&gt; Result a
+</span><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-var">Failure</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-145"></span><span>  </span><span id="local-6989586621679238692"><span class="annot"><span class="annottext">seta :: Result a -&gt; Either (f (Result a)) ErrInfo
+</span><a href="#local-6989586621679238692"><span class="hs-identifier hs-var hs-var">seta</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-type">Failure</span></a></span><span> </span><span id="local-6989586621679238691"><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238691"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ErrInfo -&gt; Either (f (Result a)) ErrInfo
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238691"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-146"></span><span>  </span><span class="annot"><a href="#local-6989586621679238692"><span class="hs-identifier hs-var">seta</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span id="local-6989586621679238690"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679238690"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">f (Result a) -&gt; Either (f (Result a)) ErrInfo
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Result a -&gt; f (Result a)
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; Result a
+forall a. a -&gt; Result a
+</span><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679238690"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-147"></span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#_Failure"><span class="hs-pragma hs-type">_Failure</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-148"></span><span>
+</span><span id="line-149"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679238681"><span id="local-6989586621679238683"><span id="local-6989586621679238685"><span class="annot"><span class="hs-identifier hs-type">Applicative</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Result"><span class="hs-identifier hs-type">Result</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-150"></span><span>  </span><span id="local-6989586621679238679"><span class="annot"><span class="annottext">pure :: a -&gt; Result a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pure</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Result a
+forall a. a -&gt; Result a
+</span><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span>
+</span><span id="line-151"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><span class="hs-pragma hs-type">pure</span></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-152"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span id="local-6989586621679238678"><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679238678"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679238677"><span class="annot"><span class="annottext">&lt;*&gt; :: Result (a -&gt; b) -&gt; Result a -&gt; Result b
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;*&gt;</span></span></span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span id="local-6989586621679238676"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679238676"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">b -&gt; Result b
+forall a. a -&gt; Result a
+</span><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679238678"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679238676"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-153"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; b
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-type">Failure</span></a></span><span> </span><span id="local-6989586621679238675"><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238675"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ErrInfo -&gt; Result b
+forall a. ErrInfo -&gt; Result a
+</span><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-var">Failure</span></a></span><span> </span><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238675"><span class="hs-identifier hs-var">y</span></a></span><span>
+</span><span id="line-154"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-type">Failure</span></a></span><span> </span><span id="local-6989586621679238674"><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238674"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ErrInfo -&gt; Result b
+forall a. ErrInfo -&gt; Result a
+</span><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-var">Failure</span></a></span><span> </span><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238674"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-155"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-type">Failure</span></a></span><span> </span><span id="local-6989586621679238673"><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238673"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-type">Failure</span></a></span><span> </span><span id="local-6989586621679238672"><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238672"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-156"></span><span>    </span><span class="annot"><span class="annottext">ErrInfo -&gt; Result b
+forall a. ErrInfo -&gt; Result a
+</span><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-var">Failure</span></a></span><span> </span><span class="annot"><span class="annottext">(ErrInfo -&gt; Result b) -&gt; ErrInfo -&gt; Result b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; [Delta] -&gt; ErrInfo
+</span><a href="Text.Trifecta.Result.html#ErrInfo"><span class="hs-identifier hs-var">ErrInfo</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Doc AnsiStyle] -&gt; Doc AnsiStyle
+forall ann. [Doc ann] -&gt; Doc ann
+</span><span class="hs-identifier hs-var">vsep</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">ErrInfo -&gt; Doc AnsiStyle
+</span><a href="Text.Trifecta.Result.html#_errDoc"><span class="hs-identifier hs-var hs-var">_errDoc</span></a></span><span> </span><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238673"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ErrInfo -&gt; Doc AnsiStyle
+</span><a href="Text.Trifecta.Result.html#_errDoc"><span class="hs-identifier hs-var hs-var">_errDoc</span></a></span><span> </span><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238672"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ErrInfo -&gt; [Delta]
+</span><a href="Text.Trifecta.Result.html#_errDeltas"><span class="hs-identifier hs-var hs-var">_errDeltas</span></a></span><span> </span><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238673"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">[Delta] -&gt; [Delta] -&gt; [Delta]
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">ErrInfo -&gt; [Delta]
+</span><a href="Text.Trifecta.Result.html#_errDeltas"><span class="hs-identifier hs-var hs-var">_errDeltas</span></a></span><span> </span><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238672"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-157"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="hs-pragma">(</span><span class="hs-pragma">&lt;*&gt;</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-158"></span><span>
+</span><span id="line-159"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679238665"><span id="local-6989586621679238667"><span class="annot"><span class="hs-identifier hs-type">Alternative</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Result"><span class="hs-identifier hs-type">Result</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-160"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-type">Failure</span></a></span><span> </span><span id="local-6989586621679238663"><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238663"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679238662"><span class="annot"><span class="annottext">&lt;|&gt; :: Result a -&gt; Result a -&gt; Result a
+</span><a href="#local-6989586621679238662"><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;|&gt;</span></a></span></span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-type">Failure</span></a></span><span> </span><span id="local-6989586621679238661"><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238661"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-161"></span><span>    </span><span class="annot"><span class="annottext">ErrInfo -&gt; Result a
+forall a. ErrInfo -&gt; Result a
+</span><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-var">Failure</span></a></span><span> </span><span class="annot"><span class="annottext">(ErrInfo -&gt; Result a) -&gt; ErrInfo -&gt; Result a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Doc AnsiStyle -&gt; [Delta] -&gt; ErrInfo
+</span><a href="Text.Trifecta.Result.html#ErrInfo"><span class="hs-identifier hs-var">ErrInfo</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Doc AnsiStyle] -&gt; Doc AnsiStyle
+forall ann. [Doc ann] -&gt; Doc ann
+</span><span class="hs-identifier hs-var">vsep</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">ErrInfo -&gt; Doc AnsiStyle
+</span><a href="Text.Trifecta.Result.html#_errDoc"><span class="hs-identifier hs-var hs-var">_errDoc</span></a></span><span> </span><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238663"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ErrInfo -&gt; Doc AnsiStyle
+</span><a href="Text.Trifecta.Result.html#_errDoc"><span class="hs-identifier hs-var hs-var">_errDoc</span></a></span><span> </span><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238661"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ErrInfo -&gt; [Delta]
+</span><a href="Text.Trifecta.Result.html#_errDeltas"><span class="hs-identifier hs-var hs-var">_errDeltas</span></a></span><span> </span><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238663"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">[Delta] -&gt; [Delta] -&gt; [Delta]
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">ErrInfo -&gt; [Delta]
+</span><a href="Text.Trifecta.Result.html#_errDeltas"><span class="hs-identifier hs-var hs-var">_errDeltas</span></a></span><span> </span><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238661"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-162"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span id="local-6989586621679238660"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679238660"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Result a
+forall a. a -&gt; Result a
+</span><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679238660"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-163"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span id="local-6989586621679238659"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679238659"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-type">Failure</span></a></span><span> </span><span class="annot"><span class="annottext">ErrInfo
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Result a
+forall a. a -&gt; Result a
+</span><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679238659"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-164"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-type">Failure</span></a></span><span> </span><span class="annot"><span class="annottext">ErrInfo
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span id="local-6989586621679238658"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679238658"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Result a
+forall a. a -&gt; Result a
+</span><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679238658"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-165"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="hs-pragma">(</span><span class="hs-pragma">&lt;|&gt;</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-166"></span><span>  </span><span id="local-6989586621679238657"><span class="annot"><span class="annottext">empty :: Result a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">empty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ErrInfo -&gt; Result a
+forall a. ErrInfo -&gt; Result a
+</span><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-var">Failure</span></a></span><span> </span><span class="annot"><span class="annottext">ErrInfo
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-167"></span><span>  </span><span class="hs-pragma">{-# inlinable</span><span> </span><span class="annot"><span class="hs-pragma hs-type">empty</span></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-168"></span><span>
+</span><span id="line-169"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679238652"><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="Text.Trifecta.Result.html#Result"><span class="hs-identifier hs-type">Result</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-170"></span><span>  </span><span id="local-6989586621679238649"><span class="annot"><span class="annottext">return :: a -&gt; Result a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">return</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Result a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span>
+</span><span id="line-171"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Result.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span id="local-6989586621679238648"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679238648"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679238647"><span class="annot"><span class="annottext">&gt;&gt;= :: Result a -&gt; (a -&gt; Result b) -&gt; Result b
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&gt;&gt;=</span></span></span><span> </span><span id="local-6989586621679238646"><span class="annot"><span class="annottext">a -&gt; Result b
+</span><a href="#local-6989586621679238646"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Result b
+</span><a href="#local-6989586621679238646"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679238648"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-172"></span><span>  </span><span class="annot"><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-type">Failure</span></a></span><span> </span><span id="local-6989586621679238645"><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238645"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="annot"><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; Result b
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ErrInfo -&gt; Result b
+forall a. ErrInfo -&gt; Result a
+</span><a href="Text.Trifecta.Result.html#Failure"><span class="hs-identifier hs-var">Failure</span></a></span><span> </span><span class="annot"><span class="annottext">ErrInfo
+</span><a href="#local-6989586621679238645"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-173"></span></pre></body></html>

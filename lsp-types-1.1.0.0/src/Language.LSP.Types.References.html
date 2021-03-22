@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell       #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields #-}</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- | Find References Request</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- https://microsoft.github.io/language-server-protocol/specifications/specification-3-15/#textDocument_references</span><span>
+</span><span id="line-5"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.LSP.Types.References</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson.TH</span></span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.TextDocument.html"><span class="hs-identifier">Language.LSP.Types.TextDocument</span></a></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Progress.html"><span class="hs-identifier">Language.LSP.Types.Progress</span></a></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.LSP.Types.Utils.html"><span class="hs-identifier">Language.LSP.Types.Utils</span></a></span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">data</span><span> </span><span id="ReferencesClientCapabilities"><span class="annot"><a href="Language.LSP.Types.References.html#ReferencesClientCapabilities"><span class="hs-identifier hs-var">ReferencesClientCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-14"></span><span>  </span><span id="ReferencesClientCapabilities"><span class="annot"><a href="Language.LSP.Types.References.html#ReferencesClientCapabilities"><span class="hs-identifier hs-var">ReferencesClientCapabilities</span></a></span></span><span>
+</span><span id="line-15"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Whether references supports dynamic registration.</span><span>
+</span><span id="line-16"></span><span>      </span><span id="%24sel%3A_dynamicRegistration%3AReferencesClientCapabilities"><span class="annot"><span class="annottext">ReferencesClientCapabilities -&gt; Maybe Bool
+</span><a href="Language.LSP.Types.References.html#%24sel%3A_dynamicRegistration%3AReferencesClientCapabilities"><span class="hs-identifier hs-var hs-var">_dynamicRegistration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-17"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680438796"><span id="local-6989586621680438798"><span id="local-6989586621680438800"><span class="annot"><span class="annottext">Int -&gt; ReferencesClientCapabilities -&gt; ShowS
+[ReferencesClientCapabilities] -&gt; ShowS
+ReferencesClientCapabilities -&gt; String
+(Int -&gt; ReferencesClientCapabilities -&gt; ShowS)
+-&gt; (ReferencesClientCapabilities -&gt; String)
+-&gt; ([ReferencesClientCapabilities] -&gt; ShowS)
+-&gt; Show ReferencesClientCapabilities
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [ReferencesClientCapabilities] -&gt; ShowS
+$cshowList :: [ReferencesClientCapabilities] -&gt; ShowS
+show :: ReferencesClientCapabilities -&gt; String
+$cshow :: ReferencesClientCapabilities -&gt; String
+showsPrec :: Int -&gt; ReferencesClientCapabilities -&gt; ShowS
+$cshowsPrec :: Int -&gt; ReferencesClientCapabilities -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680438787"><span id="local-6989586621680438789"><span id="local-6989586621680438791"><span id="local-6989586621680438793"><span class="annot"><span class="annottext">ReadPrec [ReferencesClientCapabilities]
+ReadPrec ReferencesClientCapabilities
+Int -&gt; ReadS ReferencesClientCapabilities
+ReadS [ReferencesClientCapabilities]
+(Int -&gt; ReadS ReferencesClientCapabilities)
+-&gt; ReadS [ReferencesClientCapabilities]
+-&gt; ReadPrec ReferencesClientCapabilities
+-&gt; ReadPrec [ReferencesClientCapabilities]
+-&gt; Read ReferencesClientCapabilities
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [ReferencesClientCapabilities]
+$creadListPrec :: ReadPrec [ReferencesClientCapabilities]
+readPrec :: ReadPrec ReferencesClientCapabilities
+$creadPrec :: ReadPrec ReferencesClientCapabilities
+readList :: ReadS [ReferencesClientCapabilities]
+$creadList :: ReadS [ReferencesClientCapabilities]
+readsPrec :: Int -&gt; ReadS ReferencesClientCapabilities
+$creadsPrec :: Int -&gt; ReadS ReferencesClientCapabilities
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680438782"><span id="local-6989586621680438784"><span class="annot"><span class="annottext">ReferencesClientCapabilities
+-&gt; ReferencesClientCapabilities -&gt; Bool
+(ReferencesClientCapabilities
+ -&gt; ReferencesClientCapabilities -&gt; Bool)
+-&gt; (ReferencesClientCapabilities
+    -&gt; ReferencesClientCapabilities -&gt; Bool)
+-&gt; Eq ReferencesClientCapabilities
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: ReferencesClientCapabilities
+-&gt; ReferencesClientCapabilities -&gt; Bool
+$c/= :: ReferencesClientCapabilities
+-&gt; ReferencesClientCapabilities -&gt; Bool
+== :: ReferencesClientCapabilities
+-&gt; ReferencesClientCapabilities -&gt; Bool
+$c== :: ReferencesClientCapabilities
+-&gt; ReferencesClientCapabilities -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span id="local-6989586621680438769"><span id="local-6989586621680438771"><span id="local-6989586621680438773"><span id="local-6989586621680438775"><span id="local-6989586621680438777"><span id="local-6989586621680438779"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ReferencesClientCapabilities</span></span></span></span></span></span></span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span id="%24sel%3A_workDoneProgress%3AReferenceOptions"><span id="ReferenceOptions"><span id="local-6989586621680438746"><span id="local-6989586621680438748"><span id="local-6989586621680438750"><span id="local-6989586621680438752"><span id="local-6989586621680438754"><span id="local-6989586621680438756"><span id="local-6989586621680438758"><span id="local-6989586621680438760"><span id="local-6989586621680438762"><span id="ReferenceOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;ReferenceOptions&quot;</span><span> </span><span class="hs-special">[</span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressOptions</span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-21"></span><span id="local-6989586621680438732"><span id="local-6989586621680438734"><span id="local-6989586621680438736"><span id="local-6989586621680438738"><span id="local-6989586621680438740"><span id="local-6989586621680438742"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ReferenceOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span id="%24sel%3A_workDoneProgress%3AReferenceRegistrationOptions"><span id="%24sel%3A_documentSelector%3AReferenceRegistrationOptions"><span id="ReferenceRegistrationOptions"><span id="local-6989586621680438714"><span id="local-6989586621680438716"><span id="local-6989586621680438718"><span id="local-6989586621680438720"><span id="local-6989586621680438722"><span id="local-6989586621680438724"><span id="local-6989586621680438726"><span id="local-6989586621680438728"><span id="local-6989586621680438730"><span id="ReferenceRegistrationOptions"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;ReferenceRegistrationOptions&quot;</span><span>
+</span><span id="line-24"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentRegistrationOptions</span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ReferenceOptions</span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-28"></span><span id="local-6989586621680438699"><span id="local-6989586621680438701"><span id="local-6989586621680438703"><span id="local-6989586621680438705"><span id="local-6989586621680438707"><span id="local-6989586621680438709"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ReferenceRegistrationOptions</span></span></span></span></span></span></span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">data</span><span> </span><span id="ReferenceContext"><span class="annot"><a href="Language.LSP.Types.References.html#ReferenceContext"><span class="hs-identifier hs-var">ReferenceContext</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-31"></span><span>  </span><span id="ReferenceContext"><span class="annot"><a href="Language.LSP.Types.References.html#ReferenceContext"><span class="hs-identifier hs-var">ReferenceContext</span></a></span></span><span>
+</span><span id="line-32"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Include the declaration of the current symbol.</span><span>
+</span><span id="line-33"></span><span>      </span><span id="%24sel%3A_includeDeclaration%3AReferenceContext"><span class="annot"><span class="annottext">ReferenceContext -&gt; Bool
+</span><a href="Language.LSP.Types.References.html#%24sel%3A_includeDeclaration%3AReferenceContext"><span class="hs-identifier hs-var hs-var">_includeDeclaration</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-34"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680438689"><span id="local-6989586621680438691"><span id="local-6989586621680438693"><span id="local-6989586621680438695"><span class="annot"><span class="annottext">ReadPrec [ReferenceContext]
+ReadPrec ReferenceContext
+Int -&gt; ReadS ReferenceContext
+ReadS [ReferenceContext]
+(Int -&gt; ReadS ReferenceContext)
+-&gt; ReadS [ReferenceContext]
+-&gt; ReadPrec ReferenceContext
+-&gt; ReadPrec [ReferenceContext]
+-&gt; Read ReferenceContext
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [ReferenceContext]
+$creadListPrec :: ReadPrec [ReferenceContext]
+readPrec :: ReadPrec ReferenceContext
+$creadPrec :: ReadPrec ReferenceContext
+readList :: ReadS [ReferenceContext]
+$creadList :: ReadS [ReferenceContext]
+readsPrec :: Int -&gt; ReadS ReferenceContext
+$creadsPrec :: Int -&gt; ReadS ReferenceContext
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680438683"><span id="local-6989586621680438685"><span id="local-6989586621680438687"><span class="annot"><span class="annottext">Int -&gt; ReferenceContext -&gt; ShowS
+[ReferenceContext] -&gt; ShowS
+ReferenceContext -&gt; String
+(Int -&gt; ReferenceContext -&gt; ShowS)
+-&gt; (ReferenceContext -&gt; String)
+-&gt; ([ReferenceContext] -&gt; ShowS)
+-&gt; Show ReferenceContext
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [ReferenceContext] -&gt; ShowS
+$cshowList :: [ReferenceContext] -&gt; ShowS
+show :: ReferenceContext -&gt; String
+$cshow :: ReferenceContext -&gt; String
+showsPrec :: Int -&gt; ReferenceContext -&gt; ShowS
+$cshowsPrec :: Int -&gt; ReferenceContext -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680438679"><span id="local-6989586621680438681"><span class="annot"><span class="annottext">ReferenceContext -&gt; ReferenceContext -&gt; Bool
+(ReferenceContext -&gt; ReferenceContext -&gt; Bool)
+-&gt; (ReferenceContext -&gt; ReferenceContext -&gt; Bool)
+-&gt; Eq ReferenceContext
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: ReferenceContext -&gt; ReferenceContext -&gt; Bool
+$c/= :: ReferenceContext -&gt; ReferenceContext -&gt; Bool
+== :: ReferenceContext -&gt; ReferenceContext -&gt; Bool
+$c== :: ReferenceContext -&gt; ReferenceContext -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span id="local-6989586621680438667"><span id="local-6989586621680438669"><span id="local-6989586621680438671"><span id="local-6989586621680438673"><span id="local-6989586621680438675"><span id="local-6989586621680438677"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ReferenceContext</span></span></span></span></span></span></span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span id="%24sel%3A_context%3AReferenceParams"><span id="%24sel%3A_partialResultToken%3AReferenceParams"><span id="%24sel%3A_workDoneToken%3AReferenceParams"><span id="%24sel%3A_position%3AReferenceParams"><span id="%24sel%3A_textDocument%3AReferenceParams"><span id="ReferenceParams"><span id="local-6989586621680438649"><span id="local-6989586621680438651"><span id="local-6989586621680438653"><span id="local-6989586621680438655"><span id="local-6989586621680438657"><span id="local-6989586621680438659"><span id="local-6989586621680438661"><span id="local-6989586621680438663"><span id="local-6989586621680438665"><span id="ReferenceParams"><span class="hs-identifier">makeExtendingDatatype</span><span> </span><span class="hs-string">&quot;ReferenceParams&quot;</span><span>
+</span><span id="line-38"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TextDocumentPositionParams</span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">WorkDoneProgressParams</span><span>
+</span><span id="line-40"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">PartialResultParams</span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="hs-string">&quot;_context&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-special">[t|</span><span> </span><span class="hs-identifier">ReferenceContext</span><span> </span><span class="hs-special">|]</span><span class="hs-special">)</span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-43"></span><span id="local-6989586621680438631"><span id="local-6989586621680438633"><span id="local-6989586621680438635"><span id="local-6989586621680438637"><span id="local-6989586621680438639"><span id="local-6989586621680438641"><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-identifier">lspOptions</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ReferenceParams</span></span></span></span></span></span></span><span>
+</span><span id="line-44"></span></pre></body></html>

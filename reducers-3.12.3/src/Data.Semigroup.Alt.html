@@ -1,0 +1,111 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, GeneralizedNewtypeDeriving, FlexibleContexts #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span class="hs-cpp">
+#if __GLASGOW_HASKELL__ &gt;= 702
+</span><span class="hs-pragma">{-# LANGUAGE Trustworthy #-}</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- Module      :  Data.Semigroup.Alt</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Copyright   :  (c) Edward Kmett 2009-2011</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- License     :  BSD-style</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- Maintainer  :  ekmett@gmail.com</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- Stability   :  experimental</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- Portability :  non-portable (MPTCs)</span><span>
+</span><span id="line-15"></span><span class="hs-comment">--</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- A semigroup for working 'Alt' or 'Plus'</span><span>
+</span><span id="line-17"></span><span class="hs-comment">--</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.Semigroup.Alt</span><span>
+</span><span id="line-21"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Data.Semigroup.Alt.html#Alter"><span class="hs-identifier">Alter</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Functor.Plus</span></span><span class="hs-cpp">
+#if __GLASGOW_HASKELL__ &lt; 710
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Monoid</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Monoid</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Semigroup</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Semigroup</span></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html"><span class="hs-identifier">Data.Semigroup.Reducer</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier">Reducer</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- | A 'Alter' turns any 'Alt' instance into a 'Semigroup'.</span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">newtype</span><span> </span><span id="Alter"><span class="annot"><a href="Data.Semigroup.Alt.html#Alter"><span class="hs-identifier hs-var">Alter</span></a></span></span><span> </span><span id="local-6989586621679078526"><span class="annot"><a href="#local-6989586621679078526"><span class="hs-identifier hs-type">f</span></a></span></span><span> </span><span id="local-6989586621679078525"><span class="annot"><a href="#local-6989586621679078525"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Alter"><span class="annot"><a href="Data.Semigroup.Alt.html#Alter"><span class="hs-identifier hs-var">Alter</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="getAlter"><span class="annot"><span class="annottext">Alter f a -&gt; f a
+</span><a href="Data.Semigroup.Alt.html#getAlter"><span class="hs-identifier hs-var hs-var">getAlter</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679078526"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078525"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-34"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679078505"><span id="local-6989586621679078507"><span class="annot"><span class="annottext">a -&gt; Alter f b -&gt; Alter f a
+(a -&gt; b) -&gt; Alter f a -&gt; Alter f b
+(forall a b. (a -&gt; b) -&gt; Alter f a -&gt; Alter f b)
+-&gt; (forall a b. a -&gt; Alter f b -&gt; Alter f a) -&gt; Functor (Alter f)
+forall a b. a -&gt; Alter f b -&gt; Alter f a
+forall a b. (a -&gt; b) -&gt; Alter f a -&gt; Alter f b
+forall (f :: * -&gt; *) a b. Functor f =&gt; a -&gt; Alter f b -&gt; Alter f a
+forall (f :: * -&gt; *) a b.
+Functor f =&gt;
+(a -&gt; b) -&gt; Alter f a -&gt; Alter f b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+&lt;$ :: a -&gt; Alter f b -&gt; Alter f a
+$c&lt;$ :: forall (f :: * -&gt; *) a b. Functor f =&gt; a -&gt; Alter f b -&gt; Alter f a
+fmap :: (a -&gt; b) -&gt; Alter f a -&gt; Alter f b
+$cfmap :: forall (f :: * -&gt; *) a b.
+Functor f =&gt;
+(a -&gt; b) -&gt; Alter f a -&gt; Alter f b
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Functor</span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679078501"><span class="annot"><span class="annottext">Alt (Alter f)
+Alter f a
+Alt (Alter f) -&gt; (forall a. Alter f a) -&gt; Plus (Alter f)
+forall a. Alter f a
+forall (f :: * -&gt; *). Plus f =&gt; Alt (Alter f)
+forall (f :: * -&gt; *) a. Plus f =&gt; Alter f a
+forall (f :: * -&gt; *). Alt f -&gt; (forall a. f a) -&gt; Plus f
+zero :: Alter f a
+$czero :: forall (f :: * -&gt; *) a. Plus f =&gt; Alter f a
+$cp1Plus :: forall (f :: * -&gt; *). Plus f =&gt; Alt (Alter f)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var">Plus</span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span id="local-6989586621679078499"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679078493"><span id="local-6989586621679078495"><span class="annot"><span class="hs-identifier hs-type">Alt</span></span><span> </span><span class="annot"><a href="#local-6989586621679078499"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Alt</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Alt.html#Alter"><span class="hs-identifier hs-type">Alter</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078499"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-37"></span><span>    </span><span class="annot"><a href="Data.Semigroup.Alt.html#Alter"><span class="hs-identifier hs-type">Alter</span></a></span><span> </span><span id="local-6989586621679078491"><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078491"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679078490"><span class="annot"><span class="annottext">&lt;!&gt; :: Alter f a -&gt; Alter f a -&gt; Alter f a
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;!&gt;</span></span></span><span> </span><span class="annot"><a href="Data.Semigroup.Alt.html#Alter"><span class="hs-identifier hs-type">Alter</span></a></span><span> </span><span id="local-6989586621679078488"><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078488"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">f a -&gt; Alter f a
+forall (f :: * -&gt; *) a. f a -&gt; Alter f a
+</span><a href="Data.Semigroup.Alt.html#Alter"><span class="hs-identifier hs-var">Alter</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078491"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">f a -&gt; f a -&gt; f a
+forall (f :: * -&gt; *) a. Alt f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;!&gt;</span></span><span> </span><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078488"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span id="local-6989586621679078486"><span id="local-6989586621679078487"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679078481"><span id="local-6989586621679078483"><span class="annot"><span class="hs-identifier hs-type">Alt</span></span><span> </span><span class="annot"><a href="#local-6989586621679078487"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Alt.html#Alter"><span class="hs-identifier hs-type">Alter</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078487"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078486"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-40"></span><span>    </span><span class="annot"><a href="Data.Semigroup.Alt.html#Alter"><span class="hs-identifier hs-type">Alter</span></a></span><span> </span><span id="local-6989586621679078479"><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078479"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679078478"><span class="annot"><span class="annottext">&lt;&gt; :: Alter f a -&gt; Alter f a -&gt; Alter f a
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></span></span><span> </span><span class="annot"><a href="Data.Semigroup.Alt.html#Alter"><span class="hs-identifier hs-type">Alter</span></a></span><span> </span><span id="local-6989586621679078477"><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078477"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">f a -&gt; Alter f a
+forall (f :: * -&gt; *) a. f a -&gt; Alter f a
+</span><a href="Data.Semigroup.Alt.html#Alter"><span class="hs-identifier hs-var">Alter</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078479"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">f a -&gt; f a -&gt; f a
+forall (f :: * -&gt; *) a. Alt f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;!&gt;</span></span><span> </span><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078477"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span id="local-6989586621679078475"><span id="local-6989586621679078476"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679078470"><span class="annot"><span class="hs-identifier hs-type">Plus</span></span><span> </span><span class="annot"><a href="#local-6989586621679078476"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Alt.html#Alter"><span class="hs-identifier hs-type">Alter</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078476"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078475"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-43"></span><span>    </span><span id="local-6989586621679078468"><span class="annot"><span class="annottext">mempty :: Alter f a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Alter f a
+forall (f :: * -&gt; *) a. Plus f =&gt; f a
+</span><span class="hs-identifier hs-var">zero</span></span><span>
+</span><span id="line-44"></span><span>    </span><span class="annot"><a href="Data.Semigroup.Alt.html#Alter"><span class="hs-identifier hs-type">Alter</span></a></span><span> </span><span id="local-6989586621679078466"><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078466"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679078465"><span class="annot"><span class="annottext">mappend :: Alter f a -&gt; Alter f a -&gt; Alter f a
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">`mappend`</span></span></span><span> </span><span class="annot"><a href="Data.Semigroup.Alt.html#Alter"><span class="hs-identifier hs-type">Alter</span></a></span><span> </span><span id="local-6989586621679078464"><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078464"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">f a -&gt; Alter f a
+forall (f :: * -&gt; *) a. f a -&gt; Alter f a
+</span><a href="Data.Semigroup.Alt.html#Alter"><span class="hs-identifier hs-var">Alter</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078466"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">f a -&gt; f a -&gt; f a
+forall (f :: * -&gt; *) a. Alt f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;!&gt;</span></span><span> </span><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679078464"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span id="local-6989586621679078462"><span id="local-6989586621679078463"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679078456"><span id="local-6989586621679078458"><span class="annot"><span class="hs-identifier hs-type">Alt</span></span><span> </span><span class="annot"><a href="#local-6989586621679078463"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Data.Semigroup.Reducer.html#Reducer"><span class="hs-identifier hs-type">Reducer</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679078463"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078462"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Semigroup.Alt.html#Alter"><span class="hs-identifier hs-type">Alter</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078463"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679078462"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-47"></span><span>    </span><span id="local-6989586621679078454"><span class="annot"><span class="annottext">unit :: f a -&gt; Alter f a
+</span><a href="Data.Semigroup.Reducer.html#unit"><span class="hs-keyword hs-var hs-var hs-var hs-var">unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">f a -&gt; Alter f a
+forall (f :: * -&gt; *) a. f a -&gt; Alter f a
+</span><a href="Data.Semigroup.Alt.html#Alter"><span class="hs-identifier hs-var">Alter</span></a></span></span></span><span>
+</span><span id="line-48"></span></pre></body></html>
