@@ -3,8 +3,6 @@
 module Main where
 
 import           Control.Monad.IO.Class
-import qualified Data.Map.Strict          as M
-import qualified Data.SortedList          as L
 import           Language.LSP.Diagnostics (partitionBySource)
 import           Language.LSP.Server
 import           Language.LSP.Types
@@ -24,7 +22,7 @@ changeHandler = notificationHandler STextDocumentDidChange $ \msg -> do
           (Range (Position 0 1) (Position 0 6))
           (Just DsError)
           Nothing
-          (Just "test source")
+          (Just "banana-lsp")
           "Example error message"
           Nothing
           (Just (List []))
@@ -35,7 +33,7 @@ hoverHandler = requestHandler STextDocumentHover $ \req responder -> do
   let RequestMessage _ _ _ (HoverParams _doc pos _workDone) = req
       Position _l _c' = pos
       rsp = Hover ms (Just range)
-      ms = HoverContents $ markedUpContent "lsp-demo-simple-server" "I am a hover message!"
+      ms = HoverContents $ markedUpContent "banana-lsp" "I am a hover message!"
       range = Range pos pos
   responder (Right $ Just rsp)
 
@@ -59,5 +57,5 @@ main = runServer $ ServerDefinition
   , doInitialize = const . pure . Right
   , staticHandlers = handlers
   , interpretHandler = \env -> Iso (runLspT env) liftIO
-  , options = defaultOptions
+  , options = defaultOptions {serverInfo = Just (ServerInfo "banana-lsp" (Just "v1"))}
   }
